@@ -1,0 +1,52 @@
+# Assessment System Requirements
+# متطلبات نظام التقييمات
+
+# Core Django packages (already included in main requirements.txt)
+# django>=4.1.7
+# djangorestframework>=3.14.0
+# django-filter>=22.1
+
+# Additional packages that might be useful for assessment system
+# (These are optional and can be added if needed)
+
+# For advanced question types
+# Pillow>=9.0.0  # For image handling in questions
+# python-magic>=0.4.27  # For file type detection
+
+# For analytics and reporting
+# matplotlib>=3.5.0  # For generating charts
+# pandas>=1.4.0  # For data analysis
+
+# For advanced text processing
+# nltk>=3.7  # For natural language processing
+# textstat>=0.7.0  # For readability analysis
+
+# For file handling
+# python-docx>=0.8.11  # For Word document import/export
+# openpyxl>=3.0.9  # For Excel file handling
+
+# For real-time features (if needed)
+# channels>=3.0.0  # For WebSocket support
+# channels-redis>=3.4.0  # For Redis channel layer
+
+# For caching (if needed)
+# redis>=4.3.0  # For Redis caching
+
+# For background tasks (if needed)
+# celery>=5.2.0  # For background task processing
+# django-celery-beat>=2.2.0  # For periodic tasks
+
+# For testing
+# pytest>=7.0.0  # For advanced testing
+# pytest-django>=4.5.0  # For Django testing
+# factory-boy>=3.2.0  # For test data generation
+
+# For API documentation
+# drf-spectacular>=0.24.0  # For OpenAPI documentation
+
+# For monitoring and logging
+# sentry-sdk>=1.9.0  # For error tracking
+
+# Note: Most of these packages are optional and should only be installed
+# if the specific features are needed. The core assessment system works
+# with the standard Django and DRF packages.

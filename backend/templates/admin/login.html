@@ -1,0 +1,763 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block title %}{% if form.errors %}{% translate "Error:" %} {% endif %}{{ site_title|default:_('Login') }}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap');
+    
+    :root {
+        --primary: #333679;
+        --primary-light: #1a6ba3;
+        --primary-dark: #0a3d5f;
+        --secondary: #4DBFB3;
+        --secondary-light: #4DBFB3;
+        --secondary-dark: #d17a6e;
+        --text: #2d3748;
+        --text-light: #718096;
+        --white: #ffffff;
+        --gray-100: #f7fafc;
+        --gray-200: #edf2f7;
+        --gray-300: #e2e8f0;
+        --gray-400: #cbd5e0;
+        --gray-500: #a0aec0;
+        --gray-600: #718096;
+        --gray-700: #4a5568;
+        --gray-800: #2d3748;
+        --gray-900: #1a202c;
+        --border-radius: 12px;
+        --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        --box-shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.15);
+    }
+    
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Tajawal', sans-serif;
+    }
+    
+    /* إخفاء العنوان الإنجليزي */
+    #content > h1:first-child {
+        display: none !important;
+    }
+    
+    body {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 50%, var(--secondary) 100%);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        padding: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    body::before {
+        content: '';
+        position: absolute;
+        width: 200%;
+        height: 200%;
+        top: -50%;
+        left: -50%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+        animation: rotate 20s linear infinite;
+        z-index: 0;
+    }
+    
+    body::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.1)"/><circle cx="10" cy="60" r="0.5" fill="rgba(255,255,255,0.1)"/><circle cx="90" cy="40" r="0.5" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+        opacity: 0.3;
+        z-index: 1;
+    }
+    
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    
+    .login-container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: var(--border-radius);
+        padding: 50px;
+        box-shadow: var(--box-shadow);
+        width: 100%;
+        max-width: 450px;
+        position: relative;
+        z-index: 2;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        transform: translateY(0);
+        transition: all 0.4s ease;
+    }
+    
+    .login-container:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--box-shadow-hover);
+    }
+    
+    .login-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    
+    .login-logo {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        box-shadow: 0 8px 25px rgba(14, 81, 129, 0.3);
+    }
+    
+    .login-logo i {
+        font-size: 2rem;
+        color: white;
+    }
+    
+    .login-title {
+        font-size: 2rem;
+        color: var(--primary);
+        margin-bottom: 10px;
+        font-weight: 700;
+    }
+    
+    .login-subtitle {
+        color: var(--gray-600);
+        font-size: 1rem;
+        margin: 0;
+    }
+    
+    .form-row {
+        margin-bottom: 25px;
+        position: relative;
+    }
+    
+    .form-row label {
+        display: block;
+        margin-bottom: 10px;
+        font-weight: 600;
+        color: var(--primary);
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+    
+    .input-group {
+        position: relative;
+    }
+    
+    .input-icon {
+        position: absolute;
+        left: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--gray-500);
+        transition: all 0.3s ease;
+        font-size: 1.1rem;
+    }
+    
+    .form-row input[type="text"],
+    .form-row input[type="password"] {
+        width: 100%;
+        padding: 16px 20px 16px 50px;
+        border: 2px solid var(--gray-300);
+        border-radius: var(--border-radius);
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background-color: var(--white);
+        color: var(--text);
+        font-weight: 500;
+    }
+    
+    .form-row input[type="text"]:focus,
+    .form-row input[type="password"]:focus {
+        border-color: var(--primary);
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(14, 81, 129, 0.1);
+        background-color: var(--white);
+    }
+    
+    .form-row input[type="text"]:focus + .input-icon,
+    .form-row input[type="password"]:focus + .input-icon {
+        color: var(--primary);
+    }
+    
+    .submit-row {
+        margin-top: 35px;
+        text-align: center;
+    }
+    
+    .submit-row input[type="submit"] {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        color: white;
+        border: none;
+        padding: 16px 32px;
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        font-size: 1.1rem;
+        font-weight: 600;
+        width: 100%;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 6px 20px rgba(14, 81, 129, 0.3);
+    }
+    
+    .submit-row input[type="submit"]:hover {
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(14, 81, 129, 0.4);
+    }
+    
+    .submit-row input[type="submit"]:active {
+        transform: translateY(-1px);
+    }
+    
+    .errornote {
+        background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+        color: #c53030;
+        padding: 18px 20px;
+        border-radius: var(--border-radius);
+        margin-bottom: 30px;
+        font-size: 0.95rem;
+        border-right: 4px solid #fc8181;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        animation: shake 0.6s ease-in-out;
+        box-shadow: 0 4px 15px rgba(197, 48, 48, 0.1);
+    }
+    
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+        20%, 40%, 60%, 80% { transform: translateX(5px); }
+    }
+    
+    .password-reset-link {
+        text-align: center;
+        margin: 25px 0 0;
+    }
+    
+    .password-reset-link a {
+        color: var(--gray-600);
+        text-decoration: none;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border-radius: 8px;
+        background: rgba(14, 81, 129, 0.05);
+    }
+    
+    .password-reset-link a:hover {
+        color: var(--primary);
+        text-decoration: none;
+        background: rgba(14, 81, 129, 0.1);
+        transform: translateY(-2px);
+    }
+    
+    .login-footer {
+        text-align: center;
+        margin-top: 30px;
+        padding-top: 25px;
+        border-top: 1px solid var(--gray-200);
+    }
+    
+    .login-footer p {
+        color: var(--gray-500);
+        font-size: 0.9rem;
+        margin: 0;
+    }
+    
+    .login-footer strong {
+        color: var(--primary);
+        font-weight: 600;
+    }
+    
+    /* Responsive Design for Login */
+    
+    /* Large screens (1200px and up) */
+    @media (min-width: 1200px) {
+        .login-container {
+            max-width: 450px;
+            padding: 50px;
+        }
+        
+        .login-title {
+            font-size: 2.2rem;
+        }
+        
+        .login-logo {
+            width: 90px;
+            height: 90px;
+        }
+        
+        .login-logo i {
+            font-size: 2.2rem;
+        }
+    }
+    
+    /* Medium screens (768px to 1199px) */
+    @media (max-width: 1199px) and (min-width: 768px) {
+        body {
+            padding: 30px;
+        }
+        
+        .login-container {
+            max-width: 420px;
+            padding: 45px;
+        }
+        
+        .login-title {
+            font-size: 2rem;
+        }
+        
+        .login-logo {
+            width: 80px;
+            height: 80px;
+        }
+        
+        .login-logo i {
+            font-size: 2rem;
+        }
+        
+        .form-row input[type="text"],
+        .form-row input[type="password"] {
+            padding: 15px 18px 15px 45px;
+            font-size: 1rem;
+        }
+        
+        .submit-row input[type="submit"] {
+            padding: 15px 30px;
+            font-size: 1.1rem;
+        }
+    }
+    
+    /* Small screens (481px to 767px) */
+    @media (max-width: 767px) and (min-width: 481px) {
+        body {
+            padding: 20px;
+        }
+        
+        .login-container {
+            padding: 40px 30px;
+            max-width: 100%;
+            margin: 0;
+        }
+        
+        .login-header {
+            margin-bottom: 35px;
+        }
+        
+        .login-title {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+        }
+        
+        .login-subtitle {
+            font-size: 0.95rem;
+        }
+        
+        .login-logo {
+            width: 70px;
+            height: 70px;
+            margin-bottom: 18px;
+        }
+        
+        .login-logo i {
+            font-size: 1.8rem;
+        }
+        
+        .form-row {
+            margin-bottom: 22px;
+        }
+        
+        .form-row label {
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+        
+        .form-row input[type="text"],
+        .form-row input[type="password"] {
+            padding: 14px 16px 14px 45px;
+            font-size: 0.95rem;
+        }
+        
+        .input-icon {
+            left: 16px;
+            font-size: 1rem;
+        }
+        
+        .submit-row {
+            margin-top: 30px;
+        }
+        
+        .submit-row input[type="submit"] {
+            padding: 14px 28px;
+            font-size: 1rem;
+        }
+        
+        .password-reset-link {
+            margin-top: 22px;
+        }
+        
+        .password-reset-link a {
+            font-size: 0.9rem;
+            padding: 7px 14px;
+        }
+        
+        .login-footer {
+            margin-top: 25px;
+            padding-top: 20px;
+        }
+        
+        .login-footer p {
+            font-size: 0.85rem;
+        }
+    }
+    
+    /* Extra small screens (up to 480px) */
+    @media (max-width: 480px) {
+        body {
+            padding: 15px;
+        }
+        
+        .login-container {
+            padding: 35px 20px;
+            max-width: 100%;
+            margin: 0;
+            border-radius: 10px;
+        }
+        
+        .login-header {
+            margin-bottom: 30px;
+        }
+        
+        .login-title {
+            font-size: 1.6rem;
+            margin-bottom: 6px;
+        }
+        
+        .login-subtitle {
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        
+        .login-logo {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 15px;
+        }
+        
+        .login-logo i {
+            font-size: 1.6rem;
+        }
+        
+        .form-row {
+            margin-bottom: 20px;
+        }
+        
+        .form-row label {
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+        }
+        
+        .form-row input[type="text"],
+        .form-row input[type="password"] {
+            padding: 12px 14px 12px 40px;
+            font-size: 0.9rem;
+            border-radius: 8px;
+        }
+        
+        .input-icon {
+            left: 14px;
+            font-size: 0.9rem;
+        }
+        
+        .submit-row {
+            margin-top: 25px;
+        }
+        
+        .submit-row input[type="submit"] {
+            padding: 12px 24px;
+            font-size: 0.95rem;
+            border-radius: 8px;
+        }
+        
+        .errornote {
+            padding: 15px 18px;
+            font-size: 0.9rem;
+            border-radius: 8px;
+        }
+        
+        .password-reset-link {
+            margin-top: 20px;
+        }
+        
+        .password-reset-link a {
+            font-size: 0.85rem;
+            padding: 6px 12px;
+            border-radius: 6px;
+        }
+        
+        .login-footer {
+            margin-top: 20px;
+            padding-top: 18px;
+        }
+        
+        .login-footer p {
+            font-size: 0.8rem;
+        }
+    }
+    
+    /* Landscape orientation adjustments for mobile */
+    @media (max-width: 767px) and (orientation: landscape) {
+        body {
+            padding: 10px;
+        }
+        
+        .login-container {
+            padding: 25px 20px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .login-header {
+            margin-bottom: 20px;
+        }
+        
+        .login-title {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+        
+        .login-logo {
+            width: 50px;
+            height: 50px;
+            margin-bottom: 10px;
+        }
+        
+        .login-logo i {
+            font-size: 1.4rem;
+        }
+        
+        .form-row {
+            margin-bottom: 15px;
+        }
+        
+        .form-row input[type="text"],
+        .form-row input[type="password"] {
+            padding: 10px 12px 10px 35px;
+            font-size: 0.9rem;
+        }
+        
+        .input-icon {
+            left: 12px;
+            font-size: 0.9rem;
+        }
+        
+        .submit-row {
+            margin-top: 20px;
+        }
+        
+        .submit-row input[type="submit"] {
+            padding: 10px 20px;
+            font-size: 0.9rem;
+        }
+    }
+    
+    /* High DPI screens */
+    @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+        .login-logo i {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        .input-icon {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+    }
+    
+    /* Reduced motion preferences */
+    @media (prefers-reduced-motion: reduce) {
+        body::before {
+            animation: none;
+        }
+        
+        .login-container:hover {
+            transform: none;
+        }
+        
+        .submit-row input[type="submit"]:hover {
+            transform: none;
+        }
+        
+        .password-reset-link a:hover {
+            transform: none;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: none; }
+        }
+    }
+    
+    /* Dark mode support */
+    @media (prefers-color-scheme: dark) {
+        .login-container {
+            background: rgba(30, 30, 30, 0.95);
+            color: #fff;
+        }
+        
+        .login-title {
+            color: #fff;
+        }
+        
+        .login-subtitle {
+            color: #ccc;
+        }
+        
+        .form-row label {
+            color: #fff;
+        }
+        
+        .form-row input[type="text"],
+        .form-row input[type="password"] {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+        
+        .form-row input[type="text"]:focus,
+        .form-row input[type="password"]:focus {
+            background-color: rgba(255, 255, 255, 0.15);
+            border-color: #4DBFB3;
+        }
+        
+        .input-icon {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .form-row input[type="text"]:focus + .input-icon,
+        .form-row input[type="password"]:focus + .input-icon {
+            color: #4DBFB3;
+        }
+        
+        .password-reset-link a {
+            color: #ccc;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .password-reset-link a:hover {
+            color: #4DBFB3;
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .login-footer p {
+            color: #999;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block usertools %}{% endblock %}
+{% block nav-global %}{% endblock %}
+{% block nav-sidebar %}{% endblock %}
+{% block breadcrumbs %}{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: center; align-items: center; min-height: 100vh; position: absolute; top: 0; left: 0; right: 0; bottom: 0;">
+    <div class="login-container">
+        <div class="login-header">
+            <div class="login-logo">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <h1 class="login-title">تسجيل الدخول</h1>
+            <p class="login-subtitle">أدخل بيانات الدخول للوصول إلى لوحة التحكم</p>
+        </div>
+
+        {% if form.errors and not form.non_field_errors %}
+        <div class="errornote">
+            <i class="fas fa-exclamation-triangle"></i>
+            {% blocktranslate count counter=form.errors.items|length %}يرجى تصحيح الخطأ أدناه.{% plural %}يرجى تصحيح الأخطاء أدناه.{% endblocktranslate %}
+        </div>
+        {% endif %}
+
+        {% if form.non_field_errors %}
+            {% for error in form.non_field_errors %}
+                <div class="errornote">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    {{ error }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div id="content-main">
+            {% if user.is_authenticated %}
+            <div class="errornote">
+                <i class="fas fa-info-circle"></i>
+                {% blocktranslate trimmed %}
+                    أنت مسجل الدخول كـ {{ username }}, ولكن ليس لديك صلاحية الدخول لهذه الصفحة.
+                    هل ترغب في تسجيل الدخول بحساب آخر؟
+                {% endblocktranslate %}
+            </div>
+            {% endif %}
+
+            <form action="{{ app_path }}" method="post" id="login-form">
+                {% csrf_token %}
+                <div class="form-row">
+                    {{ form.username.errors }}
+                    <label for="{{ form.username.id_for_label }}">اسم المستخدم</label>
+                    <div class="input-group">
+                        <i class="fas fa-user input-icon"></i>
+                        {{ form.username }}
+                    </div>
+                </div>
+                <div class="form-row">
+                    {{ form.password.errors }}
+                    <label for="{{ form.password.id_for_label }}">كلمة المرور</label>
+                    <div class="input-group">
+                        <i class="fas fa-lock input-icon"></i>
+                        {{ form.password }}
+                    </div>
+                    <input type="hidden" name="next" value="{{ next }}">
+                </div>
+                
+                <div class="submit-row">
+                    <input type="submit" value="{% translate 'تسجيل الدخول' %}">
+                </div>
+                
+                {% url 'admin_password_reset' as password_reset_url %}
+                {% if password_reset_url %}
+                <div class="password-reset-link">
+                    <a href="{{ password_reset_url }}">
+                        <i class="fas fa-question-circle"></i>
+                        {% translate 'نسيت كلمة المرور؟' %}
+                    </a>
+                </div>
+                {% endif %}
+            </form>
+        </div>
+        
+        <div class="login-footer">
+            <p>منصة التعلم الإلكتروني <strong>LMS</strong></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

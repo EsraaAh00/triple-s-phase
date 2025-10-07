@@ -1,0 +1,193 @@
+/* Import the main dashboard styles */
+@import './DashboardStyles.css';
+
+/* Override Material-UI Grid spacing */
+.MuiGrid-root {
+  /* Override any default spacing */
+  --Grid-columnSpacing: 0px;
+  --Grid-rowSpacing: 0px;
+}
+
+/* Additional fixes for Material-UI icons */
+.MuiSvgIcon-root {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Ensure proper RTL support */
+[dir="rtl"] .dashboard-container {
+  direction: rtl;
+}
+
+[dir="rtl"] .enhanced-card {
+  text-align: right;
+}
+
+/* Fix for any potential icon loading issues */
+.icon-fallback {
+  width: 24px;
+  height: 24px;
+  background: currentColor;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ensure smooth animations */
+* {
+  box-sizing: border-box;
+}
+
+/* Fix for potential z-index issues */
+.dashboard-container {
+  position: relative;
+  z-index: 1;
+}
+
+.enhanced-card {
+  position: relative;
+  z-index: 2;
+}
+
+/* Ensure proper font loading */
+body {
+  font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+}
+
+/* Fix for potential overflow issues */
+.dashboard-container {
+  overflow-x: hidden;
+}
+
+/* Ensure proper spacing in RTL */
+[dir="rtl"] .MuiGrid-item {
+  padding-right: 12px;
+  padding-left: 12px;
+}
+
+/* Fix for potential button alignment issues */
+.MuiButton-root {
+  text-transform: none !important;
+}
+
+/* Ensure proper card shadows */
+.enhanced-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.enhanced-card:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Fix for potential progress bar issues */
+.MuiLinearProgress-root {
+  border-radius: 4px !important;
+}
+
+/* Ensure proper chip styling */
+.MuiChip-root {
+  font-weight: 500 !important;
+}
+
+/* Fix for potential avatar issues */
+.MuiAvatar-root {
+  font-weight: 600 !important;
+}
+
+/* Ensure proper tooltip positioning */
+.MuiTooltip-popper {
+  z-index: 9999 !important;
+}
+
+/* Fix for potential badge positioning */
+.MuiBadge-badge {
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+}
+
+/* Ensure proper responsive behavior */
+@media (max-width: 600px) {
+  .dashboard-container {
+    padding: 8px !important;
+  }
+  
+  .enhanced-card {
+    margin-bottom: 8px !important;
+  }
+}
+
+/* Fix for potential theme switching issues */
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+}
+
+/* Ensure proper focus states */
+.enhanced-card:focus-within {
+  outline: 2px solid #663399;
+  outline-offset: 2px;
+}
+
+/* Fix for potential animation performance */
+.enhanced-card {
+  will-change: transform, box-shadow;
+  backface-visibility: hidden;
+}
+
+/* Ensure proper loading states */
+.loading-skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Fix for potential scrollbar issues */
+.dashboard-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dashboard-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+}
+
+.dashboard-container::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+}
+
+.dashboard-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* Ensure proper print styles */
+@media print {
+  .dashboard-container {
+    background: white !important;
+    color: black !important;
+  }
+  
+  .enhanced-card {
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+    break-inside: avoid;
+  }
+  
+  .floating-action-btn {
+    display: none !important;
+  }
+}

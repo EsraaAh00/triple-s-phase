@@ -1,0 +1,20 @@
+[build]
+  publish = "dist"
+  command = "npm run build"
+  
+[build.environment]
+  NODE_VERSION = "22"
+  NPM_VERSION = "10"
+  VITE_API_BASE_URL = "https://www.triplesacademy.com"
+
+[[redirects]]
+  from = "/api/*"
+  to = "https://www.triplesacademy.com/api/:splat"
+  status = 200
+  headers = { Access-Control-Allow-Origin = "*" }
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+

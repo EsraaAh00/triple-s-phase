@@ -1,0 +1,21 @@
+[tool.basedpyright]
+venvPath = "."
+venv = "venv"
+pythonVersion = "3.11"
+pythonPlatform = "Windows"
+
+[tool.basedpyright.analysis]
+typeCheckingMode = "basic"
+autoImportCompletions = true
+useLibraryCodeForTypes = true
+
+[tool.basedpyright.python]
+# Add Django and other packages to extra paths
+extraPaths = [
+    "venv/Lib/site-packages",
+    ".",
+]
+
+[tool.basedpyright.django]
+# Tell basedpyright this is a Django project
+settingsModule = "core.settings" 

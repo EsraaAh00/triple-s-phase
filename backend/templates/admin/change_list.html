@@ -1,0 +1,546 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls static admin_list %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Override the max-width constraint */
+    .main.shifted > #nav-sidebar + .content {
+        max-width: none !important;
+        margin-right: 0 !important;
+        width: calc(100% - 250px) !important;
+    }
+    
+    /* Make the content area take full width */
+    #changelist #toolbar {
+        margin: 0 0 10px 0;
+    }
+    
+    /* Style for the filter toggle button */
+    .filter-toggle {
+        background: #79aec8;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-bottom: 10px;
+    }
+    
+    .filter-toggle:hover {
+        background: #609ab6;
+    }
+    
+    /* Make the results table take full width */
+    #changelist .results {
+        width: 100%;
+        overflow-x: auto;
+    }
+    
+    /* Adjust the changelist form container */
+    #changelist-form {
+        width: 100%;
+        max-width: none;
+    }
+    
+    /* Make the table use all available space */
+    #result_list {
+        width: 100% !important;
+        table-layout: auto;
+    }
+    
+    /* Responsive Design for Change List */
+    
+    /* Large screens (1024px and up) */
+    @media (min-width: 1024px) {
+        #changelist {
+            display: flex;
+            flex-direction: row-reverse;
+            align-items: flex-start;
+            gap: 20px;
+        }
+        
+        #changelist-filter {
+            width: 280px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 20px;
+        }
+        
+        #changelist #changelist-form {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .filter-toggle {
+            display: none;
+        }
+    }
+    
+    /* Medium screens (768px to 1023px) */
+    @media (max-width: 1023px) and (min-width: 768px) {
+        #changelist {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        #changelist-filter {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            display: none;
+        }
+        
+        #changelist-filter.visible {
+            display: block;
+        }
+        
+        .filter-toggle {
+            display: block;
+            margin-bottom: 15px;
+            width: 100%;
+            max-width: 200px;
+        }
+        
+        /* Make table horizontally scrollable */
+        #changelist .results {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        #result_list {
+            min-width: 600px;
+        }
+        
+        /* Improve table readability on medium screens */
+        #result_list th,
+        #result_list td {
+            padding: 12px 8px;
+            font-size: 0.9rem;
+        }
+    }
+    
+    /* Small screens (up to 767px) */
+    @media (max-width: 767px) {
+        #changelist {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        #changelist-filter {
+            display: none;
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            padding: 20px;
+            overflow-y: auto;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        #changelist-filter.visible {
+            display: block;
+            transform: translateX(0);
+        }
+        
+        .filter-toggle {
+            display: block;
+            margin-bottom: 15px;
+            width: 100%;
+            padding: 12px 20px;
+            font-size: 0.9rem;
+            background: linear-gradient(135deg, #333679 0%, #4DBFB3 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Make table horizontally scrollable with better mobile UX */
+        #changelist .results {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        #result_list {
+            min-width: 500px;
+            font-size: 0.8rem;
+        }
+        
+        #result_list th,
+        #result_list td {
+            padding: 10px 6px;
+            white-space: nowrap;
+        }
+        
+        /* Mobile-friendly table headers */
+        #result_list th {
+            background: linear-gradient(135deg, #333679 0%, #4DBFB3 100%);
+            color: white;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        /* Mobile-friendly actions */
+        #changelist .actions {
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        #changelist .actions select,
+        #changelist .actions button {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            font-size: 0.9rem;
+        }
+        
+        /* Mobile-friendly pagination */
+        .paginator {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .paginator a,
+        .paginator .this-page {
+            display: inline-block;
+            padding: 8px 12px;
+            margin: 2px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            min-width: 40px;
+            text-align: center;
+        }
+        
+        .paginator a {
+            background: white;
+            border: 1px solid #ddd;
+            color: #333;
+        }
+        
+        .paginator a:hover {
+            background: #333679;
+            color: white;
+            border-color: #333679;
+        }
+        
+        .paginator .this-page {
+            background: #333679;
+            color: white;
+            font-weight: bold;
+        }
+        
+        /* Close button for mobile filter */
+        .filter-close {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #333;
+            cursor: pointer;
+            z-index: 1001;
+        }
+    }
+    
+    /* Extra small screens (up to 480px) */
+    @media (max-width: 480px) {
+        #result_list {
+            min-width: 400px;
+            font-size: 0.75rem;
+        }
+        
+        #result_list th,
+        #result_list td {
+            padding: 8px 4px;
+        }
+        
+        .filter-toggle {
+            padding: 10px 15px;
+            font-size: 0.8rem;
+        }
+        
+        #changelist .actions select,
+        #changelist .actions button {
+            padding: 8px;
+            font-size: 0.8rem;
+        }
+        
+        .paginator a,
+        .paginator .this-page {
+            padding: 6px 8px;
+            font-size: 0.8rem;
+            min-width: 35px;
+        }
+    }
+    
+    /* Adjust the layout for the change list */
+    #changelist {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    #changelist .actions {
+        margin: 0 0 15px 0;
+    }
+    
+    @media (min-width: 768px) {
+        #changelist {
+            flex-direction: row-reverse;
+            flex-wrap: wrap;
+            align-items: flex-start;
+        }
+        
+        #changelist .actions {
+            order: 1;
+            width: 100%;
+        }
+        
+        #changelist #toolbar {
+            order: 2;
+            width: 100%;
+        }
+        
+        #changelist #changelist-filter {
+            order: 3;
+            width: 280px;
+            margin-left: 20px;
+            margin-right: 0;
+        }
+        
+        #changelist #changelist-form {
+            order: 4;
+            flex: 1;
+            min-width: 0;
+            max-width: none;
+        }
+        
+        .filter-toggle {
+            display: none;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <div id="content-main">
+        <div class="module" id="changelist">
+            {% block object-tools %}
+                <ul class="object-tools">
+                    {% block object-tools-items %}
+                        {% if has_add_permission %}
+                            <li>
+                                {% url cl.opts|admin_urlname:'add' as add_url %}
+                                <a href="{% add_preserved_filters add_url is_popup to_field %}" class="addlink">
+                                    {% blocktranslate with cl.opts.verbose_name as name %}Add {{ name }}{% endblocktranslate %}
+                                </a>
+                            </li>
+                        {% endif %}
+                    {% endblock %}
+                </ul>
+            {% endblock %}
+            
+            {% block search %}{% search_form cl %}{% endblock %}
+            {% block date_hierarchy %}{% date_hierarchy cl %}{% endblock %}
+
+            <button type="button" class="filter-toggle" id="filter-toggle">
+                {% translate 'Toggle filters' %}
+            </button>
+
+            <form id="changelist-form" method="post" {% if cl.formset and cl.formset.is_multipart %} enctype="multipart/form-data"{% endif %} novalidate>
+                {% csrf_token %}
+                {% if cl.formset %}
+                    <div>{{ cl.formset.management_form }}</div>
+                {% endif %}
+
+                {% block result_list %}
+                    {% if action_form and actions_on_top and cl.show_admin_actions %}{% admin_actions %}{% endif %}
+                    {% result_list cl %}
+                    {% if action_form and actions_on_bottom and cl.show_admin_actions %}{% admin_actions %}{% endif %}
+                {% endblock %}
+                {% block pagination %}{% pagination cl %}{% endblock %}
+            </form>
+
+            {% block filters %}
+                {% if cl.has_filters %}
+                    <div id="changelist-filter">
+                        <h2>{% translate 'Filter' %}</h2>
+                        {% for spec in cl.filter_specs %}
+                            {% admin_list_filter cl spec %}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endblock %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const filterToggle = document.getElementById('filter-toggle');
+    const filterPanel = document.getElementById('changelist-filter');
+    
+    // Add close button for mobile filter
+    if (filterPanel && window.innerWidth <= 767) {
+        const closeButton = document.createElement('button');
+        closeButton.className = 'filter-close';
+        closeButton.innerHTML = '×';
+        closeButton.setAttribute('aria-label', 'Close filter');
+        filterPanel.appendChild(closeButton);
+        
+        closeButton.addEventListener('click', function() {
+            filterPanel.classList.remove('visible');
+            document.body.style.overflow = '';
+        });
+    }
+    
+    // Toggle filter visibility
+    if (filterToggle && filterPanel) {
+        filterToggle.addEventListener('click', function() {
+            filterPanel.classList.toggle('visible');
+            
+            // Prevent body scroll when filter is open on mobile
+            if (window.innerWidth <= 767) {
+                if (filterPanel.classList.contains('visible')) {
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    document.body.style.overflow = '';
+                }
+            }
+        });
+    }
+    
+    // Close filter when clicking outside on mobile
+    document.addEventListener('click', function(event) {
+        if (window.innerWidth <= 767 && 
+            filterPanel && 
+            filterPanel.classList.contains('visible') &&
+            !filterPanel.contains(event.target) && 
+            event.target !== filterToggle) {
+            filterPanel.classList.remove('visible');
+            document.body.style.overflow = '';
+        }
+    });
+    
+    // Close filter when a filter is selected on mobile
+    const filterLinks = document.querySelectorAll('#changelist-filter a');
+    filterLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            if (window.innerWidth <= 767 && filterPanel) {
+                filterPanel.classList.remove('visible');
+                document.body.style.overflow = '';
+            }
+        });
+    });
+    
+    // Handle window resize
+    let resizeTimeout;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(function() {
+            // Reset body overflow on resize
+            document.body.style.overflow = '';
+            
+            // Re-add close button if needed
+            if (window.innerWidth <= 767 && filterPanel) {
+                const existingCloseButton = filterPanel.querySelector('.filter-close');
+                if (!existingCloseButton) {
+                    const closeButton = document.createElement('button');
+                    closeButton.className = 'filter-close';
+                    closeButton.innerHTML = '×';
+                    closeButton.setAttribute('aria-label', 'Close filter');
+                    filterPanel.appendChild(closeButton);
+                    
+                    closeButton.addEventListener('click', function() {
+                        filterPanel.classList.remove('visible');
+                        document.body.style.overflow = '';
+                    });
+                }
+            } else {
+                // Remove close button on larger screens
+                const closeButton = filterPanel?.querySelector('.filter-close');
+                if (closeButton) {
+                    closeButton.remove();
+                }
+            }
+        }, 150);
+    });
+    
+    // Improve table scrolling on mobile
+    const resultsContainer = document.querySelector('#changelist .results');
+    if (resultsContainer && window.innerWidth <= 767) {
+        // Add scroll indicators
+        let isScrolling = false;
+        
+        resultsContainer.addEventListener('scroll', function() {
+            if (!isScrolling) {
+                isScrolling = true;
+                requestAnimationFrame(function() {
+                    // Check if we can scroll more to the left
+                    const canScrollLeft = resultsContainer.scrollLeft > 0;
+                    const canScrollRight = resultsContainer.scrollLeft < 
+                        (resultsContainer.scrollWidth - resultsContainer.clientWidth);
+                    
+                    // Add visual indicators if needed
+                    if (canScrollLeft || canScrollRight) {
+                        resultsContainer.style.background = 'linear-gradient(90deg, rgba(51,54,121,0.1) 0%, transparent 10%, transparent 90%, rgba(51,54,121,0.1) 100%)';
+                    }
+                    
+                    isScrolling = false;
+                });
+            }
+        });
+    }
+    
+    // Add touch gestures for better mobile experience
+    let startX = 0;
+    let startY = 0;
+    
+    resultsContainer?.addEventListener('touchstart', function(e) {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+    });
+    
+    resultsContainer?.addEventListener('touchend', function(e) {
+        const endX = e.changedTouches[0].clientX;
+        const endY = e.changedTouches[0].clientY;
+        const diffX = startX - endX;
+        const diffY = startY - endY;
+        
+        // Horizontal swipe to scroll table
+        if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+            e.preventDefault();
+            const scrollAmount = diffX * 0.5;
+            resultsContainer.scrollLeft += scrollAmount;
+        }
+    });
+});
+</script>
+{% endblock %}

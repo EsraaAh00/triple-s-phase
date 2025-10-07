@@ -1,0 +1,10 @@
+backend/db.sqlite3
+backend/media
+frontend/node_modules
+backend/venv
+backend/staticfiles
+backend/media
+backend/logs
+backend/custom_permissions.egg-info
+backend/custom_permissions/.gitignore
+frontend/.gitignore
