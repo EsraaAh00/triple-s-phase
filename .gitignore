@@ -8,3 +8,4 @@ backend/logs
 backend/custom_permissions.egg-info
 backend/custom_permissions/.gitignore
 frontend/.gitignore
+osama.txt
