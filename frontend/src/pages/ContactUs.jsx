@@ -115,7 +115,7 @@ const ContactUs = () => {
   useEffect(() => {
     const fetchContactInfo = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:8000'}/api/extras/contact-info/latest/`);
+        const response = await axios.get(`${process.env.REACT_APP_API_URL || 'https://admin.triplesacademy.com'}/api/extras/contact-info/latest/`);
         setContactInfo(response.data);
       } catch (error) {
         console.error('Error fetching contact info:', error);
@@ -142,7 +142,7 @@ const ContactUs = () => {
 
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:8000'}/api/extras/contact-messages/`,
+        `${process.env.REACT_APP_API_URL || 'https://admin.triplesacademy.com'}/api/extras/contact-messages/`,
         formData
       );
       
