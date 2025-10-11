@@ -6,7 +6,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import profileImage from '../../assets/images/profile.jpg';
 import {
   Box, Drawer, AppBar, Toolbar, Typography, IconButton, List, ListItemButton, ListItemIcon, ListItemText,
-  Avatar, Divider, Badge, InputBase, Paper, Select, MenuItem, FormControl, Chip, Collapse, useTheme, useMediaQuery
+  Avatar, Divider, Badge, Paper, Collapse, useTheme, useMediaQuery
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import {
@@ -29,9 +29,7 @@ import {
   Article as ArticleIcon,
   Psychology as PsychologyIcon,
   ExpandMore as ExpandMoreIcon,
-  ExpandLess as ExpandLessIcon,
-  Category as CategoryIcon,
-  Subject as SubjectIcon
+  ExpandLess as ExpandLessIcon
 } from '@mui/icons-material';
 import { courseAPI } from '../../services/courseService';
 
@@ -79,12 +77,8 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
   const profileRef = useRef(null);
   const notifRef = useRef(null);
   
-  // State for categories
-  const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('');
   const [myCourses, setMyCourses] = useState([]);
   const [coursesDropdownOpen, setCoursesDropdownOpen] = useState(false);
-  const [loadingCategories, setLoadingCategories] = useState(false);
   const [loadingCourses, setLoadingCourses] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -140,68 +134,19 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
     handleMenuClose();
   };
 
-  // Handle category selection
-  const handleCategoryChange = (event) => {
-    console.log('Category changed to:', event.target.value);
-    setSelectedCategory(event.target.value);
-  };
-
   // Handle courses dropdown toggle
   const handleCoursesDropdownToggle = () => {
     console.log('Courses dropdown toggled:', !coursesDropdownOpen);
     setCoursesDropdownOpen(!coursesDropdownOpen);
   };
 
-  // Filter courses based on selected category
-  const filteredCourses = useMemo(() => {
-    let filtered = myCourses;
-    
-    console.log('Filtering courses:', {
-      totalCourses: myCourses.length,
-      selectedCategory,
-      courses: myCourses.map(c => ({
-        id: c.id,
-        title: c.title,
-        category: c.category
-      }))
-    });
-    
-    if (selectedCategory) {
-      // Find the selected category name
-      const selectedCategoryName = categories.find(cat => cat.id == selectedCategory)?.name;
-      console.log('Selected category name:', selectedCategoryName);
-      console.log('Available categories:', categories);
-      
-      filtered = filtered.filter(course => {
-        // The API returns category as a string (name), not object
-        const courseCategoryName = course.category;
-        const matches = courseCategoryName === selectedCategoryName;
-        console.log(`Course ${course.title} category match:`, {
-          courseCategoryName,
-          selectedCategoryName,
-          matches
-        });
-        return matches;
-      });
-    }
-    
-    
-    console.log('Filtered courses result:', filtered.length);
-    return filtered;
-  }, [myCourses, selectedCategory, categories]);
+  // No filtering needed anymore - show all courses
+  const filteredCourses = myCourses;
 
-  // Fetch categories and my courses on component mount
+  // Fetch my courses on component mount
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoadingCategories(true);
-        const categoriesData = await courseAPI.getCategories();
-        console.log('Categories data:', categoriesData);
-        // The API returns an array directly for categories
-        const categoriesArray = Array.isArray(categoriesData) ? categoriesData : categoriesData.results || [];
-        console.log('Categories array:', categoriesArray);
-        setCategories(categoriesArray);
-        
         // Fetch my courses if user is a student
         if (getUserRole() === 'student') {
           setLoadingCourses(true);
@@ -211,27 +156,16 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
           const coursesArray = Array.isArray(coursesData) ? coursesData : [];
           console.log('Courses array:', coursesArray);
           setMyCourses(coursesArray);
+          setLoadingCourses(false);
         }
       } catch (error) {
         console.error('Error fetching data:', error);
-      } finally {
-        setLoadingCategories(false);
         setLoadingCourses(false);
       }
     };
 
     fetchData();
   }, [getUserRole]);
-
-
-  // Debug filtered courses when filters change
-  useEffect(() => {
-    console.log('Filtered courses updated:', {
-      selectedCategory,
-      totalCourses: myCourses.length,
-      filteredCount: filteredCourses.length
-    });
-  }, [selectedCategory, myCourses, filteredCourses]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -732,12 +666,34 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
             zIndex: 2,
             minHeight: { xs: 56, md: 64 }
           }}>
-            {/* Mobile Layout: Notifications and Profile on left, Menu on right */}
+            {/* Mobile Menu Button - Left Side */}
+            <IconButton
+              color="inherit"
+              aria-label="open drawer"
+              onClick={() => setMobileOpen(true)}
+              edge="start"
+              sx={{
+                mr: { xs: 1, sm: 2 },
+                display: { xs: 'block', sm: 'block', md: 'none' },
+                color: '#333679',
+                p: { xs: 1, sm: 1.5 },
+                order: 1,
+                '&:hover': {
+                  backgroundColor: 'rgba(51, 54, 121, 0.1)',
+                  transform: 'scale(1.05)'
+                }
+              }}
+            >
+              <MenuIcon sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' } }} />
+            </IconButton>
+
+            {/* Mobile Layout: Notifications and Profile on right */}
             <Box sx={{ 
               display: { xs: 'flex', sm: 'none' }, 
               alignItems: 'center', 
               gap: { xs: 0.5, sm: 1 },
-              order: 1
+              ml: 'auto',
+              order: 2
             }}>
               {/* Notification Dropdown with Enhanced Design */}
               <Box ref={notifRef} sx={{ position: 'relative' }}>
@@ -1177,148 +1133,14 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
               </Box>
             </Box>
 
-            {/* Mobile Menu Button - Right Side */}
-            <IconButton
-              color="inherit"
-              aria-label="open drawer"
-              onClick={() => setMobileOpen(true)}
-              edge="start"
-              sx={{
-                ml: { xs: 1, sm: 2 },
-                display: { xs: 'block', sm: 'block', md: 'none' },
-                color: '#333679',
-                p: { xs: 1, sm: 1.5 },
-                order: 2,
-                '&:hover': {
-                  backgroundColor: 'rgba(51, 54, 121, 0.1)',
-                  transform: 'scale(1.05)'
-                }
-              }}
-            >
-              <MenuIcon sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' } }} />
-            </IconButton>
-
-            {/* Search Bar and Filters - Desktop Only */}
-            <Box sx={{ 
-              display: { xs: 'none', sm: 'flex' }, 
-              alignItems: 'center', 
-              gap: { xs: 1, md: 2 },
-              flex: 1,
-              justifyContent: 'center',
-              order: 3
-            }}>
-              {/* Search Bar with Enhanced Design */}
-              <Paper
-                component="form"
-                sx={{ 
-                  p: { xs: '2px 8px', sm: '3px 10px', md: '4px 12px' }, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  width: { xs: 200, sm: 250, md: 300, lg: 350 }, 
-                  maxWidth: { xs: '100%', md: 350 },
-                  background: 'rgba(255,255,255,0.9)', 
-                  borderRadius: { xs: 2, sm: 3 }, 
-                  boxShadow: '0 4px 20px rgba(14,81,129,0.1)',
-                  border: '1px solid rgba(77, 191, 179, 0.2)',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    boxShadow: '0 6px 25px rgba(14,81,129,0.15)',
-                    border: '1px solid rgba(77, 191, 179, 0.3)',
-                    transform: 'translateY(-1px)'
-                  },
-                  '&:focus-within': {
-                    boxShadow: '0 8px 30px rgba(14,81,129,0.2)',
-                    border: '1px solid #4DBFB3',
-                    transform: 'translateY(-2px)'
-                  }
-                }}
-              >
-                <InputBase 
-                  sx={{ 
-                    ml: 1, 
-                    flex: 1,
-                    fontSize: { xs: '12px', sm: '13px', md: '14px' },
-                    '& input': {
-                      '&::placeholder': {
-                        color: '#999',
-                        opacity: 1
-                      }
-                    }
-                  }} 
-                  placeholder={t('headerSearch')} 
-                  inputProps={{ 'aria-label': t('headerSearch') }} 
-                />
-                <Box sx={{ 
-                  width: { xs: 6, sm: 8 }, 
-                  height: { xs: 6, sm: 8 }, 
-                  borderRadius: '50%', 
-                  background: 'linear-gradient(45deg, #4DBFB3, #333679)',
-                  mr: { xs: 0.5, sm: 1 }
-                }} />
-              </Paper>
-
-              {/* Category Filter */}
-              <FormControl 
-                size="small" 
-                sx={{ 
-                  minWidth: { xs: 120, sm: 130, md: 150, lg: 160 },
-                  display: { xs: 'none', sm: 'none', md: 'block' },
-                  '& .MuiOutlinedInput-root': {
-                    background: 'rgba(255,255,255,0.9)',
-                    borderRadius: { xs: 2, sm: 3 },
-                    boxShadow: '0 4px 20px rgba(14,81,129,0.1)',
-                    border: '1px solid rgba(77, 191, 179, 0.2)',
-                    '&:hover': {
-                      boxShadow: '0 6px 25px rgba(14,81,129,0.15)',
-                      border: '1px solid rgba(77, 191, 179, 0.3)',
-                    },
-                    '&.Mui-focused': {
-                      boxShadow: '0 8px 30px rgba(14,81,129,0.2)',
-                      border: '1px solid #4DBFB3',
-                    }
-                  }
-                }}
-              >
-                <Select
-                  value={selectedCategory}
-                  onChange={handleCategoryChange}
-                  displayEmpty
-                  startAdornment={<CategoryIcon sx={{ color: '#4DBFB3', mr: 1, fontSize: { xs: 18, sm: 20 } }} />}
-                  sx={{
-                    '& .MuiSelect-select': {
-                      fontSize: { xs: '12px', sm: '13px', md: '14px' },
-                      color: selectedCategory ? '#333' : '#999',
-                      fontWeight: 600,
-                      py: { xs: 0.5, sm: 1 }
-                    }
-                  }}
-                >
-                  <MenuItem value="">
-                    <em>{t('coursesAllCategories')}</em>
-                  </MenuItem>
-                  {categories.map((category) => (
-                    <MenuItem 
-                      key={category.id} 
-                      value={category.id}
-                      sx={{
-                        fontSize: { xs: '12px', sm: '13px', md: '14px' }
-                      }}
-                    >
-                      {category.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
-            </Box>
             
-            {/* Desktop: Notifications and Profile on right */}
+            {/* Desktop: Notifications and Profile on left */}
             <Box sx={{ 
               display: { xs: 'none', sm: 'flex' }, 
               alignItems: 'center', 
               gap: { xs: 0.5, sm: 1, md: 2, lg: 3 },
-              ml: 'auto',
-              order: 4
+              mr: 'auto',
+              order: 3
             }}>
               {/* Notification Dropdown with Enhanced Design */}
               <Box ref={notifRef} sx={{ position: 'relative' }}>
