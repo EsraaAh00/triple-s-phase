@@ -240,7 +240,7 @@ const OurPartnersSection = () => {
           </SectionLabel>
           
           <SectionTitle variant="h2" component="h2">
-            {t('partnersTrustedBy') || 'Trusted by Leading Organizations'}
+            {t('partnersTrustedBy') || 'Our Partnership'}
           </SectionTitle>
         </SectionHeader>
 
