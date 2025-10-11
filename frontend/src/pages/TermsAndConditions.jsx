@@ -67,7 +67,7 @@ const TermsAndConditions = () => {
   useEffect(() => {
     const fetchTerms = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:8000'}/api/extras/terms-conditions/latest/`);
+        const response = await axios.get(`${process.env.REACT_APP_API_URL || 'https://admin.triplesacademy.com'}/api/extras/terms-conditions/latest/`);
         setTerms(response.data);
       } catch (error) {
         console.error('Error fetching terms and conditions:', error);

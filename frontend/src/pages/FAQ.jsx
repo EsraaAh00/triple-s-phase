@@ -70,7 +70,7 @@ const FAQ = () => {
   useEffect(() => {
     const fetchFAQs = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:8000'}/api/extras/refunding-faq/latest/`);
+        const response = await axios.get(`${process.env.REACT_APP_API_URL || 'https://admin.triplesacademy.com'}/api/extras/refunding-faq/latest/`);
         setFaqs(response.data || []);
       } catch (error) {
         console.error('Error fetching FAQs:', error);

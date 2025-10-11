@@ -67,7 +67,7 @@ const PrivacyPolicy = () => {
   useEffect(() => {
     const fetchPolicy = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:8000'}/api/extras/privacy-policy/latest/`);
+        const response = await axios.get(`${process.env.REACT_APP_API_URL || 'https://admin.triplesacademy.com'}/api/extras/privacy-policy/latest/`);
         setPolicy(response.data);
       } catch (error) {
         console.error('Error fetching privacy policy:', error);
