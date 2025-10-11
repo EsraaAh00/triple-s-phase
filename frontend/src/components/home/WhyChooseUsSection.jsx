@@ -28,15 +28,6 @@ const SectionContainer = styled(Box)(({ theme }) => ({
     '@media (min-width: 900px)': {
         padding: theme.spacing(8, 0),
     },
-    '&:before': {
-        content: '""',
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: '3px',
-        background: 'linear-gradient(90deg, #663399 0%, #333679 50%, #1B1B48 100%)',
-    },
     '&:after': {
         content: '""',
         position: 'absolute',
@@ -54,27 +45,27 @@ const SectionContainer = styled(Box)(({ theme }) => ({
 }));
 
 const ContentWrapper = styled(Box)(({ theme }) => ({
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
+    display: 'flex',
+    flexDirection: 'row-reverse',
     gap: theme.spacing(8),
     alignItems: 'center',
     position: 'relative',
     zIndex: 1,
     // Enhanced responsive layout
     '@media (max-width: 600px)': {
-        gridTemplateColumns: '1fr',
+        flexDirection: 'column',
         gap: theme.spacing(4),
     },
     '@media (min-width: 600px) and (max-width: 900px)': {
-        gridTemplateColumns: '1fr',
+        flexDirection: 'column',
         gap: theme.spacing(5),
     },
     '@media (min-width: 900px) and (max-width: 1200px)': {
-        gridTemplateColumns: '1fr',
+        flexDirection: 'column',
         gap: theme.spacing(6),
     },
     '@media (min-width: 1200px)': {
-        gridTemplateColumns: '1fr 1fr',
+        flexDirection: 'row-reverse',
         gap: theme.spacing(8),
     },
 }));
@@ -92,23 +83,26 @@ const LeftSection = styled(Box)(({ theme, backgroundImage }) => ({
     flexDirection: 'column',
     justifyContent: 'flex-end',
     alignItems: 'center',
+    flex: '1',
     // Responsive height and order
     height: '500px',
     '@media (max-width: 600px)': {
         height: '300px',
         order: 2,
+        width: '100%',
     },
     '@media (min-width: 600px) and (max-width: 900px)': {
         height: '350px',
         order: 2,
+        width: '100%',
     },
     '@media (min-width: 900px) and (max-width: 1200px)': {
         height: '400px',
         order: 2,
+        width: '100%',
     },
     '@media (min-width: 1200px)': {
         height: '500px',
-        order: 1,
     },
 }));
 
@@ -187,29 +181,59 @@ const GetStartedButton = styled(Button)(({ theme }) => ({
 
 const RightSection = styled(Box)(({ theme }) => ({
     padding: theme.spacing(2, 0),
-    [theme.breakpoints.down('lg')]: {
+    flex: '1',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: theme.spacing(2),
+    width: '100%',
+    // Responsive order
+    '@media (max-width: 600px)': {
         order: 1,
+        width: '100%',
+    },
+    '@media (min-width: 600px) and (max-width: 900px)': {
+        order: 1,
+        width: '100%',
+    },
+    '@media (min-width: 900px) and (max-width: 1200px)': {
+        order: 1,
+        width: '100%',
     },
 }));
 
 // Title label styled like AboutAcademySection.SectionLabel
 const SectionLabel = styled(Box)(({ theme }) => ({
-    display: 'inline-flex',
+    display: 'flex',
     alignItems: 'center',
+    justifyContent: 'flex-start',
     gap: theme.spacing(1),
-    padding: theme.spacing(1, 2),
+    padding: theme.spacing(1.5, 3),
     backgroundColor: 'rgba(111, 66, 193, 0.1)',
-    borderRadius: '30px',
+    borderRadius: '8px',
     marginBottom: theme.spacing(2),
+    marginLeft: 0,
+    marginRight: 0,
+    width: '100%',
+    position: 'relative',
+    '&:before': {
+        content: '""',
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        bottom: 0,
+        width: '4px',
+        backgroundColor: '#6f42c1',
+        borderRadius: '8px 0 0 8px',
+    },
     '& .MuiSvgIcon-root': {
         color: '#6f42c1',
-        fontSize: '1.2rem',
+        fontSize: '1.3rem',
     },
     '& span': {
         color: '#6f42c1',
-        fontSize: '0.9rem',
-        fontWeight: 600,
-        textTransform: 'none'
+        fontSize: '1rem',
+        fontWeight: 700,
     },
 }));
 
@@ -218,6 +242,7 @@ const MainTitle = styled(Typography)(({ theme }) => ({
     color: '#663399',
     lineHeight: 1.2,
     marginBottom: theme.spacing(3),
+    textAlign: 'left',
     // Responsive font size
     fontSize: '2.5rem',
     '@media (max-width: 600px)': {
@@ -236,6 +261,7 @@ const Description = styled(Typography)(({ theme }) => ({
     lineHeight: 1.6,
     marginBottom: theme.spacing(4),
     maxWidth: '500px',
+    textAlign: 'left',
     // Responsive font size and width
     fontSize: '1rem',
     '@media (max-width: 600px)': {
@@ -273,6 +299,7 @@ const FeatureCard = styled(Box)(({ theme }) => ({
     padding: theme.spacing(2),
     borderLeft: '4px solid #663399',
     transition: 'all 0.3s ease',
+    textAlign: 'left',
     '&:hover': {
         backgroundColor: '#F0F0F0',
         transform: 'translateY(-2px)',
@@ -300,12 +327,14 @@ const FeatureTitle = styled(Typography)(({ theme }) => ({
     fontWeight: 700,
     color: '#663399',
     marginBottom: theme.spacing(0.5),
+    textAlign: 'left',
 }));
 
 const FeatureDescription = styled(Typography)(({ theme }) => ({
     fontSize: '0.85rem',
     color: '#A0A0A0',
     lineHeight: 1.4,
+    textAlign: 'left',
 }));
 
 // Fallback why choose us banner data - used when no why_choose_us banners are available
@@ -318,7 +347,7 @@ const fallbackWhyChooseUsBanner = {
 };
 
 const WhyChooseUsSection = () => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -326,6 +355,15 @@ const WhyChooseUsSection = () => {
     const [bannerData, setBannerData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    // Helper function to get localized text
+    const getLocalizedText = (enText, arText) => {
+        const currentLang = i18n.language || 'en';
+        if (currentLang === 'ar' && arText) {
+            return arText;
+        }
+        return enText;
+    };
 
     // Array of people face images
     const profileImages = [
@@ -398,7 +436,9 @@ const WhyChooseUsSection = () => {
                     setBannerData({
                         id: firstBanner.id,
                         title: firstBanner.title,
+                        title_ar: firstBanner.title_ar,
                         description: firstBanner.description,
+                        description_ar: firstBanner.description_ar,
                         image_url: getImageUrl(firstBanner.image || firstBanner.image_url),
                         url: firstBanner.url || null,
                         banner_type: firstBanner.banner_type || 'why_choose_us'
@@ -441,20 +481,20 @@ const WhyChooseUsSection = () => {
 
     const features = [
         {
-            title: 'World Class Trainers',
-            description: 'Seamlessly envisioneer tactical data through services.'
+            title: t('whyChooseUsWorldClassTrainers'),
+            description: t('whyChooseUsWorldClassTrainersDesc')
         },
         {
-            title: 'Easy Learning',
-            description: 'Seamlessly envisioneer tactical data through services.'
+            title: t('whyChooseUsEasyLearning'),
+            description: t('whyChooseUsEasyLearningDesc')
         },
         {
-            title: 'Flexible',
-            description: 'Seamlessly envisioneer tactical data through services.'
+            title: t('whyChooseUsFlexible'),
+            description: t('whyChooseUsFlexibleDesc')
         },
         {
-            title: 'Affordable Price',
-            description: 'Seamlessly envisioneer tactical data through services.'
+            title: t('whyChooseUsAffordablePrice'),
+            description: t('whyChooseUsAffordablePriceDesc')
         }
     ];
 
@@ -511,6 +551,33 @@ const WhyChooseUsSection = () => {
         <SectionContainer>
             <Container maxWidth="lg">
                 <ContentWrapper>
+                    <RightSection>
+                        <SectionLabel>
+                            <School />
+                            <span>{t('whyChooseUsTitle')}</span>
+                        </SectionLabel>
+
+                        <MainTitle variant="h2" component="h2">
+                            {getLocalizedText(displayBannerData?.title, displayBannerData?.title_ar)}
+                        </MainTitle>
+
+                        <Description variant="body1">
+                            {getLocalizedText(displayBannerData?.description, displayBannerData?.description_ar)}
+                        </Description>
+
+                        <FeaturesGrid>
+                            {features.map((feature, index) => (
+                                <FeatureCard key={index}>
+                                    <FeatureIcon>
+                                        <Check />
+                                    </FeatureIcon>
+                                    <FeatureTitle>{feature.title}</FeatureTitle>
+                                    <FeatureDescription>{feature.description}</FeatureDescription>
+                                </FeatureCard>
+                            ))}
+                        </FeaturesGrid>
+                    </RightSection>
+
                     <LeftSection
                         backgroundImage={displayBannerData?.image_url ? `url("${displayBannerData.image_url}")` : undefined}
                     >
@@ -532,33 +599,6 @@ const WhyChooseUsSection = () => {
                             GET STARTED →
                         </GetStartedButton>
                     </LeftSection>
-
-                    <RightSection>
-                        <SectionLabel>
-                            <School />
-                            <span>WHY CHOOSE US</span>
-                        </SectionLabel>
-
-                        <MainTitle variant="h2" component="h2">
-                            {displayBannerData?.title}
-                        </MainTitle>
-
-                        <Description variant="body1">
-                            {displayBannerData?.description}
-                        </Description>
-
-                        <FeaturesGrid>
-                            {features.map((feature, index) => (
-                                <FeatureCard key={index}>
-                                    <FeatureIcon>
-                                        <Check />
-                                    </FeatureIcon>
-                                    <FeatureTitle>{feature.title}</FeatureTitle>
-                                    <FeatureDescription>{feature.description}</FeatureDescription>
-                                </FeatureCard>
-                            ))}
-                        </FeaturesGrid>
-                    </RightSection>
                 </ContentWrapper>
             </Container>
         </SectionContainer>

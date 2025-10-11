@@ -7,6 +7,12 @@ from .admin_views import admin_dashboard
 router = DefaultRouter()
 router.register(r'banners', views.BannerViewSet, basename='banner')
 router.register(r'collections', views.CourseCollectionViewSet, basename='collection')
+router.register(r'privacy-policy', views.PrivacyPolicyViewSet, basename='privacy-policy')
+router.register(r'terms-conditions', views.TermsAndConditionsViewSet, basename='terms-conditions')
+router.register(r'refunding-faq', views.RefundingFAQViewSet, basename='refunding-faq')
+router.register(r'contact-info', views.ContactInfoViewSet, basename='contact-info')
+router.register(r'partnerships', views.PartnershipViewSet, basename='partnership')
+router.register(r'contact-messages', views.ContactMessageViewSet, basename='contact-message')
 
 # Admin dashboard endpoints
 admin_urlpatterns = [

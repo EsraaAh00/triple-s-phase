@@ -215,11 +215,12 @@ const Footer = () => {
 
   const siteLinks = [
     { text: 'courses', to: '/courses' },
-    { text: 'Flash Cards', to: '/flashcards' },
-    { text: 'Questions Bank', to: '/question-bank' },
-    { text: 'blog', to: '/blog' },
-    { text: 'About Us', to: '/about' },
-    { text: 'Contact Us', to: '/contact' },
+    // { text: 'Flash Cards', to: '/flashcards' },
+    // { text: 'Questions Bank', to: '/question-bank' },
+    { text: 'Articles', to: '/articles' },
+    { text: 'About Us', to: '/about-us' },
+    { text: 'Contact Us', to: '/contact-us' },
+
   ];
 
 
@@ -227,9 +228,8 @@ const Footer = () => {
   const otherLinks = [
     { text: t('footerFaq'), to: '/faq' },
     { text: t('footerPrivacyPolicy'), to: '/privacy-policy' },
-    { text: t('footerTermsConditions'), to: '/terms' },
-    { text: t('footerRefundPolicy'), to: '/refund-policy' },
-    { text: t('footerHelpSupport'), to: '/support' },
+    { text: t('footerTermsConditions'), to: '/terms-and-conditions' },
+
   ];
 
   const socialLinks = [

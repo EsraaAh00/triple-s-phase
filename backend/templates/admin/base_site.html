@@ -984,7 +984,6 @@
         <li class="menu-section">
             <span>إضافات</span>
         </li>
-  
         <li>
             <a href="{% url 'admin:extras_banner_changelist' %}" class="{% if '/admin/extras/banner/' in request.path %}active{% endif %}">
                 <i class="fas fa-image"></i>
@@ -997,6 +996,43 @@
                 <span>مجموعات الكورسات</span>
             </a>
         </li>
+        
+            <li>    
+                <a href="{% url 'admin:extras_privacypolicy_changelist' %}" class="{% if '/admin/extras/privacypolicy/' in request.path %}active{% endif %}">
+                    <i class="fas fa-file-alt"></i>
+                    <span>سياسة الخصوصية</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'admin:extras_termsandconditions_changelist' %}" class="{% if '/admin/extras/termsandconditions/' in request.path %}active{% endif %}">
+                    <i class="fas fa-file-alt"></i>
+                    <span>الشروط والأحكام</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'admin:extras_refundingfaq_changelist' %}" class="{% if '/admin/extras/refundingfaq/' in request.path %}active{% endif %}">
+                    <i class="fas fa-question-circle"></i>
+                    <span>الأسئلة الشائعة (FAQ)</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'admin:extras_contactinfo_changelist' %}" class="{% if '/admin/extras/contactinfo/' in request.path %}active{% endif %}">
+                    <i class="fas fa-address-book"></i>
+                    <span>معلومات التواصل</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'admin:extras_contactmessage_changelist' %}" class="{% if '/admin/extras/contactmessage/' in request.path %}active{% endif %}">
+                    <i class="fas fa-envelope"></i>
+                    <span>رسائل التواصل</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'admin:extras_partnership_changelist' %}" class="{% if '/admin/extras/partnership/' in request.path %}active{% endif %}">
+                    <i class="fas fa-file-alt"></i>
+                    <span>الشركاء</span>
+                </a>
+            </li>
         <!-- Store Section -->
         <li class="menu-section">
             <span>المتجر</span>

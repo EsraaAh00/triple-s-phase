@@ -731,7 +731,7 @@ const fallbackSlides = [
 ];
 
 const HeroBanner = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [activeSlide, setActiveSlide] = useState(0);
@@ -744,6 +744,15 @@ const HeroBanner = () => {
   const [bottomSlideIndex, setBottomSlideIndex] = useState(0);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [refreshKey, setRefreshKey] = useState(0);
+
+  // Helper function to get localized text
+  const getLocalizedText = (enText, arText) => {
+    const currentLang = i18n.language || 'en';
+    if (currentLang === 'ar' && arText) {
+      return arText;
+    }
+    return enText;
+  };
 
   // Helper function to get image URL
   const getImageUrl = (image) => {
@@ -803,7 +812,9 @@ const HeroBanner = () => {
         const transformedSlides = filteredBanners.map(banner => ({
           id: banner.id,
           title: banner.title,
+          title_ar: banner.title_ar,
           subtitle: banner.description || '',
+          subtitle_ar: banner.description_ar,
           image: getImageUrl(banner.image || banner.image_url),
           url: banner.url || null,
           banner_type: banner.banner_type || 'main'
@@ -1087,7 +1098,7 @@ const HeroBanner = () => {
                 }
               }}
             >
-              {currentSlide.title}
+              {getLocalizedText(currentSlide.title, currentSlide.title_ar)}
             </Typography>
 
             <Typography
@@ -1109,7 +1120,7 @@ const HeroBanner = () => {
                 width: '100%',
               }}
             >
-              {currentSlide.subtitle}
+              {getLocalizedText(currentSlide.subtitle, currentSlide.subtitle_ar)}
             </Typography>
 
             {/* Add Hero Button */}
@@ -1125,7 +1136,7 @@ const HeroBanner = () => {
                 variant="contained"
                 component={RouterLink}
                 to="/courses"
-                endIcon={<ArrowForward />}
+                
                 sx={{
                   fontSize: { xs: '0.75rem', sm: '0.9rem', md: '1.1rem' },
                   padding: { xs: '8px 14px', sm: '12px 22px', md: '16px 32px' },
@@ -1140,7 +1151,7 @@ const HeroBanner = () => {
                   },
                 }}
               >
-                {t('homeStartJourney')}
+                {t('homeStartJourney')} →
               </HeroButton>
             </Box>
           </Box>

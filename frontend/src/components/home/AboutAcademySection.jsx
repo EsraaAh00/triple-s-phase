@@ -12,7 +12,7 @@ import {
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import {
-    ArrowBack,
+    ArrowForward,
     School,
     CheckCircle,
     Chat,
@@ -41,6 +41,15 @@ const floatAnimation = keyframes`
   }
   100% {
     transform: translateY(0px);
+  }
+`;
+
+const bounceAnimation = keyframes`
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
   }
 `;
 
@@ -88,6 +97,8 @@ const ContentWrapper = styled(Box)(({ theme }) => ({
 
 const LeftSection = styled(Box)(({ theme }) => ({
     position: 'relative',
+    borderRadius: '16px',
+    overflow: 'hidden',
     // Responsive height
     height: '500px',
     '@media (max-width: 600px)': {
@@ -108,19 +119,18 @@ const ImageContainer = styled(Box)(({ theme }) => ({
     position: 'relative',
     width: '100%',
     height: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
 }));
 
 const MainImage = styled(Box)(({ theme }) => ({
-    position: 'absolute',
-    width: '70%',
-    height: '70%',
-    top: '15%',
-    left: '15%',
+    position: 'relative',
+    width: '100%',
+    height: '100%',
     borderRadius: '16px',
     overflow: 'hidden',
-    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.15)',
-    zIndex: 3,
-    animation: `${floatAnimation} 6s ease-in-out infinite`,
+    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
     '& img': {
         width: '100%',
         height: '100%',
@@ -129,68 +139,57 @@ const MainImage = styled(Box)(({ theme }) => ({
     },
 }));
 
-const OverlayImage = styled(Box)(({ theme }) => ({
-    position: 'absolute',
-    width: '50%',
-    height: '50%',
-    bottom: '5%',
-    right: '5%',
-    borderRadius: '12px',
-    overflow: 'hidden',
-    boxShadow: '0 15px 30px rgba(0, 0, 0, 0.15)',
-    zIndex: 4,
-    border: '4px solid #ffffff',
-    animation: `${floatAnimation} 7s ease-in-out infinite 1s`,
-    '& img': {
-        width: '100%',
-        height: '100%',
-        objectFit: 'cover',
-        display: 'block',
-    },
-}));
 
-const DecorativeElement = styled(Box)(({ theme }) => ({
-    position: 'absolute',
-    width: '120px',
-    height: '120px',
-    top: '0',
-    right: '0',
-    borderRadius: '50%',
-    background: 'linear-gradient(135deg, rgba(111, 66, 193, 0.1) 0%, rgba(51, 54, 121, 0.2) 100%)',
-    zIndex: 1,
-}));
 
 const RightSection = styled(Box)(({ theme }) => ({
     display: 'flex',
     flexDirection: 'column',
-    gap: theme.spacing(3),
+    alignItems: 'flex-start',
+    gap: theme.spacing(2),
     position: 'relative',
+    width: '100%',
 }));
 
 const SectionLabel = styled(Box)(({ theme }) => ({
-    display: 'inline-flex',
+    display: 'flex',
     alignItems: 'center',
+    justifyContent: 'flex-start',
     gap: theme.spacing(1),
-    padding: theme.spacing(1, 2),
+    padding: theme.spacing(1.5, 3),
     backgroundColor: 'rgba(111, 66, 193, 0.1)',
-    borderRadius: '30px',
+    borderRadius: '8px',
     marginBottom: theme.spacing(2),
+    marginLeft: 0,
+    marginRight: 0,
+    width: '100%',
+    position: 'relative',
+    '&:before': {
+        content: '""',
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        bottom: 0,
+        width: '4px',
+        backgroundColor: '#6f42c1',
+        borderRadius: '8px 0 0 8px',
+    },
     '& .MuiSvgIcon-root': {
         color: '#6f42c1',
-        fontSize: '1.2rem',
+        fontSize: '1.3rem',
     },
     '& span': {
         color: '#6f42c1',
-        fontSize: '0.9rem',
-        fontWeight: 600,
+        fontSize: '1rem',
+        fontWeight: 700,
     },
 }));
 
 const MainTitle = styled(Typography)(({ theme }) => ({
     fontWeight: 800,
-    color: '#1f2937',
+    color: '#663399',
     lineHeight: 1.2,
-    marginBottom: theme.spacing(2),
+    marginBottom: theme.spacing(3),
+    textAlign: 'left',
     // Responsive font size
     fontSize: '2.5rem',
     '@media (max-width: 600px)': {
@@ -210,7 +209,9 @@ const MainTitle = styled(Typography)(({ theme }) => ({
 const DescriptionText = styled(Typography)(({ theme }) => ({
     color: '#4b5563',
     lineHeight: 1.7,
-    marginBottom: theme.spacing(2),
+    marginBottom: theme.spacing(2.5),
+    textAlign: 'left',
+    width: '100%',
     // Responsive font size
     fontSize: '1.1rem',
     '@media (max-width: 600px)': {
@@ -227,73 +228,105 @@ const DescriptionText = styled(Typography)(({ theme }) => ({
 const BenefitsList = styled(Box)(({ theme }) => ({
     display: 'flex',
     flexDirection: 'column',
-    gap: theme.spacing(2),
+    alignItems: 'flex-start',
+    justifyContent: 'flex-start',
+    gap: theme.spacing(0.5),
     marginBottom: theme.spacing(3),
+    width: '100%',
+    marginLeft: 0,
 }));
 
 const BenefitItem = styled(Box)(({ theme }) => ({
     display: 'flex',
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'flex-start',
     gap: theme.spacing(1.5),
+    textAlign: 'left',
+    width: '100%',
+    direction: 'ltr',
     '& .MuiSvgIcon-root': {
         color: '#6f42c1',
-        fontSize: '1.2rem',
+        fontSize: '1.3rem',
         flexShrink: 0,
     },
     '& span': {
         color: '#374151',
-        fontSize: '1rem',
+        fontSize: '1.05rem',
         fontWeight: 500,
+        textAlign: 'left',
+        lineHeight: 1.6,
     },
 }));
 
-const CallToActionButton = styled(Button)(({ theme }) => ({
-    background: 'linear-gradient(135deg, #6f42c1 0%, #333679 100%)',
-    color: '#fff',
+const ImageReadMoreButton = styled(Button)(({ theme }) => ({
+    position: 'absolute',
+    bottom: '20px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    backgroundColor: '#333679',
+    color: '#FFFFFF',
+    padding: theme.spacing(1.5, 3),
     borderRadius: '8px',
     textTransform: 'none',
     fontWeight: 600,
-    boxShadow: '0 4px 15px rgba(111, 66, 193, 0.3)',
-    transition: 'all 0.3s ease',
-    // Responsive sizing
-    padding: theme.spacing(1.5, 3),
     fontSize: '1rem',
-    minHeight: '44px',
-    '@media (max-width: 600px)': {
-        padding: theme.spacing(1.2, 2.5),
-        fontSize: '0.9rem',
-        minHeight: '40px',
-    },
-    '@media (min-width: 600px) and (max-width: 900px)': {
-        padding: theme.spacing(1.3, 2.8),
-        fontSize: '0.95rem',
-    },
-    '@media (min-width: 900px)': {
-        padding: theme.spacing(1.5, 3),
-        fontSize: '1rem',
-    },
+    boxShadow: '0 4px 12px rgba(51, 54, 121, 0.3)',
+    transition: 'all 0.3s ease',
+    zIndex: 10,
     '&:hover': {
-        transform: 'translateY(-2px)',
-        boxShadow: '0 6px 20px rgba(111, 66, 193, 0.4)',
+        backgroundColor: '#2A2D5F',
+        transform: 'translateX(-50%) translateY(-2px)',
+        boxShadow: '0 6px 16px rgba(51, 54, 121, 0.4)',
+    },
+    '& .MuiButton-endIcon': {
+        marginLeft: theme.spacing(0.5),
     },
 }));
 
 const StatisticsCard = styled(Card)(({ theme }) => ({
     position: 'absolute',
-    bottom: '20px',
-    left: '0',
-    background: '#ffffff',
+    bottom: '90px',
+    left: '30px',
+    background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.95) 100%)',
+    backdropFilter: 'blur(20px)',
     color: '#1f2937',
-    borderRadius: '16px',
-    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.1)',
-    minWidth: '180px',
+    borderRadius: '20px',
+    boxShadow: '0 20px 60px rgba(111, 66, 193, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.5)',
+    border: '2px solid transparent',
+    backgroundImage: 'linear-gradient(white, white), linear-gradient(135deg, #6f42c1, #8b5cf6)',
+    backgroundOrigin: 'border-box',
+    backgroundClip: 'padding-box, border-box',
+    minWidth: '170px',
+    maxWidth: '190px',
     zIndex: 5,
-    animation: `${fadeInUp} 1s ease-out`,
-    [theme.breakpoints.down('lg')]: {
-        position: 'relative',
-        bottom: 'auto',
-        left: 'auto',
-        marginTop: theme.spacing(3),
+    animation: `${bounceAnimation} 3s ease-in-out infinite`,
+    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+    '&:hover': {
+        transform: 'translateY(-8px) scale(1.02)',
+        boxShadow: '0 25px 70px rgba(111, 66, 193, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.7)',
+    },
+    '&::before': {
+        content: '""',
+        position: 'absolute',
+        top: '-2px',
+        left: '-2px',
+        right: '-2px',
+        bottom: '-2px',
+        background: 'linear-gradient(135deg, #6f42c1, #8b5cf6, #a78bfa)',
+        borderRadius: '20px',
+        zIndex: -1,
+        opacity: 0,
+        transition: 'opacity 0.4s ease',
+    },
+    '&:hover::before': {
+        opacity: 0.15,
+    },
+    '@media (max-width: 600px)': {
+        bottom: '70px',
+        left: '20px',
+        minWidth: '140px',
+        maxWidth: '160px',
     },
 }));
 
@@ -303,19 +336,43 @@ const CardContentStyled = styled(CardContent)(({ theme }) => ({
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
+    gap: theme.spacing(0.8),
+    position: 'relative',
+    '&:last-child': {
+        paddingBottom: theme.spacing(2),
+    },
+    '@media (max-width: 600px)': {
+        padding: theme.spacing(1.5),
+        gap: theme.spacing(0.6),
+        '&:last-child': {
+            paddingBottom: theme.spacing(1.5),
+        },
+    },
 }));
 
 const StatisticsNumber = styled(Typography)(({ theme }) => ({
     fontSize: '2rem',
-    fontWeight: 800,
-    marginBottom: theme.spacing(0.5),
-    color: '#6f42c1',
+    fontWeight: 900,
+    background: 'linear-gradient(135deg, #6f42c1 0%, #8b5cf6 50%, #a78bfa 100%)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text',
+    lineHeight: 1,
+    letterSpacing: '-0.02em',
+    filter: 'drop-shadow(0 2px 8px rgba(111, 66, 193, 0.2))',
+    '@media (max-width: 600px)': {
+        fontSize: '1.6rem',
+    },
 }));
 
 const StatisticsText = styled(Typography)(({ theme }) => ({
-    fontSize: '0.9rem',
-    color: '#6b7280',
-    marginBottom: theme.spacing(1),
+    fontSize: '0.8rem',
+    color: '#4b5563',
+    fontWeight: 600,
+    lineHeight: 1.4,
+    '@media (max-width: 600px)': {
+        fontSize: '0.72rem',
+    },
 }));
 
 const BottomElements = styled(Box)(({ theme }) => ({
@@ -480,12 +537,21 @@ const BackgroundDots = styled(Box)(({ theme }) => ({
 }));
 
 const AboutAcademySection = ({ hideReadMoreButton = false }) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     // State for banner data
     const [bannerData, setBannerData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
+
+    // Helper function to get localized text
+    const getLocalizedText = (enText, arText) => {
+        const currentLang = i18n.language || 'en';
+        if (currentLang === 'ar' && arText) {
+            return arText;
+        }
+        return enText;
+    };
 
     // Helper function to get image URL
     const getImageUrl = (image) => {
@@ -547,7 +613,9 @@ const AboutAcademySection = ({ hideReadMoreButton = false }) => {
                     setBannerData({
                         id: firstBanner.id,
                         title: firstBanner.title,
+                        title_ar: firstBanner.title_ar,
                         description: firstBanner.description,
+                        description_ar: firstBanner.description_ar,
                         image_url: getImageUrl(firstBanner.image || firstBanner.image_url),
                         url: firstBanner.url || null,
                         banner_type: firstBanner.banner_type || 'about_us'
@@ -632,7 +700,6 @@ const AboutAcademySection = ({ hideReadMoreButton = false }) => {
                     {/* Left Section - Images */}
                     <LeftSection>
                         <ImageContainer>
-                            <DecorativeElement />
                             <MainImage>
                                 <img
                                     src={bannerData?.image_url || "/src/assets/images/about3.jpeg"}
@@ -642,24 +709,37 @@ const AboutAcademySection = ({ hideReadMoreButton = false }) => {
                                     }}
                                 />
                             </MainImage>
-                            <OverlayImage>
-                                <img
-                                    src="/src/assets/images/about2.jpeg"
-                                    alt="Online Learning Person"
-                                    onError={(e) => {
-                                        e.target.src = 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&q=80';
-                                    }}
-                                />
-                            </OverlayImage>
-
                             <StatisticsCard>
                                 <CardContentStyled>
-                                    <School sx={{ fontSize: '2rem', color: '#6f42c1', mb: 1 }} />
+                                    <Box sx={{
+                                        width: '50px',
+                                        height: '50px',
+                                        borderRadius: '14px',
+                                        background: 'linear-gradient(135deg, #6f42c1 0%, #8b5cf6 100%)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        boxShadow: '0 8px 24px rgba(111, 66, 193, 0.3)',
+                                        mb: 0.5,
+                                    }}>
+                                        <School sx={{ 
+                                            fontSize: { xs: '1.6rem', sm: '1.8rem' }, 
+                                            color: '#ffffff',
+                                        }} />
+                                    </Box>
                                     <StatisticsNumber>50k+</StatisticsNumber>
                                     <StatisticsText>{t('aboutAcademyActiveStudents')}</StatisticsText>
                                 </CardContentStyled>
                             </StatisticsCard>
                         </ImageContainer>
+                        {!hideReadMoreButton && (
+                            <ImageReadMoreButton
+                               
+                                onClick={() => navigate('/about-academy-detail')}
+                            >
+                                {t('aboutAcademyReadMore')} →
+                            </ImageReadMoreButton>
+                        )}
                     </LeftSection>
 
                     {/* Right Section - Content */}
@@ -670,11 +750,11 @@ const AboutAcademySection = ({ hideReadMoreButton = false }) => {
                         </SectionLabel>
 
                         <MainTitle>
-                            {bannerData?.title || t('aboutAcademyWelcomeTitle')}
+                            {getLocalizedText(bannerData?.title, bannerData?.title_ar) || t('aboutAcademyWelcomeTitle')}
                         </MainTitle>
 
                         <DescriptionText>
-                            {bannerData?.description || t('aboutAcademyDefaultDescription')}
+                            {getLocalizedText(bannerData?.description, bannerData?.description_ar) || t('aboutAcademyDefaultDescription')}
                         </DescriptionText>
 
                         <BenefitsList>
@@ -691,15 +771,6 @@ const AboutAcademySection = ({ hideReadMoreButton = false }) => {
                                 <span>{t('aboutAcademyFindInstructor')}</span>
                             </BenefitItem>
                         </BenefitsList>
-
-                        {!hideReadMoreButton && (
-                            <CallToActionButton
-                                endIcon={<ArrowBack />}
-                                onClick={() => navigate('/about-academy-detail')}
-                            >
-                                {t('aboutAcademyReadMore')}
-                            </CallToActionButton>
-                        )}
                     </RightSection>
                 </ContentWrapper>
 

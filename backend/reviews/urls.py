@@ -4,6 +4,7 @@ from . import views
 
 urlpatterns = [
     # Review endpoints
+    path('reviews/', views.all_course_reviews, name='all-course-reviews'),  # Get all reviews
     path('courses/<int:course_id>/reviews/', views.course_reviews, name='course-reviews'),
     path('reviews/create/<int:course_id>/', views.create_review, name='create-review'),
     path('reviews/<int:pk>/', views.ReviewDetailView.as_view(), name='review-detail'),

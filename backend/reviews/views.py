@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser, IsAuthenticatedOrReadOnly
 from rest_framework.parsers import JSONParser
 from rest_framework.serializers import ValidationError
+from rest_framework.pagination import PageNumberPagination
 from django.shortcuts import get_object_or_404
 from django.db.models import Avg, Count, Q
 from django.utils import timezone
@@ -81,7 +82,6 @@ def course_reviews(request, course_id):
     reviews = course.reviews.all().order_by('-created_at')
     
     # Pagination
-    from rest_framework.pagination import PageNumberPagination
     paginator = PageNumberPagination()
     paginator.page_size = 10
     page = paginator.paginate_queryset(reviews, request)
@@ -395,3 +395,26 @@ class ReplyModerationView(generics.UpdateAPIView):
             {"error": "Invalid action. Use 'approve' or 'reject'"},
             status=status.HTTP_400_BAD_REQUEST
         )
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def all_course_reviews(request):
+    """Get all approved course reviews (for homepage testimonials)"""
+    # Get only approved reviews
+    reviews = CourseReview.objects.filter(is_approved=True).select_related(
+        'user__profile', 'course'
+    ).order_by('-created_at')
+    
+    # Optional filtering
+    min_rating = request.GET.get('min_rating')
+    if min_rating:
+        reviews = reviews.filter(rating__gte=min_rating)
+    
+    # Pagination
+    paginator = PageNumberPagination()
+    paginator.page_size = request.GET.get('page_size', 10)
+    page = paginator.paginate_queryset(reviews, request)
+    
+    serializer = ReviewSerializer(page, many=True)
+    return paginator.get_paginated_response(serializer.data)

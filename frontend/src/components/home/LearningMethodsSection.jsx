@@ -27,7 +27,7 @@ import {
   KeyboardArrowRight,
   MenuBook
 } from '@mui/icons-material';
-import { courseAPI } from '../../services/api.service';
+import { courseAPI, bannerAPI } from '../../services/api.service';
 
 const floatAnimation = keyframes`
   0% { transform: translateY(0px); }
@@ -167,22 +167,36 @@ const LeftSection = styled(Box)(({ theme }) => ({
 
 // Title label styled like AboutAcademySection.SectionLabel
 const CategoryIcon = styled(Box)(({ theme }) => ({
-  display: 'inline-flex',
+  display: 'flex',
   alignItems: 'center',
+  justifyContent: 'flex-start',
   gap: theme.spacing(1),
-  padding: theme.spacing(1, 2),
+  padding: theme.spacing(1.5, 3),
   backgroundColor: 'rgba(111, 66, 193, 0.1)',
-  borderRadius: '30px',
-  marginBottom: theme.spacing(1.2),
-  justifyContent: { xs: 'center', md: 'flex-start' },
+  borderRadius: '8px',
+  marginBottom: theme.spacing(2),
+  marginLeft: 0,
+  marginRight: 0,
+  width: '100%',
+  position: 'relative',
+  '&:before': {
+    content: '""',
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: '4px',
+    backgroundColor: '#6f42c1',
+    borderRadius: '8px 0 0 8px',
+  },
   '& .MuiSvgIcon-root': {
     color: '#6f42c1',
-    fontSize: '1.2rem',
+    fontSize: '1.3rem',
   },
   '& span': {
     color: '#6f42c1',
-    fontSize: '0.9rem',
-    fontWeight: 600,
+    fontSize: '1rem',
+    fontWeight: 700,
   },
 }));
 
@@ -426,21 +440,29 @@ const CardTitle = styled(Typography)(({ theme }) => ({
 }));
 
 const CourseCount = styled(Typography)(({ theme }) => ({
-  color: '#666666',
-  fontWeight: 500,
+  color: '#34498B',
+  fontWeight: 600,
+  backgroundColor: 'rgba(52, 73, 139, 0.1)',
+  padding: theme.spacing(0.5, 1.5),
+  borderRadius: '12px',
+  display: 'inline-block',
   // Responsive font size
-  fontSize: '0.9rem',
+  fontSize: '0.85rem',
   '@media (max-width: 600px)': {
-    fontSize: '0.8rem',
+    fontSize: '0.75rem',
+    padding: theme.spacing(0.4, 1.2),
   },
   '@media (min-width: 600px) and (max-width: 900px)': {
-    fontSize: '0.85rem',
+    fontSize: '0.8rem',
+    padding: theme.spacing(0.45, 1.3),
   },
   '@media (min-width: 900px) and (max-width: 1200px)': {
-    fontSize: '0.87rem',
+    fontSize: '0.82rem',
+    padding: theme.spacing(0.47, 1.4),
   },
   '@media (min-width: 1200px)': {
-    fontSize: '0.9rem',
+    fontSize: '0.85rem',
+    padding: theme.spacing(0.5, 1.5),
   },
 }));
 
@@ -495,14 +517,24 @@ const ConnectingLine = styled(Box)(({ theme }) => ({
 
 
 const LearningMethodsSection = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [categories, setCategories] = useState([]);
+  const [bannerData, setBannerData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [scrollContainer, setScrollContainer] = useState(null);
   const navigate = useNavigate();
+
+  // Helper function to get localized text
+  const getLocalizedText = (enText, arText) => {
+    const currentLang = i18n.language || 'en';
+    if (currentLang === 'ar' && arText) {
+      return arText;
+    }
+    return enText;
+  };
 
   // Enhanced responsive scroll navigation functions
   const scrollLeft = () => {
@@ -576,6 +608,11 @@ const LearningMethodsSection = () => {
       const categoriesData = Array.isArray(response) ? response : [];
       const activeCategories = categoriesData.filter(category => category.is_active !== false);
 
+      // Log course counts for debugging
+      activeCategories.forEach(cat => {
+        console.log(`📊 Category "${cat.name}": courses_count=${cat.courses_count}, active_courses_count=${cat.active_courses_count}`);
+      });
+
       console.log('📊 Active categories:', activeCategories.length);
       setCategories(activeCategories);
     } catch (error) {
@@ -589,8 +626,41 @@ const LearningMethodsSection = () => {
     }
   };
 
+  // Load banner for this section
+  const loadBanner = async () => {
+    try {
+      console.log('🔄 Fetching learning methods banner from API...');
+      const bannersData = await bannerAPI.getBannersByType('main');
+      
+      let filteredBanners = [];
+      if (Array.isArray(bannersData)) {
+        filteredBanners = bannersData;
+      } else if (bannersData?.results) {
+        filteredBanners = bannersData.results;
+      } else if (bannersData?.data) {
+        filteredBanners = bannersData.data;
+      }
+      
+      if (filteredBanners.length > 0) {
+        const firstBanner = filteredBanners[0];
+        setBannerData({
+          id: firstBanner.id,
+          title: firstBanner.title,
+          title_ar: firstBanner.title_ar,
+          description: firstBanner.description,
+          description_ar: firstBanner.description_ar,
+        });
+        console.log('✅ Learning methods banner set successfully');
+      }
+    } catch (error) {
+      console.error('❌ Error loading banner:', error);
+      setBannerData(null);
+    }
+  };
+
   useEffect(() => {
     loadCategories();
+    loadBanner();
   }, []);
 
   const getCategoryIcon = (categoryName) => {
@@ -622,14 +692,14 @@ const LearningMethodsSection = () => {
             </CategoryIcon>
 
             <MainTitle variant="h2" component="h2">
-              {t('homeEverythingInOnePlace')}
+              {getLocalizedText(bannerData?.title, bannerData?.title_ar) || t('homeEverythingInOnePlace')}
             </MainTitle>
 
             <ViewAllButton
-              endIcon={<ArrowForward />}
+              
               onClick={() => navigate('/courses')}
             >
-              {t('coursesViewAllCategories')}
+              {t('coursesViewAllCategories')} →
             </ViewAllButton>
           </LeftSection>
 
@@ -721,8 +791,8 @@ const LearningMethodsSection = () => {
                         '&::-webkit-scrollbar': {
                           display: 'none',
                         },
-                        '-ms-overflow-style': 'none',
-                        'scrollbar-width': 'none',
+                        msOverflowStyle: 'none',
+                        scrollbarWidth: 'none',
                       }
                     }}
                   >
@@ -784,15 +854,17 @@ const LearningMethodsSection = () => {
                         {/* Content Section */}
                         <CardHeader>
                           <CardTitle>{category.name}</CardTitle>
-                          <CourseCount>{category.active_courses_count || 0} {t('coursesCourse')}</CourseCount>
+                          <CourseCount>
+                            {category.active_courses_count || category.courses_count || 0} {t('coursesCourse')}
+                          </CourseCount>
                         </CardHeader>
 
                         <CategoryCardContent>
                           <ReadMoreButton
                             onClick={() => navigate(`/courses?category=${category.id}`)}
-                            endIcon={<ArrowForward />}
+                            
                           >
-                            {t('commonReadMore')}
+                            {t('commonReadMore')} →
                           </ReadMoreButton>
                         </CategoryCardContent>
                       </CategoryCard>

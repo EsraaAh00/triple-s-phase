@@ -7,6 +7,7 @@ import HeroBanner from '../components/home/HeroBanner';
 import CourseCollections from '../components/home/CourseSlider';
 import BannerFile from '../components/home/BannerFile';
 import WhyChooseUsSection from '../components/home/WhyChooseUsSection';
+import OurPartnersSection from '../components/home/OurPartnersSection';
 import TestimonialsSection from '../components/home/TestimonialsSection';
 import FeaturedArticlesSection from '../components/home/FeaturedArticlesSection';
 import LearningMethodsSection from '../components/home/LearningMethodsSection';
@@ -107,6 +108,16 @@ const HomePage = () => {
           <WhyChooseUsSection />
         </Box>
 
+        {/* Our Partners Section */}
+        <Box component="section" id="our-partners" sx={{
+          width: '100%',
+          // Responsive section spacing
+          mb: { xs: 2, sm: 3, md: 4 },
+          py: { xs: 2, sm: 3, md: 4 }
+        }}>
+          <OurPartnersSection />
+        </Box>
+
         {/* Testimonials Section */}
         <Box component="section" id="testimonials" sx={{ 
           bgcolor: 'background.default',
@@ -119,14 +130,14 @@ const HomePage = () => {
         </Box>
 
         {/* Featured Articles Section */}
-        <Box component="section" id="featured-articles" sx={{
+        {/* <Box component="section" id="featured-articles" sx={{
           width: '100%',
           // Responsive section spacing
           mb: { xs: 2, sm: 3, md: 4 },
           py: { xs: 2, sm: 3, md: 4 }
         }}>
           <FeaturedArticlesSection />
-        </Box>
+        </Box> */}
 
       </Box>
       {/* Footer */}

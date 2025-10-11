@@ -690,9 +690,12 @@ const Header = ({ pageType }) => {
       path: '#',
       icon: <SchoolIcon />,
       dropdown: [
-        { text: t('navAbout'), path: '/about-academy-detail' },
+        { text: t('navAbout'), path: '/about-us' },
         { text: t('navArticles'), path: '/articles' },
-        { text: t('navContact'), path: '/contact' },
+        { text: t('navContact'), path: '/contact-us' },
+        { text: t('navFAQ'), path: '/faq' },
+        { text: t('navPrivacyPolicy'), path: '/privacy-policy' },
+        { text: t('navTermsConditions'), path: '/terms-and-conditions' },
       ]
     },
     {

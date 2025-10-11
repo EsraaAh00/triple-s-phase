@@ -122,5 +122,16 @@ export const reviewsAPI = {
       console.error('Error fetching my reviews:', error);
       throw error;
     }
+  },
+
+  // Get all course reviews (recent reviews for homepage)
+  getAllCourseReviews: async (params = {}) => {
+    try {
+      const response = await api.get('/api/reviews/reviews/', { params });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching all course reviews:', error);
+      throw error;
+    }
   }
 };

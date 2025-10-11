@@ -441,7 +441,7 @@ const Dot = styled(Box, {
 }));
 
 const CourseCollections = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'lg'));
@@ -452,6 +452,15 @@ const CourseCollections = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [slidesToShow, setSlidesToShow] = useState(4);
   const sliderRef = useRef(null);
+
+  // Helper function to get localized text
+  const getLocalizedText = (enText, arText) => {
+    const currentLang = i18n.language || 'en';
+    if (currentLang === 'ar' && arText) {
+      return arText;
+    }
+    return enText;
+  };
 
   // Calculate slides to show based on screen size
   useEffect(() => {
@@ -636,11 +645,11 @@ const CourseCollections = () => {
             <SliderHeader>
               <Box>
                 <SectionTitle variant="h4" component="h2">
-                  {collection.name}
+                  {getLocalizedText(collection.name, collection.name_ar)}
                 </SectionTitle>
-                {collection.description && (
+                {(collection.description || collection.description_ar) && (
                   <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
-                    {collection.description}
+                    {getLocalizedText(collection.description, collection.description_ar)}
                   </Typography>
                 )}
               </Box>
@@ -668,7 +677,7 @@ const CourseCollections = () => {
                   }
                 }}
               >
-                عرض الكل
+                {t('coursesViewAll')}
               </Button>
             </SliderHeader>
 

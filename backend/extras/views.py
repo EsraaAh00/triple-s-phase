@@ -13,12 +13,19 @@ from django.http import JsonResponse
 
 from courses.models import Course
 
-from .models import Banner, CourseCollection
+from .models import Banner, CourseCollection, PrivacyPolicy, TermsAndConditions, RefundingFAQ, ContactInfo, Partnership, ContactMessage
 from .serializers import (
     BannerSerializer,
     BannerByTypeSerializer,
     CourseCollectionListSerializer,
-    CourseCollectionDetailSerializer
+    CourseCollectionDetailSerializer,
+    PrivacyPolicySerializer,
+    TermsAndConditionsSerializer,
+    RefundingFAQSerializer,
+    ContactInfoSerializer,
+    PartnershipSerializer,
+    ContactMessageSerializer,
+    ContactMessageCreateSerializer
 )
 
 
@@ -399,3 +406,152 @@ def get_admin_dashboard_data():
             
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+
+class PrivacyPolicyViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    API endpoint for Privacy Policy.
+    Read-only for public, admin can manage via admin panel.
+    """
+    queryset = PrivacyPolicy.objects.filter(is_active=True)
+    serializer_class = PrivacyPolicySerializer
+    permission_classes = [AllowAny]
+    
+    @action(detail=False, methods=['get'])
+    def latest(self, request):
+        """Get the latest active privacy policy"""
+        latest_policy = self.get_queryset().first()
+        if latest_policy:
+            serializer = self.get_serializer(latest_policy)
+            return Response(serializer.data)
+        return Response({'detail': 'No privacy policy available'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class TermsAndConditionsViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    API endpoint for Terms and Conditions.
+    Read-only for public, admin can manage via admin panel.
+    """
+    queryset = TermsAndConditions.objects.filter(is_active=True)
+    serializer_class = TermsAndConditionsSerializer
+    permission_classes = [AllowAny]
+    
+    @action(detail=False, methods=['get'])
+    def latest(self, request):
+        """Get the latest active terms and conditions"""
+        latest_terms = self.get_queryset().first()
+        if latest_terms:
+            serializer = self.get_serializer(latest_terms)
+            return Response(serializer.data)
+        return Response({'detail': 'No terms and conditions available'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class RefundingFAQViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    API endpoint for Refunding FAQ.
+    Read-only for public, admin can manage via admin panel.
+    """
+    queryset = RefundingFAQ.objects.filter(is_active=True).order_by('display_order', '-created_at')
+    serializer_class = RefundingFAQSerializer
+    permission_classes = [AllowAny]
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ['display_order', 'created_at']
+    ordering = ['display_order', '-created_at']
+    
+    @action(detail=False, methods=['get'])
+    def latest(self, request):
+        """Get all active FAQs (for Refund Policy page)"""
+        faqs = self.get_queryset()
+        if faqs.exists():
+            serializer = self.get_serializer(faqs, many=True)
+            return Response(serializer.data)
+        return Response({'detail': 'No refund policy FAQs available'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class ContactInfoViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    API endpoint for Contact Info.
+    Read-only for public, admin can manage via admin panel.
+    """
+    queryset = ContactInfo.objects.filter(is_active=True)
+    serializer_class = ContactInfoSerializer
+    permission_classes = [AllowAny]
+    
+    @action(detail=False, methods=['get'])
+    def latest(self, request):
+        """Get the latest active contact info"""
+        latest_info = self.get_queryset().first()
+        if latest_info:
+            serializer = self.get_serializer(latest_info)
+            return Response(serializer.data)
+        return Response({'detail': 'No contact information available'}, status=status.HTTP_404_NOT_FOUND)
+    
+    @action(detail=False, methods=['get'])
+    def active(self, request):
+        """Get the active contact info (alias for latest)"""
+        return self.latest(request)
+
+
+class PartnershipViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    API endpoint for Partnerships.
+    Read-only for public, admin can manage via admin panel.
+    """
+    queryset = Partnership.objects.filter(is_active=True).order_by('display_order', 'name')
+    serializer_class = PartnershipSerializer
+    permission_classes = [AllowAny]
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ['display_order', 'name', 'created_at']
+    ordering = ['display_order', 'name']
+
+
+class ContactMessageViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for Contact Messages.
+    Public can create messages, admin can manage all.
+    """
+    queryset = ContactMessage.objects.all()
+    permission_classes = [AllowAny]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
+    filterset_fields = ['status', 'is_urgent']
+    search_fields = ['name', 'email', 'subject', 'message']
+    ordering_fields = ['created_at', 'status']
+    ordering = ['-created_at']
+    
+    def get_serializer_class(self):
+        """Return appropriate serializer based on action"""
+        if self.action == 'create':
+            return ContactMessageCreateSerializer
+        return ContactMessageSerializer
+    
+    def get_permissions(self):
+        """Set permissions based on action"""
+        if self.action == 'create':
+            permission_classes = [AllowAny]
+        else:
+            permission_classes = [IsAdminUser]
+        return [permission() for permission in permission_classes]
+    
+    def create(self, request, *args, **kwargs):
+        """Create a new contact message"""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            {'success': True, 'message': 'تم إرسال الرسالة بنجاح'},
+            status=status.HTTP_201_CREATED,
+            headers=headers
+        )
+    
+    @action(detail=False, methods=['get'])
+    def stats(self, request):
+        """Get contact message statistics for admin"""
+        stats = {
+            'total_messages': ContactMessage.objects.count(),
+            'new_messages': ContactMessage.objects.filter(status='new').count(),
+            'read_messages': ContactMessage.objects.filter(status='read').count(),
+            'replied_messages': ContactMessage.objects.filter(status='replied').count(),
+            'urgent_messages': ContactMessage.objects.filter(is_urgent=True).count(),
+        }
+        return Response(stats)

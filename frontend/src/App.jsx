@@ -85,7 +85,13 @@ import CreateArticle from './pages/teacher/articles/CreateArticle';
 import EditArticle from './pages/teacher/articles/EditArticle';
 import CartPage from './pages/cart/CartPage';
 import PaymentPage from './pages/payment/PaymentPage';
-import AboutAcademyDetail from './components/home/AboutAcademyDetail';
+
+// Policy and Info Pages
+import ContactUs from './pages/ContactUs';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsAndConditions from './pages/TermsAndConditions';
+import FAQ from './pages/FAQ';
+import AboutUs from './pages/AboutUs';
 
 // Question Bank Components
 import QuestionBankPage from './pages/teacher/QuestionBankPage';
@@ -284,7 +290,14 @@ const AppContent = () => {
                   <Route path="/courses/:id" element={<CourseDetail />} />
                   <Route path="/articles" element={<ArticlesPage />} />
                   <Route path="/articles/:slug" element={<ArticleDetail />} />
-                  <Route path="/about-academy-detail" element={<AboutAcademyDetail />} />
+                  
+                  {/* Policy and Info Pages */}
+                  <Route path="/about-us" element={<AboutUs />} />
+                  <Route path="/contact-us" element={<ContactUs />} />
+                  <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                  <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+                  <Route path="/faq" element={<FAQ />} />
+                  
                   {/* Store Routes */}
                   <Route path="/cart" element={<CartPage />} />
                   <Route path="/payment/:courseId" element={<PaymentPage />} />

@@ -1,54 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Container, Typography, Avatar, useMediaQuery, useTheme, IconButton } from '@mui/material';
+import { Box, Container, Typography, Avatar, useMediaQuery, useTheme, IconButton, CircularProgress } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { styled, keyframes } from '@mui/material/styles';
 import { FormatQuote, Star, StarBorder, StarHalf, Description, MenuBook } from '@mui/icons-material';
-
-// Statistics data
-const statistics = [
-  { number: '3.9k+', label: 'Successfully Trained' },
-  { number: '15.8k+', label: 'Classes Completed' },
-  { number: '97.5k+', label: 'Satisfaction Rate' },
-  { number: '100.2k+', label: 'Students Community' }
-];
-
-const testimonials = [
-  {
-    id: 1,
-    name: 'student1',
-    content: 'الدورة كانت مفيدة جداً وتغطي مواضيع مهمة. أسلوب المدرب ممتاز والأمثلة واضحة. الجلسات التفاعلية ساعدتني في تحسين مهاراتي بسرعة.',
-    rating: 5,
-    isPositive: true
-  },
-  {
-    id: 2,
-    name: 'student1',
-    content: 'الدورة لم تكن كما توقعت. المحتوى أقل من المتوقع وبعض الأفكار لا يمكن تطبيقها. بعض المواضيع غير متسقة مع المنهج.',
-    rating: 3,
-    isPositive: false
-  },
-  {
-    id: 3,
-    name: 'student2',
-    content: 'تجربة رائعة جداً! المحتوى منظم والمدربين محترفين. استفدت كثيراً من هذه الدورة وأوصي بها بشدة.',
-    rating: 5,
-    isPositive: true
-  },
-  {
-    id: 4,
-    name: 'student3',
-    content: 'الدورة جيدة ولكن تحتاج إلى تحسينات في التنظيم. بعض الدروس كانت سريعة جداً.',
-    rating: 4,
-    isPositive: true
-  },
-  {
-    id: 5,
-    name: 'student4',
-    content: 'محتوى ممتاز وطريقة التدريس واضحة. ساعدتني في تطوير مهاراتي بشكل كبير.',
-    rating: 5,
-    isPositive: true
-  },
-];
+import { reviewsAPI } from '../../services/reviews.service';
+import { courseAPI } from '../../services/api.service';
 
 const floatAnimation = keyframes`
   0% { transform: translateY(0px); }
@@ -209,6 +165,22 @@ const QuoteIcon = styled(FormatQuote)(({ theme }) => ({
   fontSize: '6rem',
   zIndex: 0,
   transform: 'scaleX(-1)',
+}));
+
+const UserAvatar = styled(Avatar)(({ theme }) => ({
+  width: 40,
+  height: 40,
+  backgroundColor: '#6f42c1',
+  fontSize: '1rem',
+  fontWeight: 700,
+  marginRight: theme.spacing(1.5),
+  boxShadow: '0 2px 8px rgba(111, 66, 193, 0.3)',
+}));
+
+const UserInfoBox = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: theme.spacing(1),
 }));
 
 const TestimonialName = styled(Typography)(({ theme }) => ({
@@ -434,6 +406,11 @@ const TestimonialsSection = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [currentPage, setCurrentPage] = useState(0);
   const testimonialsPerPage = 2;
+  const [reviews, setReviews] = useState([]);
+  const [statistics, setStatistics] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const handleDotClick = (index) => {
     setActiveIndex(index);
@@ -451,22 +428,163 @@ const TestimonialsSection = () => {
     }
   };
 
+  // Fetch statistics from API
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setStatsLoading(true);
+        console.log('🔄 Fetching general statistics from API...');
+        
+        const response = await courseAPI.getGeneralStats();
+        console.log('✅ Stats received:', response);
+        
+        // Format stats for display
+        const formattedStats = [
+          { 
+            number: response.total_students ? `${(response.total_students / 1000).toFixed(1)}k+` : '0', 
+            label: 'Active Students' 
+          },
+          { 
+            number: response.total_courses ? `${response.total_courses}+` : '0', 
+            label: 'Available Courses' 
+          },
+          { 
+            number: response.total_instructors ? `${response.total_instructors}+` : '0', 
+            label: 'Expert Instructors' 
+          },
+          { 
+            number: response.average_rating ? `${response.average_rating.toFixed(1)}⭐` : '4.8⭐', 
+            label: 'Average Rating' 
+          }
+        ];
+        
+        setStatistics(formattedStats);
+        
+      } catch (error) {
+        console.error('❌ Error loading statistics:', error);
+        // Use empty stats if API fails
+        setStatistics([]);
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+    
+    fetchStats();
+  }, []);
+
+  // Fetch reviews from API
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        setLoading(true);
+        console.log('🔄 Fetching course reviews from API...');
+        
+        // Get recent approved reviews
+        const response = await reviewsAPI.getAllCourseReviews({
+          ordering: '-created_at',
+          page_size: 10
+        });
+        
+        console.log('✅ Reviews received:', response);
+        
+        // Handle response format (could be array, results, or data)
+        let reviewsData = [];
+        if (Array.isArray(response)) {
+          reviewsData = response;
+        } else if (response?.results) {
+          reviewsData = response.results;
+        } else if (response?.data) {
+          reviewsData = response.data;
+        }
+        
+        // Filter only approved reviews with rating >= 4
+        const approvedReviews = reviewsData.filter(
+          review => review.is_approved !== false && review.rating >= 4
+        );
+        
+        console.log('📊 Approved reviews:', approvedReviews.length);
+        
+        // Only use real data, no fallback
+        setReviews(approvedReviews);
+        
+      } catch (error) {
+        console.error('❌ Error loading reviews:', error);
+        console.error('❌ Error details:', error.response?.data || error.message);
+        setError(error.message);
+        // Show empty if API fails
+        setReviews([]);
+      } finally {
+        setLoading(false);
+        console.log('🏁 Reviews loading completed');
+      }
+    };
+    
+    fetchReviews();
+  }, []);
+
   useEffect(() => {
     scrollToTestimonial(currentPage);
   }, [currentPage]);
 
+  // Render stars based on rating
+  const renderStars = (rating) => {
+    const stars = [];
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 !== 0;
+    
+    for (let i = 0; i < fullStars; i++) {
+      stars.push(<Star key={`star-${i}`} />);
+    }
+    if (hasHalfStar) {
+      stars.push(<StarHalf key="half-star" />);
+    }
+    const emptyStars = 5 - Math.ceil(rating);
+    for (let i = 0; i < emptyStars; i++) {
+      stars.push(<StarBorder key={`empty-${i}`} />);
+    }
+    return stars;
+  };
+
+  // Get user display name
+  const getUserName = (review) => {
+    if (review.user?.profile?.full_name) {
+      return review.user.profile.full_name;
+    }
+    if (review.user?.username) {
+      return review.user.username;
+    }
+    if (review.user_name) {
+      return review.user_name;
+    }
+    return t('commonAnonymous') || 'Student';
+  };
+
+  // Get first letter of name for avatar
+  const getAvatarLetter = (review) => {
+    const name = getUserName(review);
+    return name ? name.charAt(0).toUpperCase() : 'S';
+  };
+
+  // Get random color for avatar
+  const getAvatarColor = (index) => {
+    const colors = ['#6f42c1', '#8b5cf6', '#a78bfa', '#34498B', '#663399'];
+    return colors[index % colors.length];
+  };
+
   return (
     <SectionContainer>
       <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
-        {/* Statistics Banner */}
-        <StatsBanner>
-          {statistics.map((stat, index) => (
-            <StatBlock key={index}>
-              <StatNumber>{stat.number}</StatNumber>
-              <StatLabel>{stat.label}</StatLabel>
-            </StatBlock>
-          ))}
-        </StatsBanner>
+        {/* Statistics Banner - Only show if we have data */}
+        {!statsLoading && statistics.length > 0 && (
+          <StatsBanner>
+            {statistics.map((stat, index) => (
+              <StatBlock key={index}>
+                <StatNumber>{stat.number}</StatNumber>
+                <StatLabel>{stat.label}</StatLabel>
+              </StatBlock>
+            ))}
+          </StatsBanner>
+        )}
 
         {/* Testimonials Section */}
         <SectionHeader>
@@ -479,36 +597,76 @@ const TestimonialsSection = () => {
           </SectionTitle>
         </SectionHeader>
 
-        {/* Testimonial Cards */}
-        <TestimonialsContainer id="testimonials-container">
-          {testimonials.map((testimonial, index) => (
-            <TestimonialCard key={testimonial.id}>
-              <BookIcon>
-                <MenuBook />
-              </BookIcon>
-              <TestimonialContent>
-                {testimonial.content}
-              </TestimonialContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
-                <TestimonialName>{testimonial.name}</TestimonialName>
-                <Typography sx={{ color: '#A0A0A0', fontSize: '0.9rem' }}>
-                  ({testimonial.rating})
-                </Typography>
-              </Box>
-            </TestimonialCard>
-          ))}
-        </TestimonialsContainer>
+        {/* Loading State */}
+        {loading ? (
+          <Box sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            py: 6,
+            gap: 2
+          }}>
+            <CircularProgress sx={{ color: '#663399' }} />
+            <Typography variant="body1" color="text.secondary">
+              {t('commonLoading')}...
+            </Typography>
+          </Box>
+        ) : reviews.length === 0 ? (
+          <Box sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            py: 6,
+            gap: 2
+          }}>
+            <Typography variant="h6" color="text.secondary">
+              {t('commonNoDataAvailable') || 'No reviews available yet'}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {t('commonCheckBackLater') || 'Check back later for student testimonials'}
+            </Typography>
+          </Box>
+        ) : (
+          <>
+            {/* Testimonial Cards */}
+            <TestimonialsContainer id="testimonials-container">
+              {reviews.map((review, index) => (
+                <TestimonialCard key={review.id}>
+                  <BookIcon>
+                    <MenuBook />
+                  </BookIcon>
+                  <TestimonialContent>
+                    {review.review_text || review.content}
+                  </TestimonialContent>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
+                    <UserInfoBox>
+                      <UserAvatar sx={{ backgroundColor: getAvatarColor(index) }}>
+                        {getAvatarLetter(review)}
+                      </UserAvatar>
+                      <TestimonialName>{getUserName(review)}</TestimonialName>
+                    </UserInfoBox>
+                    <Rating rating={review.rating}>
+                      {renderStars(review.rating)}
+                    </Rating>
+                  </Box>
+                </TestimonialCard>
+              ))}
+            </TestimonialsContainer>
 
-        {/* Pagination Dots */}
-        <PaginationDots>
-          {Array.from({ length: Math.ceil(testimonials.length / testimonialsPerPage) }).map((_, index) => (
-            <Dot
-              key={index}
-              active={index === currentPage}
-              onClick={() => handleDotClick(index)}
-            />
-          ))}
-        </PaginationDots>
+            {/* Pagination Dots */}
+            {reviews.length > 1 && (
+              <PaginationDots>
+                {Array.from({ length: Math.ceil(reviews.length / testimonialsPerPage) }).map((_, index) => (
+                  <Dot
+                    key={index}
+                    active={index === currentPage}
+                    onClick={() => handleDotClick(index)}
+                  />
+                ))}
+              </PaginationDots>
+            )}
+          </>
+        )}
       </Container>
     </SectionContainer>
   );
