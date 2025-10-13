@@ -34,11 +34,11 @@ class CodeProtection {
       return false;
     });
 
-    // Disable text selection
-    document.addEventListener('selectstart', (e) => {
-      e.preventDefault();
-      return false;
-    });
+    // Allow text selection - Ctrl+A enabled
+    // document.addEventListener('selectstart', (e) => {
+    //   e.preventDefault();
+    //   return false;
+    // });
 
     // // Disable copy
     // document.addEventListener('copy', (e) => {
@@ -96,6 +96,12 @@ class CodeProtection {
         e.preventDefault();
         return false;
       }
+
+      // Allow Ctrl+C (Copy) - No prevention
+      // Allow Ctrl+V (Paste) - No prevention
+      // Allow Ctrl+A (Select All) - No prevention
+      // Allow Ctrl+Z (Undo) - No prevention
+      // Allow Ctrl+Y (Redo) - No prevention
     });
   }
 

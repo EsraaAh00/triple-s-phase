@@ -121,29 +121,29 @@
     setInterval(detectDebugger, 1000);
   })();
 
-  // Disable text selection
-  document.addEventListener('selectstart', function(e) {
-    e.preventDefault();
-    return false;
-  }, false);
+  // Allow text selection - Ctrl+A enabled
+  // document.addEventListener('selectstart', function(e) {
+  //   e.preventDefault();
+  //   return false;
+  // }, false);
 
-  // Disable copy
-  document.addEventListener('copy', function(e) {
-    e.preventDefault();
-    return false;
-  }, false);
+  // Allow copy - Ctrl+C enabled
+  // document.addEventListener('copy', function(e) {
+  //   e.preventDefault();
+  //   return false;
+  // }, false);
 
-  // Disable cut
-  document.addEventListener('cut', function(e) {
-    e.preventDefault();
-    return false;
-  }, false);
+  // Allow cut - Ctrl+X enabled
+  // document.addEventListener('cut', function(e) {
+  //   e.preventDefault();
+  //   return false;
+  // }, false);
 
-  // Disable paste
-  document.addEventListener('paste', function(e) {
-    e.preventDefault();
-    return false;
-  }, false);
+  // Allow paste - Ctrl+V enabled
+  // document.addEventListener('paste', function(e) {
+  //   e.preventDefault();
+  //   return false;
+  // }, false);
 
   // Disable drag
   document.addEventListener('dragstart', function(e) {
