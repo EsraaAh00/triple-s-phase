@@ -12,6 +12,12 @@ import store from './store/store';
 import theme from './theme';
 import './i18n'; // Initialize i18n
 import './index.css';
+import './banner-override.css';
+
+// Import code protection in production
+if (process.env.NODE_ENV === 'production') {
+  import('./utils/protectCode.js');
+}
 
 console.log('Application is starting...');
 

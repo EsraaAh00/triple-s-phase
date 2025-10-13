@@ -1,0 +1,55 @@
+/* Banner Images Padding Override */
+/* إلغاء padding للـ top والـ left والـ right من banner images */
+
+/* إلغاء padding للشاشات الكبيرة (900px+) */
+@media (min-width: 900px) {
+    .css-198ebeg {
+        padding-top: 0 !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        /* الاحتفاظ بـ padding-bottom فقط */
+        padding-bottom: 24px;
+    }
+}
+
+/* إلغاء padding للشاشات المتوسطة (600px+) */
+@media (min-width: 600px) {
+    .css-198ebeg {
+        padding-top: 0 !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        /* الاحتفاظ بـ padding-bottom فقط */
+        padding-bottom: 16px;
+    }
+}
+
+/* إلغاء padding للشاشات الصغيرة (0px+) */
+@media (min-width: 0px) {
+    .css-198ebeg {
+        padding-top: 0 !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        /* الاحتفاظ بـ padding-bottom فقط */
+        padding-bottom: 8px;
+    }
+}
+
+/* إضافة أنماط إضافية للـ banner images بشكل عام */
+.banner-image,
+.banner-container,
+.hero-section,
+.page-banner {
+    padding-top: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+/* إلغاء padding من أي عنصر يحتوي على banner في اسم الكلاس */
+[class*="banner"],
+[class*="Banner"],
+[class*="hero"],
+[class*="Hero"] {
+    padding-top: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}

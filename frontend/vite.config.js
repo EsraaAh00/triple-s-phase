@@ -108,8 +108,23 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: false,
-    minify: 'esbuild',
+    sourcemap: false, // Disable source maps for security
+    minify: 'terser', // Use terser for better minification
+    terserOptions: {
+      compress: {
+        drop_console: true, // Remove all console statements
+        drop_debugger: true, // Remove debugger statements
+        pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.warn', 'console.error'],
+        passes: 2, // Run minification twice for better results
+      },
+      mangle: {
+        toplevel: true, // Mangle top-level variable names
+        safari10: true,
+      },
+      format: {
+        comments: false, // Remove all comments
+      },
+    },
     rollupOptions: {
       output: {
         manualChunks: {

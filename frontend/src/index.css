@@ -262,6 +262,28 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+/* Banner Images Padding Override */
+/* إلغاء padding للـ top والـ left والـ right من banner images */
+.css-198ebeg {
+  padding-top: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* إلغاء padding للـ banner images بشكل عام */
+.banner-image,
+.banner-container,
+.hero-section,
+.page-banner,
+[class*="banner"],
+[class*="Banner"],
+[class*="hero"],
+[class*="Hero"] {
+  padding-top: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
 /* Light theme */
 @media (prefers-color-scheme: light) {
   :root {

@@ -30,7 +30,6 @@ import SchoolIcon from '@mui/icons-material/School';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import HomeIcon from '@mui/icons-material/Home';
-import KeyboardArrowDown from '@mui/icons-material/KeyboardArrowDown';
 import SettingsIcon from '@mui/icons-material/Settings';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
@@ -71,40 +70,28 @@ const StyledAppBar = styled(AppBar, {
       : 'transparent', // Make header transparent when not scrolled
   backdropFilter: pageType === 'course-detail' ? 'blur(10px)' : 'none',
   WebkitBackdropFilter: pageType === 'course-detail' ? 'blur(10px)' : 'none',
-  boxShadow: pageType === 'course-detail'
-    ? scrolled
-      ? '0 4px 20px 0 rgba(31, 38, 135, 0.2)'
-      : '0 2px 10px 0 rgba(31, 38, 135, 0.15)'
-    : scrolled
-      ? '0 4px 20px rgba(102, 51, 153, 0.3)'
-      : 'none',
+  boxShadow: 'none',
   transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-  borderBottom: pageType === 'course-detail'
-    ? scrolled
-      ? '1px solid rgba(255, 255, 255, 0.15)'
-      : '1px solid rgba(255, 255, 255, 0.08)'
-    : scrolled
-      ? '1px solid rgba(255, 255, 255, 0.08)'
-      : 'none',
+  borderBottom: 'none',
   animation: `${fadeIn} 0.6s ease-out`,
-  // Enhanced responsive sizing
-  padding: scrolled ? '6px 0' : '12px 0',
-  minHeight: scrolled ? '56px' : '70px',
+  // Enhanced responsive sizing - Further reduced height
+  padding: scrolled ? '2px 0' : '4px 0',
+  minHeight: scrolled ? '40px' : '48px',
   '@media (min-width: 480px)': {
-    padding: scrolled ? '8px 0' : '14px 0',
-    minHeight: scrolled ? '60px' : '75px',
+    padding: scrolled ? '3px 0' : '5px 0',
+    minHeight: scrolled ? '44px' : '52px',
   },
   '@media (min-width: 768px)': {
-    padding: scrolled ? '10px 0' : '16px 0',
-    minHeight: scrolled ? '65px' : '80px',
+    padding: scrolled ? '4px 0' : '6px 0',
+    minHeight: scrolled ? '48px' : '56px',
   },
   '@media (min-width: 1024px)': {
-    padding: scrolled ? '12px 0' : '18px 0',
-    minHeight: scrolled ? '70px' : '85px',
+    padding: scrolled ? '6px 0' : '8px 0',
+    minHeight: scrolled ? '52px' : '60px',
   },
   '@media (min-width: 1200px)': {
-    padding: scrolled ? '12px 0' : '20px 0',
-    minHeight: scrolled ? '70px' : '90px',
+    padding: scrolled ? '6px 0' : '8px 0',
+    minHeight: scrolled ? '52px' : '60px',
   },
   '&.MuiAppBar-root': {
     zIndex: theme.zIndex.drawer + 1,
@@ -129,51 +116,47 @@ const GradientButton = styled(Button)(({ theme, scrolled }) => ({
     ? 'linear-gradient(135deg, #663399 0%, #333679 50%, #1B1B48 100%)'
     : 'linear-gradient(135deg, #2D1B69 0%, #1A103F 50%, #0F0A2A 100%)',
   color: 'white',
-  borderRadius: '30px',
-  fontWeight: '600',
+  borderRadius: '20px',
+  fontWeight: '500',
   textTransform: 'none',
-  boxShadow: scrolled
-    ? '0 6px 20px rgba(102, 51, 153, 0.4)'
-    : '0 6px 20px rgba(45, 27, 105, 0.4)',
+  boxShadow: 'none',
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   border: scrolled
     ? '1px solid rgba(255, 255, 255, 0.1)'
-    : '1px solid rgba(229, 151, 139, 0.3)',
-  // Enhanced responsive sizing
+    : '1px solid rgba(229, 151, 139, 0.2)',
+  // Enhanced responsive sizing - Reduced size
+  padding: '6px 16px',
+  fontSize: '12px',
+  minHeight: '32px',
+  '@media (min-width: 480px)': {
   padding: '8px 20px',
   fontSize: '13px',
-  minHeight: '40px',
-  '@media (min-width: 480px)': {
-    padding: '10px 24px',
-    fontSize: '14px',
-    minHeight: '42px',
+    minHeight: '36px',
   },
   '@media (min-width: 768px)': {
-    padding: '12px 28px',
-    fontSize: '15px',
-    minHeight: '44px',
+    padding: '10px 24px',
+    fontSize: '14px',
+    minHeight: '40px',
   },
   '@media (min-width: 1024px)': {
-    padding: '12px 30px',
-    fontSize: '15px',
-    minHeight: '48px',
+    padding: '10px 24px',
+    fontSize: '14px',
+    minHeight: '40px',
   },
   '@media (min-width: 1200px)': {
-    padding: '12px 30px',
-    fontSize: '15px',
-    minHeight: '48px',
+    padding: '10px 24px',
+    fontSize: '14px',
+    minHeight: '40px',
   },
   '&:hover': {
-    transform: 'translateY(-3px) scale(1.02)',
-    boxShadow: scrolled
-      ? '0 10px 30px rgba(102, 51, 153, 0.6)'
-      : '0 10px 30px rgba(229, 151, 139, 0.6)',
+    transform: 'none',
+    boxShadow: 'none',
     background: scrolled
-      ? 'linear-gradient(135deg, #7a3fb3 0%, #3d42a0 50%, #23235a 100%)'
-      : 'linear-gradient(135deg, #3A2375 0%, #2D1B69 50%, #1A103F 100%)',
+      ? 'linear-gradient(135deg, #663399 0%, #333679 50%, #1B1B48 100%)'
+      : 'linear-gradient(135deg, #2D1B69 0%, #1A103F 50%, #0F0A2A 100%)',
   },
   '&:active': {
-    transform: 'translateY(-1px) scale(0.98)',
+    transform: 'none',
   },
 }));
 
@@ -281,32 +264,22 @@ const NavButton = styled(Button, {
   shouldForwardProp: (prop) => prop !== 'isHome' && prop !== 'scrolled',
 })(({ theme, isHome, scrolled }) => ({
   color: isHome ? '#FFD700' : '#FFFFFF',
-  margin: theme.spacing(0, 1),
-  fontWeight: '500',
-  fontSize: '16px',
+  margin: theme.spacing(0, 0.5),
+  fontWeight: '400',
+  fontSize: '13px',
   textTransform: 'none',
   position: 'relative',
-  padding: '12px 18px',
-  borderRadius: '12px',
+  padding: '6px 12px',
+  borderRadius: '8px',
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  border: scrolled ? '1px solid transparent' : '1px solid rgba(255, 255, 255, 0.1)',
-  backgroundColor: scrolled ? 'transparent' : 'rgba(255, 255, 255, 0.05)',
-  backdropFilter: scrolled ? 'none' : 'blur(10px)',
+  border: 'none',
+  backgroundColor: 'transparent',
+  backdropFilter: 'none',
   '&:hover': {
-    backgroundColor: scrolled
-      ? 'rgba(255, 255, 255, 0.12)'
-      : 'rgba(255, 255, 255, 0.15)',
-    transform: 'translateY(-2px)',
-    borderColor: isHome
-      ? 'rgba(255, 215, 0, 0.3)'
-      : scrolled
-        ? 'rgba(255, 255, 255, 0.2)'
-        : 'rgba(229, 151, 139, 0.3)',
-    boxShadow: isHome
-      ? '0 6px 20px rgba(255, 215, 0, 0.3)'
-      : scrolled
-        ? '0 6px 20px rgba(102, 51, 153, 0.3)'
-        : '0 6px 20px rgba(229, 151, 139, 0.3)',
+    backgroundColor: 'transparent',
+    transform: 'none',
+    borderColor: 'transparent',
+    boxShadow: 'none',
   },
   '& .MuiButton-endIcon': {
     marginRight: 4,
@@ -326,7 +299,7 @@ const LogoContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   textDecoration: 'none',
-  marginRight: '40px',
+  marginRight: '60px',
   '&:hover': {
     '& img': {
       transform: 'scale(1.08) rotate(2deg)',
@@ -338,26 +311,26 @@ const LogoContainer = styled(Box)(({ theme }) => ({
     },
   },
   [theme.breakpoints.down('sm')]: {
-    marginRight: '20px',
+    marginRight: '30px',
   },
 }));
 
 const LogoImage = styled('img')({
   transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-  filter: 'drop-shadow(0 2px 8px rgba(102, 51, 153, 0.3))',
-  // Enhanced responsive sizing
+  filter: 'none',
+  // Enhanced responsive sizing - Larger logo with fixed header height
   height: '40px',
   '@media (min-width: 480px)': {
-    height: '50px',
+    height: '42px',
   },
   '@media (min-width: 768px)': {
-    height: '60px',
+    height: '44px',
   },
   '@media (min-width: 1024px)': {
-    height: '70px',
+    height: '46px',
   },
   '@media (min-width: 1200px)': {
-    height: '80px',
+    height: '48px',
   },
 });
 
@@ -434,8 +407,8 @@ const LanguageSwitch = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   background: 'rgba(255, 255, 255, 0.08)',
-  borderRadius: '20px',
-  padding: '6px 12px',
+  borderRadius: '12px',
+  padding: '4px 8px',
   border: '1px solid rgba(255, 255, 255, 0.15)',
   marginLeft: theme.spacing(1),
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -669,34 +642,29 @@ const Header = ({ pageType }) => {
     fetchCategories();
   }, []);
 
-  // Navigation items with dynamic categories
+  // Navigation items with dynamic categories - No dropdowns
   const navItems = [
     {
       text: t('navHome'),
       path: '/',
       icon: <HomeIcon />
     },
-    {
-      text: t('navCourses'),
-      path: '#',
-      icon: <MenuBookIcon />,
-      dropdown: categories.map(category => ({
-        text: category.courses_count ? `${category.name} (${category.courses_count})` : category.name,
+    // All courses categories as separate links
+    ...categories.map(category => ({
+      text: category.name,
         path: `/courses?category=${category.slug || category.id || 'all'}`,
-      }))
+      icon: <MenuBookIcon />
+    })),
+    // Blog and About Us as separate links
+    {
+      text: t('navBlog'),
+      path: '/articles',
+      icon: <MenuBookIcon />
     },
     {
       text: t('navAbout'),
-      path: '#',
-      icon: <SchoolIcon />,
-      dropdown: [
-        { text: t('navAbout'), path: '/about-us' },
-        { text: t('navArticles'), path: '/articles' },
-        { text: t('navContact'), path: '/contact-us' },
-        { text: t('navFAQ'), path: '/faq' },
-        { text: t('navPrivacyPolicy'), path: '/privacy-policy' },
-        { text: t('navTermsConditions'), path: '/terms-and-conditions' },
-      ]
+      path: '/about-us',
+      icon: <SchoolIcon />
     },
     {
       text: t('navDashboard'),
@@ -999,7 +967,7 @@ const Header = ({ pageType }) => {
                 <>
                   {/* Cart Icon */}
                   <IconButton
-                    size="large"
+                    size="small"
                     aria-label="shopping cart"
                     color="inherit"
                     component={RouterLink}
@@ -1008,41 +976,47 @@ const Header = ({ pageType }) => {
                       backgroundColor: 'rgba(255, 255, 255, 0.12)',
                       marginLeft: 1,
                       border: '1px solid rgba(255, 255, 255, 0.15)',
+                      width: '28px',
+                      height: '28px',
                       transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                       '&:hover': {
                         backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                        transform: 'translateY(-2px) scale(1.05)',
+                        transform: 'none',
                         borderColor: 'rgba(102, 51, 153, 0.4)',
-                        boxShadow: '0 6px 20px rgba(102, 51, 153, 0.3)',
+                        boxShadow: 'none',
+                      },
+                      '& .MuiSvgIcon-root': {
+                        fontSize: '16px',
                       },
                     }}
                   >
-                    <Badge badgeContent={0} color="error">
                       <ShoppingCartIcon />
-                    </Badge>
                   </IconButton>
 
-                  <IconButton
-                    size="large"
+                  {/* <IconButton
+                    size="small"
                     aria-label="show notifications"
                     color="inherit"
                     sx={{
                       backgroundColor: 'rgba(255, 255, 255, 0.12)',
                       marginLeft: 1,
                       border: '1px solid rgba(255, 255, 255, 0.15)',
+                      width: '28px',
+                      height: '28px',
                       transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                       '&:hover': {
                         backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                        transform: 'translateY(-2px) scale(1.05)',
+                        transform: 'none',
                         borderColor: 'rgba(102, 51, 153, 0.4)',
-                        boxShadow: '0 6px 20px rgba(102, 51, 153, 0.3)',
+                        boxShadow: 'none',
+                      },
+                      '& .MuiSvgIcon-root': {
+                        fontSize: '16px',
                       },
                     }}
                   >
-                    <Badge badgeContent={3} color="error">
                       <NotificationsNoneIcon />
-                    </Badge>
-                  </IconButton>
+                  </IconButton> */}
                   <IconButton
                     onClick={handleProfileMenuOpen}
                     size="small"
@@ -1062,11 +1036,11 @@ const Header = ({ pageType }) => {
                       alt={user?.name || 'User'}
                       src={user?.avatar}
                       sx={{
-                        width: 44,
-                        height: 44,
+                        width: 28,
+                        height: 28,
                         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                         border: '2px solid #663399',
-                        boxShadow: '0 4px 15px rgba(102, 51, 153, 0.3)',
+                        boxShadow: 'none',
                       }}
                     />
                   </IconButton>
@@ -1111,22 +1085,25 @@ const Header = ({ pageType }) => {
                 <IconButton
                   component={RouterLink}
                   to="/login"
-                  size="large"
+                  size="small"
                   aria-label="login"
                   color="inherit"
                   sx={{
                     backgroundColor: 'rgba(255, 255, 255, 0.12)',
                     border: '1px solid rgba(255, 255, 255, 0.15)',
-                    borderRadius: '12px',
-                    width: '48px',
-                    height: '48px',
+                    borderRadius: '8px',
+                    width: '32px',
+                    height: '32px',
                     marginLeft: 1,
                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                     '&:hover': {
                       backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                      transform: 'translateY(-2px) scale(1.05)',
+                      transform: 'none',
                       borderColor: 'rgba(102, 51, 153, 0.4)',
-                      boxShadow: '0 6px 20px rgba(102, 51, 153, 0.3)',
+                      boxShadow: 'none',
+                    },
+                    '& .MuiSvgIcon-root': {
+                      fontSize: '18px',
                     },
                   }}
                 >
@@ -1135,7 +1112,7 @@ const Header = ({ pageType }) => {
               )}
 
               {/* Language Switch */}
-              <LanguageSwitch sx={{ marginLeft: 20 }}>
+              <LanguageSwitch sx={{ marginLeft: 1 }}>
                 <LanguageLabel active={currentLanguage === 'ar'}>AR</LanguageLabel>
                 <Switch
                   checked={currentLanguage === 'en'}
@@ -1150,113 +1127,20 @@ const Header = ({ pageType }) => {
             <Box sx={{
               flexGrow: 1,
               display: { xs: 'none', lg: 'flex' },
-              ml: { lg: 2, xl: 4 },
+              ml: { lg: 1, xl: 2 },
               justifyContent: 'center',
-              gap: { lg: 1, xl: 2 },
+              gap: { lg: 0.5, xl: 1 },
               '& > *:not(:last-child)': {
-                mr: { lg: 0.5, xl: 1 },
+                mr: { lg: 0.25, xl: 0.5 },
               },
             }}>
               {navItems.map((item) => {
                 // Only hide items that require authentication and user is not authenticated
                 if (item.auth && !isAuthenticated) return null;
 
-                if (item.dropdown) {
-                  const [anchorEl, setAnchorEl] = useState(null);
-                  const open = Boolean(anchorEl);
-
-                  const handleClick = (event) => {
-                    setAnchorEl(event.currentTarget);
-                  };
-
-                  const handleClose = () => {
-                    setAnchorEl(null);
-                  };
-
                   return (
-                    <div key={item.text}>
                       <NavButton
-                        aria-controls={open ? item.text : undefined}
-                        aria-haspopup="true"
-                        aria-expanded={open ? 'true' : undefined}
-                        onClick={handleClick}
-                        endIcon={<KeyboardArrowDown />}
-                        className={location.pathname.startsWith(item.path) ? 'active' : ''}
-                        scrolled={scrolled}
-                      >
-                        {item.text}
-                      </NavButton>
-                      <Menu
-                        id={item.text}
-                        anchorEl={anchorEl}
-                        open={open}
-                        onClose={handleClose}
-                        MenuListProps={{
-                          'aria-labelledby': item.text,
-                        }}
-                        PaperProps={{
-                          style: {
-                            backgroundColor: 'rgba(27, 27, 72, 0.95)',
-                            color: '#FFFFFF',
-                            marginTop: '15px',
-                            minWidth: '220px',
-                            borderRadius: '16px',
-                            boxShadow: '0 12px 40px rgba(102, 51, 153, 0.4)',
-                            backdropFilter: 'blur(20px)',
-                            border: '1px solid rgba(255, 255, 255, 0.1)',
-                          },
-                        }}
-                        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-                        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-                      >
-                        {loadingCategories ? (
-                          <Box display="flex" justifyContent="center" p={3}>
-                            <CircularProgress size={24} sx={{ color: '#663399' }} />
-                          </Box>
-                        ) : item.dropdown.length > 0 ? (
-                          item.dropdown.map((subItem, index) => (
-                            <MenuItem
-                              key={`${subItem.path}-${index}`}
-                              component={RouterLink}
-                              to={subItem.path}
-                              onClick={handleClose}
-                              sx={{
-                                color: '#E6E6E6',
-                                padding: '12px 20px',
-                                margin: '2px 8px',
-                                borderRadius: '8px',
-                                transition: 'all 0.2s ease',
-                                '&:hover': {
-                                  backgroundColor: 'rgba(102, 51, 153, 0.2)',
-                                  color: '#FFFFFF',
-                                  transform: 'translateX(5px)',
-                                },
-                                '&.Mui-selected': {
-                                  backgroundColor: 'rgba(102, 51, 153, 0.15)',
-                                  color: '#663399',
-                                },
-                              }}
-                            >
-                              {subItem.text}
-                            </MenuItem>
-                          ))
-                        ) : (
-                          <MenuItem disabled sx={{
-                            color: 'rgba(255, 255, 255, 0.5)',
-                            padding: '16px 20px',
-                            textAlign: 'center'
-                          }}>
-                            لا توجد أقسام متاحة
-                          </MenuItem>
-                        )}
-                      </Menu>
-                    </div>
-                  );
-                }
-
-                return (
-                  <NavButton
-                    key={item.path}
+                    key={item.path || item.text}
                     component={RouterLink}
                     to={item.path}
                     className={location.pathname === item.path ? 'active' : ''}
@@ -1285,18 +1169,23 @@ const Header = ({ pageType }) => {
             {/* Mobile Menu Button */}
             <Box sx={{ display: { xs: 'flex', lg: 'none' }, mr: { xs: 0.5, sm: 1 } }}>
               <IconButton
-                size="large"
+                size="small"
                 aria-label="show menu"
                 onClick={() => setMobileMenuOpen(true)}
                 color="inherit"
                 sx={{
                   backgroundColor: 'rgba(255, 255, 255, 0.12)',
                   border: '1px solid rgba(255, 255, 255, 0.15)',
+                  width: '32px',
+                  height: '32px',
                   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                   '&:hover': {
                     backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                    transform: 'scale(1.05)',
+                    transform: 'none',
                     borderColor: 'rgba(102, 51, 153, 0.4)',
+                  },
+                  '& .MuiSvgIcon-root': {
+                    fontSize: '18px',
                   },
                 }}
               >
@@ -1394,7 +1283,7 @@ const Header = ({ pageType }) => {
               flexWrap: 'wrap'
             }}>
               {/* Notifications Button */}
-              <IconButton
+  {/*             <IconButton
                 sx={{
                   flex: 1,
                   minWidth: '120px',
@@ -1408,13 +1297,11 @@ const Header = ({ pageType }) => {
                   }
                 }}
               >
-                <Badge badgeContent={3} color="error" sx={{ mr: 1 }}>
                   <NotificationsNoneIcon />
-                </Badge>
                 <Typography variant="body2" sx={{ ml: 1 }}>
                   الإشعارات
                 </Typography>
-              </IconButton>
+              </IconButton> */}
 
               {/* Cart Button */}
               <IconButton
@@ -1433,9 +1320,7 @@ const Header = ({ pageType }) => {
                   }
                 }}
               >
-                <Badge badgeContent={0} color="error" sx={{ mr: 1 }}>
                   <ShoppingCartIcon />
-                </Badge>
                 <Typography variant="body2" sx={{ ml: 1 }}>
                   سلة التسوق
                 </Typography>

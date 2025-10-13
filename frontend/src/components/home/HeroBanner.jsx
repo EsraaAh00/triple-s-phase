@@ -59,6 +59,11 @@ const pulse = keyframes`
   100% { transform: scale(1); opacity: 0.8; }
 `;
 
+const rotate = keyframes`
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+`;
+
 // 3D Image Container
 const Image3DContainer = styled(Box)(({ theme }) => ({
   position: 'absolute',
@@ -378,69 +383,69 @@ const HeroContent = styled(Container)(({ theme }) => ({
   zIndex: 2,
   display: 'flex',
   flexDirection: 'column',
-  alignItems: 'flex-start',
-  textAlign: 'left',
+  alignItems: 'center',
+  textAlign: 'center',
   height: '100%',
-  justifyContent: 'center',
-  padding: theme.spacing(4, 2, 4, 2),
+  justifyContent: 'flex-end',
+  padding: theme.spacing(3, 2, 8, 2),
   maxWidth: '1000px',
-  marginLeft: 0,
-  paddingTop: '80px', // Add top padding to account for header
+  margin: '0 auto',
+  paddingTop: '120px', // Add top padding to account for header
   // Enhanced responsive padding and alignment for mobile
   '@media (max-width: 480px)': {
-    padding: theme.spacing(2, 1, 2, 1),
-    paddingTop: '60px',
+    padding: theme.spacing(2, 1, 6, 1),
+    paddingTop: '90px',
     textAlign: 'center',
     alignItems: 'center',
     minHeight: 'calc(100vh - 60px)',
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
   },
   '@media (min-width: 480px) and (max-width: 600px)': {
-    padding: theme.spacing(2.5, 1.5, 2.5, 1.5),
-    paddingTop: '65px',
+    padding: theme.spacing(2.5, 1.5, 6.5, 1.5),
+    paddingTop: '100px',
     textAlign: 'center',
     alignItems: 'center',
     minHeight: 'calc(100vh - 65px)',
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
   },
   '@media (min-width: 600px) and (max-width: 768px)': {
-    padding: theme.spacing(3, 2, 3, 2),
-    paddingTop: '75px',
+    padding: theme.spacing(3, 2, 7, 2),
+    paddingTop: '110px',
     textAlign: 'center',
     alignItems: 'center',
     minHeight: 'calc(100vh - 75px)',
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
   },
   '@media (min-width: 768px) and (max-width: 900px)': {
-    padding: theme.spacing(3.5, 2.5, 3.5, 2.5),
-    paddingTop: '85px',
+    padding: theme.spacing(3.5, 2.5, 7.5, 2.5),
+    paddingTop: '120px',
     textAlign: 'center',
     alignItems: 'center',
     minHeight: 'calc(100vh - 85px)',
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
   },
   '@media (min-width: 900px) and (max-width: 1200px)': {
-    padding: theme.spacing(5, 3, 5, 3),
-    paddingTop: '110px',
-    textAlign: 'left',
-    alignItems: 'flex-start',
+    padding: theme.spacing(4, 3, 8, 3),
+    paddingTop: '140px',
+    textAlign: 'center',
+    alignItems: 'center',
     minHeight: 'calc(100vh - 110px)',
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
   },
   '@media (min-width: 1200px)': {
-    padding: theme.spacing(6, 4, 6, 4),
-    paddingTop: '120px',
-    textAlign: 'left',
-    alignItems: 'flex-start',
+    padding: theme.spacing(5, 4, 9, 4),
+    paddingTop: '160px',
+    textAlign: 'center',
+    alignItems: 'center',
     minHeight: 'calc(100vh - 120px)',
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
   },
   // Handle landscape orientation on mobile
   '@media (max-height: 600px) and (orientation: landscape)': {
     paddingTop: '50px',
     paddingBottom: '20px',
     minHeight: 'calc(100vh - 50px)',
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
   },
 }));
 
@@ -505,21 +510,24 @@ const HeroSubtitle = styled(Typography)(({ theme }) => ({
 }));
 
 const HeroButton = styled(Button)(({ theme, variant }) => ({
-  padding: theme.spacing(1.5, 3),
-  fontSize: '0.9rem',
+  padding: theme.spacing(1.5, 4),
+  fontSize: '1rem',
   fontWeight: 700,
-  borderRadius: '12px',
+  borderRadius: '50px',
   textTransform: 'none',
   background: variant === 'contained'
-    ? 'linear-gradient(135deg, #2D1B69 0%, #1A103F 100%)'
+    ? 'linear-gradient(135deg, #663399 0%, #4A2B8A 50%, #2D1B69 100%)'
     : 'transparent',
-  color: variant === 'contained' ? 'white' : '#2D1B69',
-  border: variant === 'outlined' ? '2px solid #2D1B69' : '2px solid rgba(255, 255, 255, 0.2)',
-  boxShadow: variant === 'contained' ? '0 4px 15px rgba(45, 27, 105, 0.4)' : 'none',
+  color: 'white',
+  border: '2px solid rgba(255, 255, 255, 0.3)',
+  boxShadow: variant === 'contained' 
+    ? '0 8px 32px rgba(102, 51, 153, 0.6), 0 0 0 0 rgba(102, 51, 153, 0.4)' 
+    : 'none',
   position: 'relative',
   overflow: 'hidden',
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
   animation: `${slideInUp} 1s ease-out 0.9s both`,
+  backdropFilter: 'blur(10px)',
   // Responsive sizing - smaller button width
   '@media (max-width: 600px)': {
     padding: theme.spacing(0.75, 1.5),
@@ -565,24 +573,45 @@ const HeroButton = styled(Button)(({ theme, variant }) => ({
     left: '-100%',
     width: '100%',
     height: '100%',
-    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
-    transition: '0.5s',
+    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)',
+    transition: '0.6s',
+    zIndex: 1,
+  },
+  '&:after': {
+    content: '""',
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    width: '0',
+    height: '0',
+    borderRadius: '50%',
+    background: 'rgba(255, 255, 255, 0.2)',
+    transform: 'translate(-50%, -50%)',
+    transition: 'width 0.6s, height 0.6s',
+  },
+  '& > *': {
+    position: 'relative',
+    zIndex: 2,
   },
   '&:hover': {
     background: variant === 'contained'
-      ? 'linear-gradient(135deg, #3A2375 0%, #2D1B69 100%)'
+      ? 'linear-gradient(135deg, #7B4BC3 0%, #5A3596 50%, #3A2375 100%)'
       : 'rgba(45, 27, 105, 0.1)',
     boxShadow: variant === 'contained'
-      ? '0 6px 20px rgba(45, 27, 105, 0.6)'
+      ? '0 12px 40px rgba(102, 51, 153, 0.8), 0 0 60px rgba(102, 51, 153, 0.4)'
       : '0 4px 12px rgba(45, 27, 105, 0.2)',
-    transform: 'translateY(-2px)',
-    borderColor: 'rgba(255, 255, 255, 0.4)',
+    transform: 'translateY(-4px) scale(1.05)',
+    borderColor: 'rgba(255, 255, 255, 0.6)',
     '&:before': {
       left: '100%',
     },
+    '&:after': {
+      width: '300px',
+      height: '300px',
+    },
   },
   '&:active': {
-    transform: 'translateY(1px)',
+    transform: 'translateY(-2px) scale(1.02)',
   },
 }));
 
@@ -1057,9 +1086,8 @@ const HeroBanner = () => {
             maxWidth: '800px',
             position: 'relative',
             zIndex: 2,
-            padding: { xs: '0 20px', sm: '0 30px', md: '0 40px' },
+            padding: { xs: '20px', sm: '30px', md: '40px' },
             margin: '0 auto',
-            marginTop: { xs: '20px', sm: '30px', md: '40px' },
             transform: `translateY(${scrollProgress * -30}px)`,
             transition: 'transform 0.3s ease-out',
             width: '100%',
@@ -1070,16 +1098,16 @@ const HeroBanner = () => {
             justifyContent: 'center',
             alignItems: 'center',
             textAlign: 'center',
-            gap: { xs: 2, sm: 2.5, md: 3 },
+            gap: { xs: 1.5, sm: 2, md: 2.5 },
           }}>
             <Typography
               variant="h2"
               sx={{
-                fontSize: { xs: '1.5rem', sm: '2rem', md: '2.8rem', lg: '3.5rem' },
-                fontWeight: 800,
+                fontSize: { xs: '1.2rem', sm: '1.6rem', md: '2.2rem', lg: '2.8rem' },
+                fontWeight: 700,
                 lineHeight: 1.2,
                 color: '#fff',
-                textShadow: `0 ${2 + scrollProgress * 3}px ${10 + scrollProgress * 5}px rgba(0,0,0,${0.3 + scrollProgress * 0.2})`,
+                textShadow: `0 ${4 + scrollProgress * 4}px ${20 + scrollProgress * 10}px rgba(0,0,0,${0.4 + scrollProgress * 0.3}), 0 0 40px rgba(102, 51, 153, 0.6)`,
                 animation: `${slideInUp} 1s ease-out 0.3s both`,
                 position: 'relative',
                 zIndex: 2,
@@ -1087,14 +1115,31 @@ const HeroBanner = () => {
                 transition: 'transform 0.3s ease-out',
                 textAlign: 'center',
                 width: '100%',
+                background: 'linear-gradient(135deg, #FFFFFF 0%, #E0E7FF 50%, #C7D2FE 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                letterSpacing: '-0.01em',
+                '&:before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: '-10px',
+                  left: '-10px',
+                  right: '-10px',
+                  bottom: '-10px',
+                  background: 'radial-gradient(circle at center, rgba(102, 51, 153, 0.2) 0%, transparent 70%)',
+                  filter: 'blur(20px)',
+                  zIndex: -1,
+                },
                 '&:after': {
                   content: '""',
                   display: 'block',
-                  width: { xs: '50px', sm: '70px', md: '100px' },
+                  width: { xs: '60px', sm: '80px', md: '100px' },
                   height: { xs: '3px', md: '4px' },
-                  background: 'rgba(255,255,255,0.8)',
-                  margin: { xs: '8px auto', sm: '10px auto', md: '12px auto' },
-                  borderRadius: '2px'
+                  background: 'linear-gradient(90deg, transparent, #FFFFFF, #663399, #FFFFFF, transparent)',
+                  margin: { xs: '8px auto', sm: '12px auto', md: '16px auto' },
+                  borderRadius: '4px',
+                  boxShadow: '0 0 20px rgba(102, 51, 153, 0.8)',
                 }
               }}
             >
@@ -1104,13 +1149,13 @@ const HeroBanner = () => {
             <Typography
               variant="h6"
               sx={{
-                fontSize: { xs: '0.9rem', sm: '1.1rem', md: '1.3rem' },
-                fontWeight: 400,
+                fontSize: { xs: '0.95rem', sm: '1.1rem', md: '1.3rem' },
+                fontWeight: 300,
                 color: 'rgba(255,255,255,0.95)',
-                maxWidth: '600px',
+                maxWidth: '700px',
                 mx: 'auto',
-                lineHeight: 1.7,
-                textShadow: '0 1px 3px rgba(0,0,0,0.3)',
+                lineHeight: 1.8,
+                textShadow: '0 2px 8px rgba(0,0,0,0.4), 0 0 20px rgba(102, 51, 153, 0.3)',
                 position: 'relative',
                 zIndex: 2,
                 transform: `translateX(${scrollProgress * -15}px)`,
@@ -1118,6 +1163,12 @@ const HeroBanner = () => {
                 opacity: 0.95 - scrollProgress * 0.3,
                 textAlign: 'center',
                 width: '100%',
+                letterSpacing: '0.02em',
+                padding: { xs: '0 10px', sm: '0 20px', md: '0 30px' },
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(224,231,255,0.95) 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
               }}
             >
               {getLocalizedText(currentSlide.subtitle, currentSlide.subtitle_ar)}
@@ -1132,27 +1183,95 @@ const HeroBanner = () => {
               transition: 'transform 0.3s ease-out',
               opacity: 1 - scrollProgress * 0.4,
             }}>
-              <HeroButton
-                variant="contained"
+              <Box
                 component={RouterLink}
                 to="/courses"
-                
                 sx={{
-                  fontSize: { xs: '0.75rem', sm: '0.9rem', md: '1.1rem' },
-                  padding: { xs: '8px 14px', sm: '12px 22px', md: '16px 32px' },
-                  borderRadius: '8px',
-                  fontWeight: 600,
-                  textTransform: 'none',
-                  whiteSpace: 'nowrap',
-                  boxShadow: '0 4px 15px rgba(45, 27, 105, 0.4)',
+                  position: 'relative',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: { xs: '12px 28px', sm: '14px 36px', md: '16px 44px' },
+                  fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
+                  fontWeight: 700,
+                  color: '#fff',
+                  textDecoration: 'none',
+                  borderRadius: '60px',
+                  background: 'linear-gradient(135deg, rgba(102, 51, 153, 0.9) 0%, rgba(74, 43, 138, 0.95) 50%, rgba(45, 27, 105, 1) 100%)',
+                  backdropFilter: 'blur(20px)',
+                  border: '2px solid rgba(255, 255, 255, 0.2)',
+                  boxShadow: `
+                    0 0 60px rgba(102, 51, 153, 0.6),
+                    0 10px 40px rgba(102, 51, 153, 0.5),
+                    inset 0 0 30px rgba(255, 255, 255, 0.1)
+                  `,
+                  overflow: 'hidden',
+                  cursor: 'pointer',
+                  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '&:before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: '-50%',
+                    left: '-50%',
+                    width: '200%',
+                    height: '200%',
+                    background: 'conic-gradient(from 0deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%)',
+                    animation: `${rotate} 4s linear infinite`,
+                  },
+                  '&:after': {
+                    content: '""',
+                    position: 'absolute',
+                    inset: '2px',
+                    borderRadius: '60px',
+                    background: 'linear-gradient(135deg, rgba(102, 51, 153, 0.8) 0%, rgba(45, 27, 105, 0.9) 100%)',
+                    zIndex: 1,
+                  },
+                  '& > *': {
+                    position: 'relative',
+                    zIndex: 2,
+                  },
                   '&:hover': {
-                    boxShadow: '0 6px 20px rgba(45, 27, 105, 0.6)',
-                    transform: 'scale(1.05)',
+                    transform: 'translateY(-6px) scale(1.08)',
+                    boxShadow: `
+                      0 0 100px rgba(102, 51, 153, 0.9),
+                      0 20px 60px rgba(102, 51, 153, 0.7),
+                      inset 0 0 50px rgba(255, 255, 255, 0.2)
+                    `,
+                    border: '2px solid rgba(255, 255, 255, 0.4)',
+                    '& .arrow-icon': {
+                      transform: 'translateX(8px) rotate(-45deg)',
+                    },
+                  },
+                  '&:active': {
+                    transform: 'translateY(-4px) scale(1.05)',
                   },
                 }}
               >
-                {t('homeStartJourney')} →
-              </HeroButton>
+                <Box sx={{ position: 'relative', zIndex: 2 }}>
+                  {t('homeStartJourney')}
+                </Box>
+                <Box
+                  className="arrow-icon"
+                  sx={{
+                    position: 'relative',
+                    zIndex: 2,
+                    width: { xs: '28px', sm: '32px', md: '36px' },
+                    height: { xs: '28px', sm: '32px', md: '36px' },
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%)',
+                    border: '2px solid rgba(255, 255, 255, 0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                  }}
+                >
+                  <ArrowForward sx={{ 
+                    fontSize: { xs: '18px', sm: '20px', md: '22px' },
+                    color: '#fff',
+                  }} />
+                </Box>
+              </Box>
             </Box>
           </Box>
         </HeroContent>
