@@ -1560,7 +1560,7 @@ const Courses = () => {
                                     fontSize: { xs: '0.7rem', sm: '0.8rem' } 
                                   }}
                                 >
-                                  ${formatPrice(course.price)}
+                                  {formatPrice(course.price)} دينار
                                 </Typography>
                                 <Typography 
                                   variant="h6" 
@@ -1571,7 +1571,7 @@ const Courses = () => {
                                     fontSize: { xs: '1rem', sm: '1.25rem' }
                                   }}
                                 >
-                                  ${formatPrice(course.discount_price)}
+                                  {formatPrice(course.discount_price)} دينار
                                 </Typography>
                               </>
                             ) : (
@@ -1582,7 +1582,7 @@ const Courses = () => {
                                   fontSize: { xs: '1rem', sm: '1.25rem' }
                                 }}
                               >
-                                {course.is_free ? t('coursesFree') : `$${formatPrice(course.price)}`}
+                                {course.is_free ? t('coursesFree') : `${formatPrice(course.price)} دينار`}
                               </Typography>
                             )}
                           </Box>

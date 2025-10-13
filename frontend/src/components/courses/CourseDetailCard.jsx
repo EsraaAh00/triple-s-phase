@@ -577,7 +577,7 @@ const CourseDetailCard = ({
                                                     textShadow: '0 2px 4px rgba(0,0,0,0.1)'
                                                 }}
                                             >
-                                                ${course?.price || '74.00'}
+                                                {course?.price || '74.00'} دينار
                                             </Typography>
                                             <Typography
                                                 sx={{
@@ -952,7 +952,7 @@ const CourseDetailCard = ({
                                             fontSize: { xs: '1.3rem', sm: '1.4rem' }
                                         }}
                                     >
-                                        {course?.price ? `$${course.price}` : '$99'}
+                                        {course?.price ? `${course.price} دينار` : '99 دينار'}
                                     </Typography>
 
                                     <Button

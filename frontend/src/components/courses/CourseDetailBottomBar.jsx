@@ -86,7 +86,7 @@ const CourseDetailBottomBar = ({
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis'
                             }}>
-                                ${course?.price || '74.00'}
+                                {course?.price || '74.00'} دينار
                             </Typography>
                             <Typography variant="body2" color="text.secondary" sx={{
                                 fontSize: { xs: '0.8rem', sm: '0.9rem' },
