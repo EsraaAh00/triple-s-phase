@@ -357,35 +357,36 @@ const Footer = () => {
           sx={{
             background: 'rgba(255, 255, 255, 0.08)',
             borderRadius: { xs: '8px', sm: '10px', md: '12px' },
-            padding: { xs: theme.spacing(1.5), sm: theme.spacing(2), md: theme.spacing(3), lg: theme.spacing(4) },
+            padding: { xs: theme.spacing(1), sm: theme.spacing(1.2), md: theme.spacing(1.5), lg: theme.spacing(2) },
             boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
             backdropFilter: 'blur(10px)',
             border: 'none',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'flex-start',
-            gap: { xs: 2, sm: 3, md: 4 },
+            gap: { xs: 1, sm: 1.5, md: 2 },
             flexDirection: { xs: 'column', lg: 'row' },
             textAlign: 'center'
           }}
         >
           {/* Column 1: Logo and Description */}
           <Box sx={{ 
-            flex: 1, 
+            flex: { xs: 1, lg: '1 1 33.33%' },
+            maxWidth: { xs: '100%', lg: '33.33%' },
             display: 'flex', 
             flexDirection: 'column', 
             alignItems: 'center',
             width: { xs: '100%', lg: 'auto' },
-            mb: { xs: 2, lg: 0 }
+            mb: { xs: 1.5, lg: 0 }
           }}>
-            <Box display="flex" alignItems="center" justifyContent="center" mb={{ xs: 1, sm: 1.5, md: 2, lg: 2.5 }}>
+            <Box display="flex" alignItems="center" justifyContent="center" mb={{ xs: 0.8, sm: 1, md: 1.2 }}>
               <Box
                 component="img"
                 src={logo}
                 alt="Triple S Academy Logo"
                 sx={{
-                  width: { xs: 80, sm: 100, md: 140, lg: 180, xl: 240 },
-                  height: { xs: 60, sm: 75, md: 70, lg: 90, xl: 100 },
+                  width: { xs: 100, sm: 130, md: 160, lg: 200, xl: 240 },
+                  height: 'auto',
                   maxWidth: '100%',
                   objectFit: 'contain',
                   filter: 'brightness(0) invert(1)',
@@ -402,8 +403,8 @@ const Footer = () => {
               sx={{
                 color: '#FFFFFF',
                 lineHeight: { xs: 1.4, sm: 1.5 },
-                mb: { xs: 1.5, sm: 2, md: 2.5 },
-                fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.85rem' },
+                mb: { xs: 0.8, sm: 1, md: 1.2 },
+                fontSize: { xs: '0.65rem', sm: '0.7rem', md: '0.8rem' },
                 textAlign: 'center',
                 fontWeight: 400,
                 px: { xs: 0.5, sm: 1, md: 0 },
@@ -416,12 +417,12 @@ const Footer = () => {
               <Typography variant="body2" sx={{ 
                 color: '#FFFFFF', 
                 fontWeight: 600, 
-                mb: { xs: 0.8, sm: 1, md: 1.5 }, 
-                fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.85rem' } 
+                mb: { xs: 0.5, sm: 0.6, md: 0.8 }, 
+                fontSize: { xs: '0.65rem', sm: '0.7rem', md: '0.8rem' } 
               }}>
                 FOLLOW US ON
               </Typography>
-              <Box sx={{ display: 'flex', gap: { xs: 0.5, sm: 0.6, md: 0.8 }, justifyContent: 'center' }}>
+              <Box sx={{ display: 'flex', gap: { xs: 0.4, sm: 0.5, md: 0.6 }, justifyContent: 'center' }}>
                 {socialLinks.map((social, index) => (
                   <SocialIcon
                     key={index}
@@ -430,9 +431,9 @@ const Footer = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                     sx={{
-                      width: { xs: '28px', sm: '32px', md: '35px' },
-                      height: { xs: '28px', sm: '32px', md: '35px' },
-                      fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' }
+                      width: { xs: '24px', sm: '28px', md: '30px' },
+                      height: { xs: '24px', sm: '28px', md: '30px' },
+                      fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem' }
                     }}
                   >
                     {social.icon}
@@ -541,120 +542,153 @@ const Footer = () => {
             </Box>
           ) : (
             <>
-              {/* Desktop: Column 2: Site Links */}
+            {/* Desktop: Combined Links Section */}
+            <Box sx={{ 
+              flex: { xs: 1, lg: '1 1 33.33%' },
+              maxWidth: { xs: '100%', lg: '33.33%' },
+              width: { xs: '100%', lg: 'auto' },
+              mb: { xs: 1.5, lg: 0 }
+            }}>
+              {/* Site Links */}
+              <Typography
+                variant="h5"
+                sx={{
+                  color: '#FFFFFF',
+                  fontWeight: 'bold',
+                  fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem' },
+                  mb: { xs: 0.8, sm: 1, md: 1.2 },
+                  position: 'relative',
+                  textAlign: 'center',
+                  '&:after': {
+                    content: '""',
+                    position: 'absolute',
+                    bottom: '-6px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    width: '30px',
+                    height: '2px',
+                    background: 'linear-gradient(90deg, transparent, #6A3ABF, transparent)',
+                    borderRadius: '1px'
+                  }
+                }}
+              >
+                {t('footerSiteLinks')}
+              </Typography>
               <Box sx={{ 
-                flex: 1, 
-                maxWidth: { xs: '100%', lg: '300px' },
-                width: { xs: '100%', lg: 'auto' },
-                mb: { xs: 2, lg: 0 }
-              }}>
-            <Typography
-              variant="h5"
-              sx={{
-                color: '#FFFFFF',
-                fontWeight: 'bold',
-                    fontSize: { xs: '0.9rem', sm: '1rem', md: '1.2rem' },
-                    mb: { xs: 1.5, sm: 2, md: 3 },
-                position: 'relative',
-                '&:after': {
-                  content: '"— — —"',
-                  position: 'absolute',
-                  bottom: '-8px',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  color: '#6A3ABF',
-                      fontSize: { xs: '0.6rem', sm: '0.7rem', md: '0.8rem' },
-                  letterSpacing: '2px'
+                mt: { xs: 0.8, sm: 1, md: 1.2 },
+                mb: { xs: 1.5, sm: 2, md: 2.5 },
+                display: 'flex',
+                flexWrap: 'nowrap',
+                gap: { xs: 0.5, sm: 0.6, md: 0.8 },
+                justifyContent: 'center',
+                alignItems: 'center',
+                overflowX: 'auto',
+                '&::-webkit-scrollbar': {
+                  display: 'none'
                 }
-              }}
-            >
-              {t('footerSiteLinks')}
-            </Typography>
-                <Box sx={{ mt: { xs: 1.5, sm: 2, md: 4 } }}>
-              {siteLinks.map((link, index) => (
-                <Typography
-                  key={index}
-                  component={RouterLink}
-                  to={link.to}
-                  sx={{
-                    display: 'block',
-                    color: '#C0B0E0',
-                        fontSize: { xs: '0.75rem', sm: '0.8rem', md: '0.9rem' },
-                        mb: { xs: 0.8, sm: 1, md: 1.5 },
-                    textDecoration: 'none',
-                    transition: 'color 0.3s ease',
-                        padding: { xs: '4px 0', md: '0' },
-                    '&:hover': {
-                      color: '#FFFFFF'
-                    }
-                  }}
-                >
-                  {link.text === 'courses' ? t('footerCourses') : link.text === 'Flash Cards' ? t('footerFlashCards') : link.text}
-                </Typography>
-              ))}
-            </Box>
-          </Box>
+              }}>
+                {siteLinks.map((link, index) => (
+                  <Typography
+                    key={index}
+                    component={RouterLink}
+                    to={link.to}
+                    sx={{
+                      display: 'inline-block',
+                      color: '#C0B0E0',
+                      fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.8rem' },
+                      textDecoration: 'none',
+                      transition: 'all 0.3s ease',
+                      padding: { xs: '3px 6px', md: '4px 8px' },
+                      borderRadius: '4px',
+                      whiteSpace: 'nowrap',
+                      position: 'relative',
+                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      '&:hover': {
+                        color: '#FFFFFF',
+                        backgroundColor: 'rgba(111, 66, 193, 0.3)',
+                        borderColor: 'rgba(111, 66, 193, 0.5)',
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 4px 12px rgba(111, 66, 193, 0.3)'
+                      }
+                    }}
+                  >
+                    {link.text === 'courses' ? t('footerCourses') : link.text === 'Flash Cards' ? t('footerFlashCards') : link.text}
+                  </Typography>
+                ))}
+              </Box>
 
-              {/* Desktop: Column 3: Other Links */}
+              {/* Other Links */}
+              <Typography
+                variant="h5"
+                sx={{
+                  color: '#FFFFFF',
+                  fontWeight: 'bold',
+                  fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem' },
+                  mb: { xs: 0.8, sm: 1, md: 1.2 },
+                  position: 'relative',
+                  textAlign: 'center',
+                  '&:after': {
+                    content: '""',
+                    position: 'absolute',
+                    bottom: '-6px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    width: '30px',
+                    height: '2px',
+                    background: 'linear-gradient(90deg, transparent, #6A3ABF, transparent)',
+                    borderRadius: '1px'
+                  }
+                }}
+              >
+                {t('footerOtherLinks')}
+              </Typography>
               <Box sx={{ 
-                flex: 1, 
-                maxWidth: { xs: '100%', lg: '300px' },
-                width: { xs: '100%', lg: 'auto' },
-                mb: { xs: 2, lg: 0 }
+                mt: { xs: 0.8, sm: 1, md: 1.2 },
+                display: 'flex',
+                flexWrap: 'nowrap',
+                gap: { xs: 0.5, sm: 0.6, md: 0.8 },
+                justifyContent: 'center',
+                alignItems: 'center'
               }}>
-            <Typography
-              variant="h5"
-              sx={{
-                color: '#FFFFFF',
-                fontWeight: 'bold',
-                    fontSize: { xs: '0.9rem', sm: '1rem', md: '1.2rem' },
-                    mb: { xs: 1.5, sm: 2, md: 3 },
-                position: 'relative',
-                '&:after': {
-                  content: '"— — —"',
-                  position: 'absolute',
-                  bottom: '-8px',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  color: '#6A3ABF',
-                      fontSize: { xs: '0.6rem', sm: '0.7rem', md: '0.8rem' },
-                  letterSpacing: '2px'
-                }
-              }}
-            >
-              {t('footerOtherLinks')}
-            </Typography>
-                <Box sx={{ mt: { xs: 1.5, sm: 2, md: 4 } }}>
-              {otherLinks.map((link, index) => (
-                <Typography
-                  key={index}
-                  component={RouterLink}
-                  to={link.to}
-                  sx={{
-                    display: 'block',
-                    color: '#C0B0E0',
-                        fontSize: { xs: '0.75rem', sm: '0.8rem', md: '0.9rem' },
-                        mb: { xs: 0.8, sm: 1, md: 1.5 },
-                    textDecoration: 'none',
-                    transition: 'color 0.3s ease',
-                        padding: { xs: '4px 0', md: '0' },
-                    '&:hover': {
-                      color: '#FFFFFF'
-                    }
-                  }}
-                >
-                  {link.text}
-                </Typography>
-              ))}
+                {otherLinks.map((link, index) => (
+                  <Typography
+                    key={index}
+                    component={RouterLink}
+                    to={link.to}
+                    sx={{
+                      display: 'inline-block',
+                      color: '#C0B0E0',
+                      fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.8rem' },
+                      textDecoration: 'none',
+                      transition: 'all 0.3s ease',
+                      padding: { xs: '3px 6px', md: '4px 8px' },
+                      borderRadius: '4px',
+                      whiteSpace: 'nowrap',
+                      position: 'relative',
+                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      '&:hover': {
+                        color: '#FFFFFF',
+                        backgroundColor: 'rgba(111, 66, 193, 0.3)',
+                        borderColor: 'rgba(111, 66, 193, 0.5)',
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 4px 12px rgba(111, 66, 193, 0.3)'
+                      }
+                    }}
+                  >
+                    {link.text}
+                  </Typography>
+                ))}
+              </Box>
             </Box>
-          </Box>
             </>
           )}
 
-          {/* Column 4: Newsletter Subscription */}
+          {/* Column 3: Newsletter Subscription */}
           <Box sx={{ 
-            flex: 1, 
-            maxWidth: { xs: '100%', lg: '300px' },
+            flex: { xs: 1, lg: '1 1 33.33%' },
+            maxWidth: { xs: '100%', lg: '33.33%' },
             width: { xs: '100%', lg: 'auto' }
           }}>
             <Typography
@@ -662,18 +696,19 @@ const Footer = () => {
               sx={{
                 color: '#FFFFFF',
                 fontWeight: 'bold',
-                fontSize: { xs: '0.9rem', sm: '1rem', md: '1.2rem' },
-                mb: { xs: 1.5, sm: 2, md: 3 },
+                fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem' },
+                mb: { xs: 0.8, sm: 1, md: 1.2 },
                 position: 'relative',
                 '&:after': {
-                  content: '"— — —"',
+                  content: '""',
                   position: 'absolute',
-                  bottom: '-8px',
+                  bottom: '-6px',
                   left: '50%',
                   transform: 'translateX(-50%)',
-                  color: '#6A3ABF',
-                  fontSize: { xs: '0.6rem', sm: '0.7rem', md: '0.8rem' },
-                  letterSpacing: '2px'
+                  width: '30px',
+                  height: '2px',
+                  background: 'linear-gradient(90deg, transparent, #6A3ABF, transparent)',
+                  borderRadius: '1px'
                 }
               }}
             >
@@ -684,8 +719,8 @@ const Footer = () => {
               sx={{
                 color: '#FFFFFF',
                 lineHeight: { xs: 1.3, sm: 1.4 },
-                mb: { xs: 1.2, sm: 1.5, md: 2 },
-                fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.8rem' },
+                mb: { xs: 0.8, sm: 1, md: 1.2 },
+                fontSize: { xs: '0.65rem', sm: '0.7rem', md: '0.8rem' },
                 textAlign: 'center',
                 px: { xs: 0.5, sm: 1, md: 0 },
                 maxWidth: { xs: '280px', sm: '320px', md: 'none' },
@@ -697,7 +732,7 @@ const Footer = () => {
             <Box sx={{ 
               display: 'flex', 
               flexDirection: 'column', 
-              gap: { xs: 0.8, sm: 1, md: 1.5 },
+              gap: { xs: 0.5, sm: 0.6, md: 0.8 },
               maxWidth: { xs: '280px', sm: '320px', md: 'none' },
               mx: { xs: 'auto', md: '0' }
             }}>
@@ -707,12 +742,12 @@ const Footer = () => {
                   placeholder="Enter your email"
                   style={{
                     width: '100%',
-                    padding: '8px 32px 8px 8px',
+                    padding: '6px 28px 6px 6px',
                     border: '1px solid #E0E0E0',
                     borderRadius: '6px',
                     backgroundColor: '#FFFFFF',
                     color: '#333333',
-                    fontSize: '0.85rem',
+                    fontSize: '0.8rem',
                     outline: 'none',
                     boxSizing: 'border-box'
                   }}
@@ -720,11 +755,11 @@ const Footer = () => {
                 <EmailIcon
                   sx={{
                     position: 'absolute',
-                    right: 8,
+                    right: 6,
                     top: '50%',
                     transform: 'translateY(-50%)',
                     color: '#666666',
-                    fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem' }
+                    fontSize: { xs: '0.7rem', sm: '0.8rem', md: '0.9rem' }
                   }}
                 />
               </Box>
@@ -734,11 +769,11 @@ const Footer = () => {
                   backgroundColor: '#4A148C',
                   color: '#FFFFFF',
                   fontWeight: 600,
-                  padding: { xs: '6px 10px', sm: '8px 12px', md: '10px 16px' },
+                  padding: { xs: '5px 8px', sm: '6px 10px', md: '8px 12px' },
                   borderRadius: '6px',
                   textTransform: 'none',
-                  fontSize: { xs: '0.75rem', sm: '0.8rem', md: '0.85rem' },
-                  minHeight: { xs: '36px', sm: '40px', md: 'auto' },
+                  fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.8rem' },
+                  minHeight: { xs: '32px', sm: '36px', md: 'auto' },
                   '&:hover': {
                     backgroundColor: '#6A1B9A',
                     transform: 'translateY(-2px)',
