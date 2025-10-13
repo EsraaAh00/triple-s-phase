@@ -41,6 +41,7 @@ import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../../contexts/LanguageContext';
 import logo from '../../assets/images/logo.png';
 import { courseAPI } from '../../services/api.service';
+import KeyboardArrowDown from '@mui/icons-material/KeyboardArrowDown';
 
 // Animation
 const fadeIn = keyframes`
@@ -264,14 +265,20 @@ const NavButton = styled(Button, {
   shouldForwardProp: (prop) => prop !== 'isHome' && prop !== 'scrolled',
 })(({ theme, isHome, scrolled }) => ({
   color: isHome ? '#FFD700' : '#FFFFFF',
-  margin: theme.spacing(0, 0.5),
+  margin: theme.spacing(0, 0.25),
   fontWeight: '400',
-  fontSize: '13px',
+  fontSize: '14px',
   textTransform: 'none',
   position: 'relative',
   padding: '6px 12px',
   borderRadius: '8px',
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  '@media (min-width: 768px)': {
+    fontSize: '15px',
+  },
+  '@media (min-width: 1024px)': {
+    fontSize: '16px',
+  },
   border: 'none',
   backgroundColor: 'transparent',
   backdropFilter: 'none',
@@ -319,18 +326,19 @@ const LogoImage = styled('img')({
   transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
   filter: 'none',
   // Enhanced responsive sizing - Larger logo with fixed header height
-  height: '40px',
+  height: '45px',
+  width: 'auto',
   '@media (min-width: 480px)': {
-    height: '42px',
+    height: '48px',
   },
   '@media (min-width: 768px)': {
-    height: '44px',
+    height: '52px',
   },
   '@media (min-width: 1024px)': {
-    height: '46px',
+    height: '56px',
   },
   '@media (min-width: 1200px)': {
-    height: '48px',
+    height: '60px',
   },
 });
 
@@ -607,6 +615,9 @@ const Header = ({ pageType }) => {
   const [scrolled, setScrolled] = useState(false);
   const [categories, setCategories] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
+  const [categoryAnchorEl, setCategoryAnchorEl] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [coursesData, setCoursesData] = useState({});
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
@@ -625,6 +636,7 @@ const Header = ({ pageType }) => {
       try {
         setLoadingCategories(true);
         const categoriesData = await courseAPI.getCategories();
+        console.log('Fetched categories:', categoriesData);
         setCategories(categoriesData);
       } catch (error) {
         console.error('Error fetching categories:', error);
@@ -642,39 +654,168 @@ const Header = ({ pageType }) => {
     fetchCategories();
   }, []);
 
+  // Fetch courses for each category
+  useEffect(() => {
+    const fetchCoursesForCategories = async () => {
+      if (!categories || categories.length === 0) return;
+      
+      try {
+        const coursesPromises = categories.map(async (category) => {
+          if (!category || !category.id) return { categoryId: null, courses: [] };
+          
+          try {
+            // Try different parameter formats for category
+            let courses;
+            const categoryParam = category.slug || category.id;
+            
+            try {
+              // Try with category parameter
+              courses = await courseAPI.getPublicCourses({ 
+                category: categoryParam,
+                page_size: 5 
+              });
+            } catch (error) {
+              console.log('Trying with category_id parameter:', error);
+              try {
+                // Try with category_id parameter
+                courses = await courseAPI.getPublicCourses({ 
+                  category_id: categoryParam,
+                  page_size: 5 
+                });
+              } catch (error2) {
+                console.log('Trying regular courses API:', error2);
+                try {
+                  courses = await courseAPI.getCourses({ 
+                    category: categoryParam,
+                    page_size: 5 
+                  });
+                } catch (error3) {
+                  console.log('All API calls failed:', error3);
+                  courses = [];
+                }
+              }
+            }
+            
+            console.log(`Courses for category ${category.name}:`, courses);
+            
+            // Handle different response formats
+            let coursesArray = [];
+            if (Array.isArray(courses)) {
+              coursesArray = courses;
+            } else if (courses && Array.isArray(courses.results)) {
+              coursesArray = courses.results;
+            } else if (courses && Array.isArray(courses.data)) {
+              coursesArray = courses.data;
+            }
+            
+            console.log(`Processed courses array for ${category.name}:`, coursesArray);
+            
+            // If no courses found, try to get all courses and filter manually
+            if (coursesArray.length === 0) {
+              console.log('No courses found, trying to get all courses...');
+              try {
+                const allCourses = await courseAPI.getPublicCourses({ page_size: 50 });
+                let allCoursesArray = [];
+                if (Array.isArray(allCourses)) {
+                  allCoursesArray = allCourses;
+                } else if (allCourses && Array.isArray(allCourses.results)) {
+                  allCoursesArray = allCourses.results;
+                } else if (allCourses && Array.isArray(allCourses.data)) {
+                  allCoursesArray = allCourses.data;
+                }
+                
+                // Filter courses by category
+                coursesArray = allCoursesArray.filter(course => 
+                  course.category === categoryParam || 
+                  course.category_id === category.id ||
+                  course.category === category.id ||
+                  (course.category && course.category.id === category.id) ||
+                  (course.category && course.category.slug === category.slug)
+                ).slice(0, 5);
+                
+                console.log(`Filtered courses for ${category.name}:`, coursesArray);
+              } catch (error) {
+                console.log('Failed to get all courses:', error);
+              }
+            }
+            
+            return {
+              categoryId: category.id,
+              courses: coursesArray.slice(0, 5)
+            };
+          } catch (error) {
+            console.error(`Error fetching courses for category ${category.name}:`, error);
+            return { categoryId: category.id, courses: [] };
+          }
+        });
+
+        const coursesResults = await Promise.all(coursesPromises);
+        const coursesMap = {};
+        coursesResults.forEach(result => {
+          if (result.categoryId) {
+            coursesMap[result.categoryId] = result.courses || [];
+          }
+        });
+        
+        console.log('Final courses data:', coursesMap);
+        setCoursesData(coursesMap);
+      } catch (error) {
+        console.error('Error fetching courses for categories:', error);
+        setCoursesData({});
+      }
+    };
+
+    fetchCoursesForCategories();
+  }, [categories]);
+
   // Navigation items with dynamic categories - No dropdowns
   const navItems = [
-    {
-      text: t('navHome'),
-      path: '/',
-      icon: <HomeIcon />
-    },
-    // All courses categories as separate links
-    ...categories.map(category => ({
-      text: category.name,
-        path: `/courses?category=${category.slug || category.id || 'all'}`,
-      icon: <MenuBookIcon />
-    })),
-    // Blog and About Us as separate links
-    {
-      text: t('navBlog'),
-      path: '/articles',
-      icon: <MenuBookIcon />
-    },
-    {
-      text: t('navAbout'),
-      path: '/about-us',
-      icon: <SchoolIcon />
-    },
+    // {
+    //   text: t('navHome'),
+    //   path: '/',
+    //   icon: <HomeIcon />
+    // },
     {
       text: t('navDashboard'),
       path: '/dashboard',
       icon: <DashboardIcon />,
       auth: true
     },
+
+    {
+      text: t('navAbout'),
+      path: '/about-us',
+      icon: <SchoolIcon />
+    },
+        // Blog and About Us as separate links
+        {
+          text: t('navBlog'),
+          path: '/articles',
+          icon: <MenuBookIcon />
+        },
+
+        // All courses categories as separate links with dropdown
+        ...categories.map(category => ({
+          text: category.name,
+          path: `/courses?category=${category.slug || category.id || 'all'}`,
+          icon: <MenuBookIcon />,
+          categoryId: category.id,
+          hasDropdown: true
+        })),
   ];
 
   const menuId = 'primary-search-account-menu';
+
+  // Handle category dropdown
+  const handleCategoryClick = (event, category) => {
+    setCategoryAnchorEl(event.currentTarget);
+    setSelectedCategory(category);
+  };
+
+  const handleCategoryClose = () => {
+    setCategoryAnchorEl(null);
+    setSelectedCategory(null);
+  };
 
   // Handle scroll effect for header
   useEffect(() => {
@@ -1129,18 +1270,32 @@ const Header = ({ pageType }) => {
               display: { xs: 'none', lg: 'flex' },
               ml: { lg: 1, xl: 2 },
               justifyContent: 'center',
-              gap: { lg: 0.5, xl: 1 },
+              gap: { lg: 0.25, xl: 0.5 },
               '& > *:not(:last-child)': {
-                mr: { lg: 0.25, xl: 0.5 },
+                mr: { lg: 0.15, xl: 0.25 },
               },
             }}>
               {navItems.map((item) => {
                 // Only hide items that require authentication and user is not authenticated
                 if (item.auth && !isAuthenticated) return null;
 
+                // Check if this item has a dropdown (category with courses)
+                if (item.hasDropdown && item.categoryId) {
                   return (
                       <NavButton
-                    key={item.path || item.text}
+                      key={item.text}
+                      onClick={(e) => handleCategoryClick(e, item)}
+                      className={location.pathname.includes(item.path) ? 'active' : ''}
+                        scrolled={scrolled}
+                      endIcon={<KeyboardArrowDown sx={{ fontSize: '14px', ml: 0.5 }} />}
+                      >
+                        {item.text}
+                      </NavButton>
+                  );
+                } else {
+                return (
+                  <NavButton
+                      key={item.path || item.text}
                     component={RouterLink}
                     to={item.path}
                     className={location.pathname === item.path ? 'active' : ''}
@@ -1150,6 +1305,7 @@ const Header = ({ pageType }) => {
                     {item.text}
                   </NavButton>
                 );
+                }
               })}
             </Box>
 
@@ -1394,6 +1550,83 @@ const Header = ({ pageType }) => {
           </Box>
         </Box>
       )}
+
+      {/* Category Dropdown Menu */}
+      <Menu
+        anchorEl={categoryAnchorEl}
+        open={Boolean(categoryAnchorEl)}
+        onClose={handleCategoryClose}
+        PaperProps={{
+          sx: {
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(102, 51, 153, 0.2)',
+            borderRadius: '12px',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
+            mt: 1,
+            minWidth: 180,
+            maxWidth: 280,
+            maxHeight: 350,
+            overflow: 'auto'
+          }
+        }}
+        transformOrigin={{ horizontal: 'center', vertical: 'top' }}
+        anchorOrigin={{ horizontal: 'center', vertical: 'bottom' }}
+      >
+        {/* Display courses for selected category */}
+        {(() => {
+          console.log('Selected category:', selectedCategory);
+          console.log('Courses data:', coursesData);
+          console.log('Category courses:', selectedCategory ? coursesData[selectedCategory.categoryId] : 'No selected category');
+          return null;
+        })()}
+        {selectedCategory && coursesData[selectedCategory.categoryId] && coursesData[selectedCategory.categoryId].length > 0 && (
+          <Box sx={{ px: 1, py: 0.5 }}>
+            {coursesData[selectedCategory.categoryId].map((course) => (
+              <MenuItem
+                key={course.id}
+                component={RouterLink}
+                to={`/courses/${course.id}`}
+                onClick={handleCategoryClose}
+                sx={{
+                  color: '#666',
+                  fontSize: '0.75rem',
+                  py: 0.6,
+                  px: 1.5,
+                  borderRadius: '6px',
+                  mb: 0.3,
+                  maxWidth: '100%',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  '&:hover': {
+                    backgroundColor: 'rgba(102, 51, 153, 0.08)',
+                    color: '#663399',
+                  }
+                }}
+              >
+                {course.title}
+              </MenuItem>
+            ))}
+          </Box>
+        )}
+        
+        {/* Show message if no courses */}
+        {selectedCategory && (!coursesData[selectedCategory.categoryId] || coursesData[selectedCategory.categoryId].length === 0) && (
+          <MenuItem
+            sx={{
+              color: '#999',
+              fontSize: '0.75rem',
+              fontStyle: 'italic',
+              textAlign: 'center',
+              py: 1.5,
+              px: 1.5
+            }}
+          >
+            لا توجد كورسات متاحة حالياً
+          </MenuItem>
+        )}
+      </Menu>
 
       {/* Backdrop for mobile menu */}
       {mobileMenuOpen && (

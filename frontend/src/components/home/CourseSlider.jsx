@@ -682,43 +682,43 @@ const CourseCollections = () => {
                 <>
                   <Box sx={{ order: 1 }}>
                     <SectionTitle variant="h4" component="h2" isRTL={true}>
-                      {getLocalizedText(collection.name, collection.name_ar)}
-                    </SectionTitle>
-                    {(collection.description || collection.description_ar) && (
+                  {getLocalizedText(collection.name, collection.name_ar)}
+                </SectionTitle>
+                {(collection.description || collection.description_ar) && (
                       <Typography variant="body1" color="text.secondary" sx={{ 
                         mt: 1,
                         textAlign: 'right'
                       }}>
-                        {getLocalizedText(collection.description, collection.description_ar)}
-                      </Typography>
-                    )}
-                  </Box>
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    component={RouterLink}
-                    to={`/courses?collection=${collection.slug}`}
-                    endIcon={<KeyboardArrowLeft />}
-                    sx={{
-                      borderRadius: '8px',
-                      textTransform: 'none',
-                      fontWeight: 500,
-                      px: 3,
+                    {getLocalizedText(collection.description, collection.description_ar)}
+                  </Typography>
+                )}
+              </Box>
+              <Button
+                variant="outlined"
+                color="primary"
+                component={RouterLink}
+                to={`/courses?collection=${collection.slug}`}
+                endIcon={<KeyboardArrowLeft />}
+                sx={{
+                  borderRadius: '8px',
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  px: 3,
                       order: 2,
-                      fontSize: { xs: '0.8rem', md: '0.875rem' },
-                      minHeight: { xs: '36px', md: '40px' },
-                      '&:hover': {
-                        backgroundColor: 'rgba(74, 108, 247, 0.05)',
-                      },
-                      '& .MuiButton-endIcon': {
-                        marginRight: '4px',
-                        marginLeft: '-4px',
-                        fontSize: { xs: '1rem', md: '1.2rem' },
-                      }
-                    }}
-                  >
-                    {t('coursesViewAll')}
-                  </Button>
+                  fontSize: { xs: '0.8rem', md: '0.875rem' },
+                  minHeight: { xs: '36px', md: '40px' },
+                  '&:hover': {
+                    backgroundColor: 'rgba(74, 108, 247, 0.05)',
+                  },
+                  '& .MuiButton-endIcon': {
+                    marginRight: '4px',
+                    marginLeft: '-4px',
+                    fontSize: { xs: '1rem', md: '1.2rem' },
+                  }
+                }}
+              >
+                {t('coursesViewAll')}
+              </Button>
                 </>
               ) : (
                 <>
