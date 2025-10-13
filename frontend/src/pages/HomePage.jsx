@@ -5,7 +5,6 @@ import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import HeroBanner from '../components/home/HeroBanner';
 import CourseCollections from '../components/home/CourseSlider';
-import BannerFile from '../components/home/BannerFile';
 import WhyChooseUsSection from '../components/home/WhyChooseUsSection';
 import OurPartnersSection from '../components/home/OurPartnersSection';
 import TestimonialsSection from '../components/home/TestimonialsSection';
@@ -86,16 +85,6 @@ const HomePage = () => {
           py: { xs: 2, sm: 3, md: 4 }
         }}>
           <CourseCollections />
-        </Box>
-
-        {/* Banner File Section */}
-        <Box component="section" id="banner-file" sx={{
-          width: '100%',
-          // Responsive section spacing
-          mb: { xs: 2, sm: 3, md: 4 },
-          py: { xs: 2, sm: 3, md: 4 }
-        }}>
-          <BannerFile />
         </Box>
 
         {/* Why Choose Us Section */}

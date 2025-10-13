@@ -99,18 +99,21 @@ const SectionContainer = styled(Box)(({ theme }) => ({
   },
 }));
 
-const ContentWrapper = styled(Box)(({ theme }) => ({
+const ContentWrapper = styled(Box, {
+  shouldForwardProp: (prop) => prop !== 'isRTL',
+})(({ theme, isRTL }) => ({
   display: 'grid',
-  gridTemplateColumns: '1fr 1fr',
-  gap: theme.spacing(2), // increase space between title and categories
+  gridTemplateColumns: isRTL ? '1fr 1fr' : '1fr 1fr',
+  gap: theme.spacing(2),
   alignItems: 'center',
   position: 'relative',
   zIndex: 2,
-  minHeight: '200px', // Much smaller height
+  minHeight: '200px',
+  direction: isRTL ? 'rtl' : 'ltr',
   // Enhanced responsive layout with minimal spacing
   '@media (max-width: 600px)': {
     gridTemplateColumns: '1fr',
-    gap: theme.spacing(0.8), // slightly larger to breathe on mobile
+    gap: theme.spacing(0.8),
     minHeight: 'auto',
     alignItems: 'flex-start',
   },
@@ -127,46 +130,50 @@ const ContentWrapper = styled(Box)(({ theme }) => ({
     alignItems: 'flex-start',
   },
   '@media (min-width: 1200px)': {
-    gridTemplateColumns: '1fr 1fr',
+    gridTemplateColumns: isRTL ? '1fr 1fr' : '1fr 1fr',
     gap: theme.spacing(2.5),
-    minHeight: '200px', // Much smaller height
+    minHeight: '200px',
     alignItems: 'center',
   },
 }));
 
-const LeftSection = styled(Box)(({ theme }) => ({
+const LeftSection = styled(Box, {
+  shouldForwardProp: (prop) => prop !== 'isRTL',
+})(({ theme, isRTL }) => ({
   display: 'flex',
   flexDirection: 'column',
-  gap: theme.spacing(0.5), // Minimal gap
+  gap: theme.spacing(0.5),
   // Enhanced responsive layout with minimal spacing
   '@media (max-width: 600px)': {
     textAlign: 'center',
-    order: 1, // Changed from 2 to 1 to show title first
-    gap: theme.spacing(0.3), // Minimal gap
+    order: 1,
+    gap: theme.spacing(0.3),
     padding: theme.spacing(0, 0.5),
   },
   '@media (min-width: 600px) and (max-width: 900px)': {
     textAlign: 'center',
-    order: 1, // Changed from 2 to 1 to show title first
-    gap: theme.spacing(0.4), // Minimal gap
+    order: 1,
+    gap: theme.spacing(0.4),
     padding: theme.spacing(0, 1),
   },
   '@media (min-width: 900px) and (max-width: 1200px)': {
     textAlign: 'center',
-    order: 1, // Changed from 2 to 1 to show title first
-    gap: theme.spacing(0.5), // Minimal gap
+    order: 1,
+    gap: theme.spacing(0.5),
     padding: theme.spacing(0, 1.5),
   },
   '@media (min-width: 1200px)': {
-    textAlign: 'left',
-    order: 1,
-    gap: theme.spacing(0.5), // Minimal gap
+    textAlign: isRTL ? 'right' : 'left',
+    order: isRTL ? 1 : 1,
+    gap: theme.spacing(0.5),
     padding: 0,
   },
 }));
 
 // Title label styled like AboutAcademySection.SectionLabel
-const CategoryIcon = styled(Box)(({ theme }) => ({
+const CategoryIcon = styled(Box, {
+  shouldForwardProp: (prop) => prop !== 'isRTL',
+})(({ theme, isRTL }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'flex-start',
@@ -179,15 +186,17 @@ const CategoryIcon = styled(Box)(({ theme }) => ({
   marginRight: 0,
   width: '100%',
   position: 'relative',
+  direction: isRTL ? 'rtl' : 'ltr',
   '&:before': {
     content: '""',
     position: 'absolute',
-    left: 0,
+    left: isRTL ? 'auto' : 0,
+    right: isRTL ? 0 : 'auto',
     top: 0,
     bottom: 0,
     width: '4px',
     backgroundColor: '#6f42c1',
-    borderRadius: '8px 0 0 8px',
+    borderRadius: isRTL ? '0 8px 8px 0' : '8px 0 0 8px',
   },
   '& .MuiSvgIcon-root': {
     color: '#6f42c1',
@@ -200,14 +209,15 @@ const CategoryIcon = styled(Box)(({ theme }) => ({
   },
 }));
 
-const MainTitle = styled(Typography)(({ theme }) => ({
+const MainTitle = styled(Typography, {
+  shouldForwardProp: (prop) => prop !== 'isRTL',
+})(({ theme, isRTL }) => ({
   fontWeight: 800,
   color: '#5C2D91',
-  lineHeight: 1.1, // Tighter line height
-  marginBottom: theme.spacing(0.75), // a bit more space below title
+  lineHeight: 1.1,
+  marginBottom: theme.spacing(0.75),
   padding: '10px 0',
   overflow: 'hidden',
-  // Responsive font size
   fontSize: '2rem',
   '@media (max-width: 600px)': {
     fontSize: '1.4rem',
@@ -227,21 +237,23 @@ const MainTitle = styled(Typography)(({ theme }) => ({
   '@media (min-width: 1200px)': {
     fontSize: '2rem',
     whiteSpace: 'nowrap',
-    textAlign: 'center',
+    textAlign: isRTL ? 'right' : 'left',
   },
   textOverflow: 'ellipsis',
   [theme.breakpoints.down('sm')]: {
     fontSize: '1.4rem',
-    whiteSpace: 'normal', // Allow wrapping on very small screens
+    whiteSpace: 'normal',
     textOverflow: 'unset',
   },
 }));
 
-const Subtitle = styled(Typography)(({ theme }) => ({
+const Subtitle = styled(Typography, {
+  shouldForwardProp: (prop) => prop !== 'isRTL',
+})(({ theme, isRTL }) => ({
   fontSize: '1.1rem',
   color: '#6c757d',
-  lineHeight: 1.4, // Tighter line height
-  marginBottom: theme.spacing(0.5), // Minimal margin
+  lineHeight: 1.4,
+  marginBottom: theme.spacing(0.5),
   maxWidth: '500px',
   // Responsive font size and width
   '@media (max-width: 600px)': {
@@ -262,7 +274,7 @@ const Subtitle = styled(Typography)(({ theme }) => ({
   '@media (min-width: 1200px)': {
     fontSize: '1.1rem',
     maxWidth: '500px',
-    textAlign: 'left',
+    textAlign: isRTL ? 'right' : 'left',
   },
 }));
 
@@ -684,14 +696,14 @@ const LearningMethodsSection = () => {
   return (
     <SectionContainer>
       <Container maxWidth="lg">
-        <ContentWrapper>
-          <LeftSection>
-            <CategoryIcon>
+        <ContentWrapper isRTL={i18n.language === 'ar'}>
+          <LeftSection isRTL={i18n.language === 'ar'}>
+            <CategoryIcon isRTL={i18n.language === 'ar'}>
               <Description />
               <span>{t('coursesCourseCategories')}</span>
             </CategoryIcon>
 
-            <MainTitle variant="h2" component="h2">
+            <MainTitle variant="h2" component="h2" isRTL={i18n.language === 'ar'}>
               {getLocalizedText(bannerData?.title, bannerData?.title_ar) || t('homeEverythingInOnePlace')}
             </MainTitle>
 
@@ -704,292 +716,180 @@ const LearningMethodsSection = () => {
           </LeftSection>
 
           <RightSection>
-            {loading && categories.length === 0 ? (
+            {/* Three Creative Circles for Learning Features */}
               <Box sx={{
                 display: 'flex',
-                flexDirection: 'column',
+              gap: { xs: 2, sm: 3, md: 4 },
+              justifyContent: 'center',
                 alignItems: 'center',
-                py: 6,
-                gap: 2
-              }}>
-                <CircularProgress sx={{ color: '#5C2D91' }} />
-                <Typography variant="body1" color="text.secondary">
-                  {t('coursesLoadingCategories')}
-                </Typography>
-              </Box>
-            ) : (
-              <>
-                {/* Dynamic Category Cards from API - Horizontal Scroll */}
-                <Box sx={{
-                  position: 'relative',
-                  mb: 0.5, // Minimal margin
-                  maxWidth: '672px', // Exactly 3 cards: (200px + 16px gap) * 3 = 648px + 24px padding
+              flexWrap: 'nowrap',
                   width: '100%',
-                  mx: 'auto',
-                  // Enhanced responsive max width
-                  '@media (max-width: 600px)': {
-                    maxWidth: '100%',
-                    px: 2,
-                  },
-                  '@media (min-width: 600px) and (max-width: 900px)': {
-                    maxWidth: '588px', // (180px + 16px gap) * 3 = 552px + 36px padding
-                  },
-                  '@media (min-width: 900px) and (max-width: 1200px)': {
-                    maxWidth: '588px', // (180px + 16px gap) * 3 = 552px + 36px padding
-                  },
-                  '@media (min-width: 1200px)': {
-                    maxWidth: '672px', // (200px + 16px gap) * 3 = 648px + 24px padding
-                  },
-                  '&::before': {
-                    content: '""',
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: { xs: '30px', sm: '40px', md: '60px' },
-                    height: '100%',
-                    background: 'linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%)',
-                    zIndex: 2,
-                    pointerEvents: 'none'
-                  },
-                  '&::after': {
-                    content: '""',
-                    position: 'absolute',
-                    top: 0,
-                    right: 0,
-                    width: { xs: '30px', sm: '40px', md: '60px' },
-                    height: '100%',
-                    background: 'linear-gradient(270deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%)',
-                    zIndex: 2,
-                    pointerEvents: 'none'
-                  }
-                }}>
-                  <Box
-                    ref={setScrollContainer}
-                    sx={{
-                      display: 'flex',
-                      gap: { xs: theme.spacing(0.5), sm: theme.spacing(0.8), md: theme.spacing(1) },
                       overflowX: 'auto',
-                      overflowY: 'hidden',
-                      padding: { xs: theme.spacing(0.5, 0), sm: theme.spacing(0.8, 0), md: theme.spacing(1, 0) },
-                      scrollBehavior: 'smooth',
-                      '&::-webkit-scrollbar': {
-                        height: { xs: '4px', sm: '5px', md: '6px' },
-                      },
-                      '&::-webkit-scrollbar-track': {
-                        background: 'rgba(0,0,0,0.1)',
-                        borderRadius: { xs: '2px', sm: '2.5px', md: '3px' },
-                      },
-                      '&::-webkit-scrollbar-thumb': {
-                        background: 'linear-gradient(90deg, #5C2D91 0%, #8A7BAA 100%)',
-                        borderRadius: { xs: '2px', sm: '2.5px', md: '3px' },
-                        '&:hover': {
-                          background: 'linear-gradient(90deg, #4a2475 0%, #7a6b9a 100%)',
-                        }
-                      },
-                      // Hide scrollbar on mobile
-                      '@media (max-width: 900px)': {
                         '&::-webkit-scrollbar': {
                           display: 'none',
                         },
                         msOverflowStyle: 'none',
                         scrollbarWidth: 'none',
-                      }
-                    }}
-                  >
-                    {categories.map((category, index) => (
-                      <CategoryCard key={category.id}>
-                        {/* Image Section at Top Center */}
-                        <Box sx={{
-                          width: '100%',
-                          height: { xs: '120px', sm: '130px', md: '140px' },
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
-                          position: 'relative',
-                          overflow: 'hidden'
-                        }}>
+            }}>
+              {/* Lectures Circle */}
                           <Box sx={{
-                            width: { xs: '80px', sm: '90px', md: '100px' },
-                            height: { xs: '80px', sm: '90px', md: '100px' },
-                            borderRadius: { xs: '14px', sm: '16px', md: '18px' },
-                            background: 'linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%)',
+                width: { xs: '120px', sm: '140px', md: '160px' },
+                height: { xs: '120px', sm: '140px', md: '160px' },
+                flexShrink: 0,
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #663399 0%, #8b5cf6 100%)',
                             display: 'flex',
+                flexDirection: 'column',
                             alignItems: 'center',
                             justifyContent: 'center',
+                gap: 1,
+                boxShadow: '0 12px 40px rgba(102, 51, 153, 0.3), 0 0 0 8px rgba(102, 51, 153, 0.1)',
+                border: '5px solid #fff',
+                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                cursor: 'pointer',
+                position: 'relative',
                             overflow: 'hidden',
-                            boxShadow: '0 6px 16px rgba(0, 0, 0, 0.2)',
-                            border: { xs: '3px solid #ffffff', sm: '3.5px solid #ffffff', md: '4px solid #ffffff' }
-                          }}>
-                            {getImageUrl(category.image) ? (
-                              <img
-                                src={getImageUrl(category.image)}
-                                alt={category.name}
-                                style={{
-                                  width: '100%',
-                                  height: '100%',
-                                  objectFit: 'cover',
-                                  borderRadius: '12px'
-                                }}
-                                onError={(e) => {
-                                  // Fallback to icon if image fails to load
-                                  e.target.style.display = 'none';
-                                  e.target.nextSibling.style.display = 'flex';
-                                }}
-                              />
-                            ) : null}
-                            <Box sx={{
-                              display: getImageUrl(category.image) ? 'none' : 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              width: '100%',
-                              height: '100%',
-                              color: '#ffffff'
-                            }}>
-                              {getCategoryIcon(category.name)}
-                            </Box>
-                          </Box>
+                '&:before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: 'radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%)',
+                  opacity: 0,
+                  transition: 'opacity 0.4s ease',
+                },
+                '&:hover': {
+                  transform: 'translateY(-10px) scale(1.05)',
+                  boxShadow: '0 16px 50px rgba(102, 51, 153, 0.4), 0 0 0 10px rgba(102, 51, 153, 0.15)',
+                  '&:before': {
+                    opacity: 1,
+                  },
+                },
+              }}>
+                <MenuBook sx={{ 
+                  fontSize: { xs: '2.5rem', sm: '3rem', md: '3.5rem' }, 
+                  color: '#fff',
+                  filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))',
+                }} />
+                <Typography sx={{ 
+                  color: '#fff', 
+                  fontWeight: 700, 
+                  fontSize: { xs: '0.85rem', sm: '0.95rem', md: '1rem' },
+                  textShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                }}>
+                  {t('commonLectures')}
+                </Typography>
                         </Box>
 
-                        {/* Content Section */}
-                        <CardHeader>
-                          <CardTitle>{category.name}</CardTitle>
-                          <CourseCount>
-                            {category.active_courses_count || category.courses_count || 0} {t('coursesCourse')}
-                          </CourseCount>
-                        </CardHeader>
-
-                        <CategoryCardContent>
-                          <ReadMoreButton
-                            onClick={() => navigate(`/courses?category=${category.id}`)}
-                            
-                          >
-                            {t('commonReadMore')} →
-                          </ReadMoreButton>
-                        </CategoryCardContent>
-                      </CategoryCard>
-                    ))}
-
-                    {/* Show message if no categories */}
-                    {categories.length === 0 && !loading && (
+              {/* Question Bank Circle */}
                       <Box sx={{
+                width: { xs: '120px', sm: '140px', md: '160px' },
+                height: { xs: '120px', sm: '140px', md: '160px' },
+                flexShrink: 0,
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #34498B 0%, #5a7cb8 100%)',
                         display: 'flex',
                         flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: 2,
-                        py: 4,
-                        px: 3,
-                        textAlign: 'center'
-                      }}>
-                        <Box sx={{
-                          width: '80px',
-                          height: '80px',
-                          borderRadius: '50%',
-                          bgcolor: 'rgba(92, 45, 145, 0.1)',
-                          display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          mb: 2
-                        }}>
-                          <School sx={{ fontSize: '2rem', color: '#5C2D91' }} />
-                        </Box>
-                        <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
-                          {t('coursesNoCategoriesAvailable')}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {t('coursesNewCategoriesComingSoon')}
-                        </Typography>
-                      </Box>
-                    )}
-                  </Box>
-
-                  {/* Navigation Buttons */}
-                  {categories.length > 3 && (
-                    <>
-                      <IconButton
-                        onClick={scrollLeft}
-                        sx={{
+                gap: 1,
+                boxShadow: '0 12px 40px rgba(52, 73, 139, 0.3), 0 0 0 8px rgba(52, 73, 139, 0.1)',
+                border: '5px solid #fff',
+                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                cursor: 'pointer',
+                position: 'relative',
+                overflow: 'hidden',
+                '&:before': {
+                  content: '""',
                           position: 'absolute',
-                          left: { xs: '-15px', sm: '-18px', md: '-20px' },
-                          top: '50%',
-                          transform: 'translateY(-50%)',
-                          backgroundColor: '#ffffff',
-                          color: '#5C2D91',
-                          width: { xs: '35px', sm: '38px', md: '40px' },
-                          height: { xs: '35px', sm: '38px', md: '40px' },
-                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-                          zIndex: 3,
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: 'radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%)',
+                  opacity: 0,
+                  transition: 'opacity 0.4s ease',
+                },
                           '&:hover': {
-                            backgroundColor: '#f8f9fa',
-                            transform: 'translateY(-50%) scale(1.1)',
-                          },
-                          '@media (max-width: 900px)': {
-                            display: 'none', // Hide on mobile and tablet
-                          }
-                        }}
-                      >
-                        <KeyboardArrowLeft sx={{ fontSize: { xs: '1.2rem', sm: '1.3rem', md: '1.5rem' } }} />
-                      </IconButton>
-
-                      <IconButton
-                        onClick={scrollRight}
-                        sx={{
-                          position: 'absolute',
-                          right: { xs: '-15px', sm: '-18px', md: '-20px' },
-                          top: '50%',
-                          transform: 'translateY(-50%)',
-                          backgroundColor: '#ffffff',
-                          color: '#5C2D91',
-                          width: { xs: '35px', sm: '38px', md: '40px' },
-                          height: { xs: '35px', sm: '38px', md: '40px' },
-                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-                          zIndex: 3,
-                          '&:hover': {
-                            backgroundColor: '#f8f9fa',
-                            transform: 'translateY(-50%) scale(1.1)',
-                          },
-                          '@media (max-width: 900px)': {
-                            display: 'none', // Hide on mobile and tablet
-                          }
-                        }}
-                      >
-                        <KeyboardArrowRight sx={{ fontSize: { xs: '1.2rem', sm: '1.3rem', md: '1.5rem' } }} />
-                      </IconButton>
-                    </>
-                  )}
+                  transform: 'translateY(-10px) scale(1.05)',
+                  boxShadow: '0 16px 50px rgba(52, 73, 139, 0.4), 0 0 0 10px rgba(52, 73, 139, 0.15)',
+                  '&:before': {
+                    opacity: 1,
+                  },
+                },
+              }}>
+                <School sx={{ 
+                  fontSize: { xs: '2.5rem', sm: '3rem', md: '3.5rem' }, 
+                  color: '#fff',
+                  filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))',
+                }} />
+                <Typography sx={{ 
+                  color: '#fff', 
+                  fontWeight: 700, 
+                  fontSize: { xs: '0.85rem', sm: '0.95rem', md: '1rem' },
+                  textShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                }}>
+                  {t('navQuestionBank')}
+                </Typography>
                 </Box>
 
-              </>
-            )}
-          </RightSection>
-        </ContentWrapper>
-
-        <ConnectingLine />
-
-        {/* Keep the existing tabs and course display for functionality */}
-        <Box sx={{ position: 'relative', zIndex: 1, mt: 1 }}> {/* Minimal margin */}
-          <Fade in={true} timeout={500}>
-            <Box>
-              {loading && categories.length === 0 ? (
+              {/* Flashcards Circle */}
                 <Box sx={{
+                width: { xs: '120px', sm: '140px', md: '160px' },
+                height: { xs: '120px', sm: '140px', md: '160px' },
+                flexShrink: 0,
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%)',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  py: 6,
-                  gap: 2
+                justifyContent: 'center',
+                gap: 1,
+                boxShadow: '0 12px 40px rgba(111, 66, 193, 0.3), 0 0 0 8px rgba(111, 66, 193, 0.1)',
+                border: '5px solid #fff',
+                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                cursor: 'pointer',
+                position: 'relative',
+                overflow: 'hidden',
+                '&:before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: 'radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%)',
+                  opacity: 0,
+                  transition: 'opacity 0.4s ease',
+                },
+                '&:hover': {
+                  transform: 'translateY(-10px) scale(1.05)',
+                  boxShadow: '0 16px 50px rgba(232, 62, 140, 0.4), 0 0 0 10px rgba(232, 62, 140, 0.15)',
+                  '&:before': {
+                    opacity: 1,
+                  },
+                },
+              }}>
+                <Description sx={{ 
+                  fontSize: { xs: '2.5rem', sm: '3rem', md: '3.5rem' }, 
+                  color: '#fff',
+                  filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))',
+                }} />
+                <Typography sx={{ 
+                  color: '#fff', 
+                  fontWeight: 700, 
+                  fontSize: { xs: '0.85rem', sm: '0.95rem', md: '1rem' },
+                  textShadow: '0 2px 4px rgba(0,0,0,0.2)',
                 }}>
-                  <CircularProgress sx={{ color: '#5C2D91' }} />
-                  <Typography variant="body1" color="text.secondary">
-                    {t('coursesLoadingCategories')}
+                  {t('navFlashcards')}
                   </Typography>
                 </Box>
-              ) : (
-                <>
-                </>
-              )}
             </Box>
-          </Fade>
-        </Box>
+          </RightSection>
+        </ContentWrapper>
+
       </Container>
     </SectionContainer>
   );

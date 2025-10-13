@@ -104,36 +104,68 @@ const PartnersTrack = styled(Box)(({ theme }) => ({
 }));
 
 const PartnerCard = styled(Box)(({ theme }) => ({
-  minWidth: '200px',
-  height: '140px',
+  width: '180px',
+  height: '180px',
+  minWidth: '180px',
   backgroundColor: '#ffffff',
-  borderRadius: '12px',
+  borderRadius: '50%',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   padding: theme.spacing(3),
-  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
-  border: '1px solid rgba(0, 0, 0, 0.05)',
-  transition: 'all 0.3s ease',
+  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.1), 0 0 0 4px rgba(111, 66, 193, 0.1)',
+  border: '3px solid rgba(111, 66, 193, 0.2)',
+  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
   cursor: 'pointer',
   flexShrink: 0,
+  position: 'relative',
+  overflow: 'hidden',
+  '&:before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: 'radial-gradient(circle, rgba(111, 66, 193, 0.1) 0%, transparent 70%)',
+    opacity: 0,
+    transition: 'opacity 0.4s ease',
+  },
   '&:hover': {
-    transform: 'translateY(-5px)',
-    boxShadow: '0 8px 24px rgba(111, 66, 193, 0.15)',
-    borderColor: 'rgba(111, 66, 193, 0.2)',
+    transform: 'translateY(-10px) scale(1.05)',
+    boxShadow: '0 12px 40px rgba(111, 66, 193, 0.3), 0 0 0 6px rgba(111, 66, 193, 0.2)',
+    borderColor: 'rgba(111, 66, 193, 0.4)',
+    '&:before': {
+      opacity: 1,
+    },
   },
   '@media (max-width: 600px)': {
-    minWidth: '160px',
-    height: '120px',
+    width: '140px',
+    height: '140px',
+    minWidth: '140px',
     padding: theme.spacing(2),
+    border: '2px solid rgba(111, 66, 193, 0.2)',
+  },
+  '@media (min-width: 600px) and (max-width: 900px)': {
+    width: '160px',
+    height: '160px',
+    minWidth: '160px',
+    padding: theme.spacing(2.5),
   },
 }));
 
 const PartnerLogo = styled('img')({
-  maxWidth: '100%',
-  maxHeight: '100%',
+  maxWidth: '80%',
+  maxHeight: '80%',
   objectFit: 'contain',
-  transition: 'all 0.3s ease',
+  transition: 'all 0.4s ease',
+  position: 'relative',
+  zIndex: 2,
+  filter: 'none',
+  '&:hover': {
+    filter: 'brightness(1.1)',
+    transform: 'scale(1.1) rotate(5deg)',
+  },
 });
 
 const NavigationButton = styled(IconButton)(({ theme }) => ({

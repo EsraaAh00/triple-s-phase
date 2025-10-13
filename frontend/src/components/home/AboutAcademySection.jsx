@@ -57,25 +57,28 @@ const SectionContainer = styled(Box)(({ theme }) => ({
     backgroundColor: '#f9fafb',
     position: 'relative',
     overflow: 'hidden',
-    // Responsive padding
-    padding: theme.spacing(10, 0),
+    // Responsive padding - no top/bottom padding
+    padding: theme.spacing(0, 0),
     '@media (max-width: 600px)': {
-        padding: theme.spacing(4, 0),
+        padding: theme.spacing(0, 0),
     },
     '@media (min-width: 600px) and (max-width: 900px)': {
-        padding: theme.spacing(6, 0),
+        padding: theme.spacing(0, 0),
     },
     '@media (min-width: 900px)': {
-        padding: theme.spacing(10, 0),
+        padding: theme.spacing(0, 0),
     },
 }));
 
-const ContentWrapper = styled(Box)(({ theme }) => ({
+const ContentWrapper = styled(Box, {
+    shouldForwardProp: (prop) => prop !== 'isRTL',
+})(({ theme, isRTL }) => ({
     display: 'grid',
-    gridTemplateColumns: '1.2fr 1fr',
+    gridTemplateColumns: isRTL ? '1.2fr 1fr' : '1fr 1.2fr',
     gap: theme.spacing(8),
     alignItems: 'center',
     position: 'relative',
+    direction: isRTL ? 'rtl' : 'ltr',
     // Enhanced responsive layout
     '@media (max-width: 600px)': {
         gridTemplateColumns: '1fr',
@@ -90,7 +93,7 @@ const ContentWrapper = styled(Box)(({ theme }) => ({
         gap: theme.spacing(5),
     },
     '@media (min-width: 1200px)': {
-        gridTemplateColumns: '1.2fr 1fr',
+        gridTemplateColumns: isRTL ? '1.2fr 1fr' : '1fr 1.2fr',
         gap: theme.spacing(8),
     },
 }));
@@ -150,7 +153,9 @@ const RightSection = styled(Box)(({ theme }) => ({
     width: '100%',
 }));
 
-const SectionLabel = styled(Box)(({ theme }) => ({
+const SectionLabel = styled(Box, {
+    shouldForwardProp: (prop) => prop !== 'isRTL',
+})(({ theme, isRTL }) => ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'flex-start',
@@ -163,15 +168,17 @@ const SectionLabel = styled(Box)(({ theme }) => ({
     marginRight: 0,
     width: '100%',
     position: 'relative',
+    direction: isRTL ? 'rtl' : 'ltr',
     '&:before': {
         content: '""',
         position: 'absolute',
-        left: 0,
+        left: isRTL ? 'auto' : 0,
+        right: isRTL ? 0 : 'auto',
         top: 0,
         bottom: 0,
         width: '4px',
         backgroundColor: '#6f42c1',
-        borderRadius: '8px 0 0 8px',
+        borderRadius: isRTL ? '0 8px 8px 0' : '8px 0 0 8px',
     },
     '& .MuiSvgIcon-root': {
         color: '#6f42c1',
@@ -184,12 +191,14 @@ const SectionLabel = styled(Box)(({ theme }) => ({
     },
 }));
 
-const MainTitle = styled(Typography)(({ theme }) => ({
+const MainTitle = styled(Typography, {
+    shouldForwardProp: (prop) => prop !== 'isRTL',
+})(({ theme, isRTL }) => ({
     fontWeight: 800,
     color: '#663399',
     lineHeight: 1.2,
     marginBottom: theme.spacing(3),
-    textAlign: 'left',
+    textAlign: isRTL ? 'right' : 'left',
     // Responsive font size
     fontSize: '2.5rem',
     '@media (max-width: 600px)': {
@@ -206,11 +215,13 @@ const MainTitle = styled(Typography)(({ theme }) => ({
     },
 }));
 
-const DescriptionText = styled(Typography)(({ theme }) => ({
+const DescriptionText = styled(Typography, {
+    shouldForwardProp: (prop) => prop !== 'isRTL',
+})(({ theme, isRTL }) => ({
     color: '#4b5563',
     lineHeight: 1.7,
     marginBottom: theme.spacing(2.5),
-    textAlign: 'left',
+    textAlign: isRTL ? 'right' : 'left',
     width: '100%',
     // Responsive font size
     fontSize: '1.1rem',
@@ -696,7 +707,7 @@ const AboutAcademySection = ({ hideReadMoreButton = false }) => {
         <SectionContainer>
             <BackgroundDots />
             <Container maxWidth="lg">
-                <ContentWrapper>
+                <ContentWrapper isRTL={i18n.language === 'ar'}>
                     {/* Left Section - Images */}
                     <LeftSection>
                         <ImageContainer>
@@ -744,16 +755,16 @@ const AboutAcademySection = ({ hideReadMoreButton = false }) => {
 
                     {/* Right Section - Content */}
                     <RightSection>
-                        <SectionLabel>
+                        <SectionLabel isRTL={i18n.language === 'ar'}>
                             <School />
                             <span>{t('aboutAcademyAboutUs')}</span>
                         </SectionLabel>
 
-                        <MainTitle>
+                        <MainTitle isRTL={i18n.language === 'ar'}>
                             {getLocalizedText(bannerData?.title, bannerData?.title_ar) || t('aboutAcademyWelcomeTitle')}
                         </MainTitle>
 
-                        <DescriptionText>
+                        <DescriptionText isRTL={i18n.language === 'ar'}>
                             {getLocalizedText(bannerData?.description, bannerData?.description_ar) || t('aboutAcademyDefaultDescription')}
                         </DescriptionText>
 
