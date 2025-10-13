@@ -40,17 +40,17 @@ class CodeProtection {
       return false;
     });
 
-    // Disable copy
-    document.addEventListener('copy', (e) => {
-      e.preventDefault();
-      return false;
-    });
+    // // Disable copy
+    // document.addEventListener('copy', (e) => {
+    //   e.preventDefault();
+    //   return false;
+    // });
 
-    // Disable cut
-    document.addEventListener('cut', (e) => {
-      e.preventDefault();
-      return false;
-    });
+    // // Disable cut
+    // document.addEventListener('cut', (e) => {
+    //   e.preventDefault();
+    //   return false;
+    // });
   }
 
   disableShortcuts() {
