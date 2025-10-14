@@ -43,7 +43,8 @@ import {
     AssignmentTurnedIn as AssignmentTurnedInIcon,
     Download as DownloadIcon,
     Code as CodeIcon,
-    Quiz as QuizIcon
+    Quiz as QuizIcon,
+    Lock as LockIcon
 } from '@mui/icons-material';
 import { styled, keyframes } from '@mui/material/styles';
 import { motion } from 'framer-motion';
@@ -1038,8 +1039,8 @@ const CourseDetail = () => {
             // Transform all content types
             const transformedLessons = transformLessons(lessons);
             const transformedAssignments = transformAssignments(assignments);
-            const transformedQuizzes = transformQuizzes(quizzes);
-            const transformedExams = transformExams(exams);
+            const transformedQuizzes = [];
+            const transformedExams = [];
 
             // Combine all content and sort by order
             let allContent = [
@@ -1107,8 +1108,8 @@ const CourseDetail = () => {
 
                 const transformedSubLessons = transformLessons(subLessons);
                 const transformedSubAssignments = transformAssignments(subAssignments);
-                const transformedSubQuizzes = transformQuizzes(subQuizzes);
-                const transformedSubExams = transformExams(subExams);
+                const transformedSubQuizzes = [];
+                const transformedSubExams = [];
 
                 const allSubContent = [
                     ...transformedSubLessons,
