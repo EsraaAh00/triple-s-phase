@@ -19,7 +19,10 @@ import {
     CardContent,
     Alert,
     Dialog,
-    DialogContent
+    DialogContent,
+    alpha,
+    Breadcrumbs,
+    Link as MuiLink
 } from '@mui/material';
 import {
     Star as StarIcon,
@@ -43,9 +46,9 @@ import {
     Quiz as QuizIcon
 } from '@mui/icons-material';
 import { styled, keyframes } from '@mui/material/styles';
+import { motion } from 'framer-motion';
 import Header from '../../components/layout/Header';
 import Footer from '../../components/layout/Footer';
-import CourseDetailBanner from '../../components/courses/CourseDetailBanner';
 import CourseDetailCard from '../../components/courses/CourseDetailCard';
 import CourseDescriptionTab from '../../components/courses/CourseDescriptionTab';
 import CourseContentTab from '../../components/courses/CourseContentTab';
@@ -54,93 +57,57 @@ import CourseReviewsTab from '../../components/courses/CourseReviewsTab';
 import CoursePromotionalVideo from '../../components/courses/CoursePromotionalVideo';
 import { courseAPI, cartAPI } from '../../services/courseService';
 import { contentAPI } from '../../services/content.service';
-// import { assignmentsAPI } from '../../services/assignment.service';
-// import { examAPI } from '../../services/exam.service';
 import { reviewsAPI } from '../../services/reviews.service';
+import { bannerAPI } from '../../services/api.service';
 import api from '../../services/api.service';
 import { API_CONFIG } from '../../config/api.config';
+import BackGroundImage from '../../assets/images/BackGround.png';
+import BGTriangleImage from '../../assets/images/BGtriangle.png';
 
 
 // Animation keyframes
 const float = keyframes`
-  0% { 
-    transform: translateY(0px) rotate(0deg);
-    filter: drop-shadow(0 5px 15px rgba(0,0,0,0.1));
-  }
-  25% {
-    transform: translateY(-8px) rotate(0.5deg);
-    filter: drop-shadow(0 8px 20px rgba(0,0,0,0.15));
-  }
-  50% {
-    transform: translateY(-12px) rotate(-0.5deg);
-    filter: drop-shadow(0 12px 25px rgba(0,0,0,0.2));
-  }
-  75% {
-    transform: translateY(-8px) rotate(0.5deg);
-    filter: drop-shadow(0 8px 20px rgba(0,0,0,0.15));
-  }
-  100% { 
-    transform: translateY(0px) rotate(0deg);
-    filter: drop-shadow(0 5px 15px rgba(0,0,0,0.1));
-  }
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+`;
+
+const shimmer = keyframes`
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 `;
 
 const pulse = keyframes`
-  0% {
-    transform: scale(1);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  }
-  50% {
-    transform: scale(1.03);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-  }
-  100% {
-    transform: scale(1);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  }
+  0% { box-shadow: 0 0 0 0 rgba(25, 118, 210, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(25, 118, 210, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(25, 118, 210, 0); }
 `;
 
-// Animated background components
-const FloatingShape = styled('div')({
-    position: 'absolute',
-    borderRadius: '50%',
-    background: 'linear-gradient(45deg, #663399, #8B4B8C)',
-    filter: 'blur(60px)',
-    opacity: 0.2,
-    zIndex: 1,
-    animation: `${float} 15s ease-in-out infinite`,
-    '&:nth-of-type(1)': {
-        width: '300px',
-        height: '300px',
-        top: '-100px',
-        right: '-100px',
-        animationDelay: '0s',
-    },
-    '&:nth-of-type(2)': {
-        width: '200px',
-        height: '200px',
-        bottom: '20%',
-        right: '15%',
-        animationDelay: '5s',
-        background: 'linear-gradient(45deg, #663399, #9966CC)',
-    },
-    '&:nth-of-type(3)': {
-        width: '250px',
-        height: '250px',
-        top: '30%',
-        left: '15%',
-        animationDelay: '7s',
-        background: 'linear-gradient(45deg, #663399, #7B3F98)',
-    },
-});
+const triangleFloat = keyframes`
+  0% { transform: translateY(0px) rotate(0deg); }
+  25% { transform: translateY(-15px) rotate(2deg); }
+  50% { transform: translateY(-8px) rotate(-1deg); }
+  75% { transform: translateY(-20px) rotate(1deg); }
+  100% { transform: translateY(0px) rotate(0deg); }
+`;
 
-const AnimatedBackground = styled('div')(() => ({
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    zIndex: -1,
+// Hero Section Component
+const HeroSection = styled(Box, {
+    shouldForwardProp: (prop) => prop !== 'backgroundImage',
+})(({ theme, backgroundImage }) => ({
+    background: `url(${backgroundImage || BackGroundImage})`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat',
+    backgroundAttachment: 'fixed',
+    color: 'white',
+    padding: theme.spacing(12, 0, 6),
+    textAlign: 'center',
+    position: 'relative',
+    overflow: 'hidden',
+    minHeight: '50vh',
+    display: 'flex',
+    alignItems: 'center',
     '&::before': {
         content: '""',
         position: 'absolute',
@@ -148,38 +115,172 @@ const AnimatedBackground = styled('div')(() => ({
         left: 0,
         right: 0,
         bottom: 0,
-        background: 'linear-gradient(135deg, #2d1b4e 0%, #1a0d2e 100%)',
+        background: `
+            linear-gradient(135deg, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.25) 50%, rgba(0, 0, 0, 0.3) 100%),
+            url(${backgroundImage || BackGroundImage})
+        `,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        filter: 'brightness(1.2) contrast(1.1) saturate(1.1)',
         zIndex: 1,
     },
     '&::after': {
         content: '""',
         position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z\' fill=\'%23663399\' fill-opacity=\'0.1\' fill-rule=\'evenodd\'/%3E%3C/svg%3E")',
-        opacity: 0.4,
+        top: '50%',
+        left: '50%',
+        width: '200%',
+        height: '200%',
+        background: `radial-gradient(circle, ${alpha('#ffffff', 0.08)} 0%, transparent 70%)`,
+        transform: 'translate(-50%, -50%)',
+        animation: `${float} 6s ease-in-out infinite`,
         zIndex: 2,
-        animation: `${pulse} 15s ease-in-out infinite`,
-    },
+    }
 }));
 
-const SectionTitle = styled(Typography)(({ theme }) => ({
-    position: 'relative',
-    display: 'inline-block',
-    marginBottom: theme.spacing(4),
-    fontWeight: 700,
-    '&::after': {
-        content: '""',
-        position: 'absolute',
-        bottom: -8,
-        left: 0,
-        width: '80px',
-        height: '4px',
-        background: `linear-gradient(90deg, #333679 0%, #4DBFB3 100%)`,
-        borderRadius: '2px',
+const AnimatedTriangle = styled(Box)(({ theme }) => ({
+    position: 'absolute',
+    bottom: '20px',
+    left: '20px',
+    width: '250px',
+    height: '250px',
+    backgroundImage: `url(${BGTriangleImage})`,
+    backgroundSize: 'contain',
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'center',
+    opacity: 0.7,
+    zIndex: 2,
+    animation: `${triangleFloat} 4s ease-in-out infinite`,
+    filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))',
+    '&:hover': {
+        opacity: 1,
+        transform: 'scale(1.1)',
     },
+    [theme.breakpoints.down('md')]: {
+        width: '200px',
+        height: '200px',
+    },
+    [theme.breakpoints.down('sm')]: {
+        width: '160px',
+        height: '160px',
+        bottom: '15px',
+        left: '15px',
+    },
+    [theme.breakpoints.down('xs')]: {
+        width: '120px',
+        height: '120px',
+    }
+}));
+
+// Styled components for hero content
+const HeroContentContainer = styled(Box)(({ theme }) => ({
+    position: 'relative',
+    zIndex: 3,
+    width: '100%',
+    maxWidth: '1200px',
+    margin: '0 auto',
+    padding: theme.spacing(2, 3),
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: theme.spacing(2),
+    textAlign: 'center'
+}));
+
+const BreadcrumbsContainer = styled(Box)(({ theme }) => ({
+    textAlign: 'center',
+    '& .MuiBreadcrumbs-root': {
+        justifyContent: 'center',
+        '& .MuiBreadcrumbs-separator': {
+            color: alpha('#ffffff', 0.7),
+            fontSize: '1.2rem',
+            fontWeight: 600
+        }
+    }
+}));
+
+const StyledBreadcrumbLink = styled(MuiLink)(({ theme }) => ({
+    color: alpha('#ffffff', 0.8),
+    textDecoration: 'none',
+    fontSize: '1.1rem',
+    fontWeight: 500,
+    transition: 'all 0.3s ease',
+    '&:hover': {
+        color: '#ffffff',
+        textDecoration: 'underline',
+        transform: 'translateY(-1px)'
+    }
+}));
+
+const CategoryChipsContainer = styled(Box)(({ theme }) => ({
+    display: 'flex',
+    gap: theme.spacing(1),
+    marginBottom: theme.spacing(2),
+    flexWrap: 'wrap'
+}));
+
+const CategoryChip = styled(Chip)(({ theme }) => ({
+    backgroundColor: alpha('#ffffff', 0.15),
+    color: '#ffffff',
+    fontWeight: 600,
+    fontSize: '0.85rem',
+    height: '32px',
+    borderRadius: '16px',
+    backdropFilter: 'blur(10px)',
+    border: `1px solid ${alpha('#ffffff', 0.2)}`,
+    transition: 'all 0.3s ease',
+    '&:hover': {
+        backgroundColor: alpha('#ffffff', 0.25),
+        transform: 'translateY(-2px)',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+    }
+}));
+
+const CourseTitle = styled(Typography)(({ theme }) => ({
+    fontWeight: 800,
+    color: '#ffffff',
+    fontSize: 'clamp(1.8rem, 4vw, 3.5rem)',
+    lineHeight: 1.2,
+    textShadow: '0 4px 20px rgba(0,0,0,0.4)',
+    textAlign: 'center'
+}));
+
+const CourseSubtitle = styled(Typography)(({ theme }) => ({
+    opacity: 0.95,
+    fontWeight: 400,
+    fontSize: 'clamp(0.9rem, 2vw, 1.2rem)',
+    maxWidth: '600px',
+    textShadow: '0 2px 10px rgba(0,0,0,0.3)',
+    textAlign: 'center',
+    lineHeight: 1.6,
+    margin: '0 auto'
+}));
+
+const RatingContainer = styled(Box)(({ theme }) => ({
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: theme.spacing(1)
+}));
+
+const RatingText = styled(Typography)(({ theme }) => ({
+    color: '#ffffff',
+    fontWeight: 600,
+    fontSize: '1rem'
+}));
+
+const RatingValue = styled(Typography)(({ theme }) => ({
+    color: '#FFD700',
+    fontWeight: 700,
+    fontSize: '1.1rem'
+}));
+
+const StudentCount = styled(Typography)(({ theme }) => ({
+    color: alpha('#ffffff', 0.8),
+    fontWeight: 500,
+    fontSize: '0.9rem'
 }));
 
 
@@ -241,6 +342,7 @@ const CourseDetail = () => {
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
     const [isAddingToCart, setIsAddingToCart] = useState(false);
     const [loadingModules, setLoadingModules] = useState({});
+    const [headerBanner, setHeaderBanner] = useState(null);
     
     // Simple cache for course data
     const courseCache = useRef(new Map());
@@ -255,6 +357,79 @@ const CourseDetail = () => {
         comment: ''
     });
 
+
+    // Helper function to get image URL
+    const getImageUrl = (image) => {
+        if (!image) {
+            return BackGroundImage;
+        }
+
+        if (typeof image === 'string') {
+            // If it's already a full URL, return it
+            if (image.startsWith('http')) return image;
+
+            // If it's a relative path, construct full URL
+            return `${process.env.REACT_APP_API_URL || 'http://localhost:8000'}${image}`;
+        }
+
+        return BackGroundImage;
+    };
+
+    // Fetch header banner from API
+    useEffect(() => {
+        const fetchHeaderBanner = async () => {
+            try {
+                console.log('🔄 Fetching header banner from API...');
+
+                // Try to get header banners specifically
+                let bannerData;
+                try {
+                  
+                    bannerData = await bannerAPI.getHeaderBanners();
+                    
+                } catch (headerBannerError) {
+                    try {
+                        bannerData = await bannerAPI.getBannersByType('header');
+                      
+                    } catch (byTypeError) {                    
+                        bannerData = await bannerAPI.getActiveBanners();                      
+                    }
+                }
+
+                // Filter to only header type banners
+                let filteredBanners = [];
+                if (Array.isArray(bannerData)) {
+                    filteredBanners = bannerData.filter(banner => banner.banner_type === 'header');
+                } else if (bannerData?.results) {
+                    filteredBanners = bannerData.results.filter(banner => banner.banner_type === 'header');
+                } else if (bannerData?.data) {
+                    filteredBanners = bannerData.data.filter(banner => banner.banner_type === 'header');
+                }
+
+
+                // Set the first header banner
+                if (filteredBanners.length > 0) {
+                    const banner = filteredBanners[0];
+                    setHeaderBanner({
+                        id: banner.id,
+                        title: banner.title,
+                        description: banner.description || '',
+                        image_url: getImageUrl(banner.image || banner.image_url),
+                        url: banner.url || null,
+                        banner_type: banner.banner_type || 'header'
+                    });
+                  
+                } else {
+                    setHeaderBanner(null);
+                }
+
+            } catch (error) {         
+                setHeaderBanner(null);
+            }
+        };
+
+        fetchHeaderBanner();
+    }, []);
 
     // Initialize all modules as collapsed by default
     const initializeExpandedModules = (modules) => {
@@ -338,53 +513,15 @@ const CourseDetail = () => {
                 return [];
             }
 
-            // Fetch all content for all modules in parallel
-            const moduleContentPromises = modulesData.map(async (module, index) => {
-                const moduleId = module.id;
-                
-                // Create parallel promises for each module's content
-                const [lessonsResponse, quizzesResponse] = await Promise.allSettled([
-                    contentAPI.getLessons({ moduleId: moduleId, courseId: courseId }),
-                    api.get(`/api/assignments/quizzes/`, {
-                        params: { course: courseId, module: moduleId }
-                    }).catch(() => ({ data: [] }))
-                ]);
-
-                // Process lessons
-                let lessons = [];
-                if (lessonsResponse.status === 'fulfilled') {
-                    const lessonsData = lessonsResponse.value;
-                    if (Array.isArray(lessonsData)) {
-                        lessons = lessonsData;
-                    } else if (lessonsData && Array.isArray(lessonsData.results)) {
-                        lessons = lessonsData.results;
-                    } else if (lessonsData && Array.isArray(lessonsData.data)) {
-                        lessons = lessonsData.data;
-                    }
-                }
-
-                // Process quizzes
-                let quizzes = [];
-                if (quizzesResponse.status === 'fulfilled') {
-                    const quizzesData = quizzesResponse.value.data;
-                    if (Array.isArray(quizzesData)) {
-                        quizzes = quizzesData;
-                    } else if (Array.isArray(quizzesData.results)) {
-                        quizzes = quizzesData.results;
-                    }
-                }
-
-                return {
+                // The modules data from API already includes lessons, so we don't need to fetch them separately
+                // Just return the modules as they are from the API
+                const modulesWithContent = modulesData.map(module => ({
                     ...module,
-                    lessons,
                     assignments: [], // Disabled for now
-                    quizzes,
+                    quizzes: [], // Disabled for now
                     exams: [] // Disabled for now
-                };
-            });
+                }));
 
-            // Wait for all modules to complete
-            const modulesWithContent = await Promise.all(moduleContentPromises);
             console.log('All modules with content fetched:', modulesWithContent);
             
             return modulesWithContent;
@@ -492,22 +629,24 @@ const CourseDetail = () => {
                 const completeCourse = transformCourseData(courseData, modulesData, reviewsData, isUserEnrolled, ratingStats);
                 setCourse(completeCourse);
                 setExpandedModules(initializeExpandedModules(completeCourse.modules));
+                
+                console.log('Final course data:', completeCourse);
             } catch (error) {
                 console.error('Error fetching course data:', error);
-                let errorMessage = 'فشل في تحميل بيانات الدورة';
+                let errorMessage = t('courseDetail.loadCourseDataFailed');
 
                 if (error.response) {
                     // Server responded with error status
                     if (error.response.status === 404) {
-                        errorMessage = 'الدورة غير موجودة';
+                        errorMessage = t('courseDetail.courseNotFound');
                     } else if (error.response.status === 403) {
-                        errorMessage = 'ليس لديك صلاحية لعرض هذه الدورة';
+                        errorMessage = t('courseDetail.noPermissionToView');
                     } else if (error.response.status === 401) {
                         // Don't show login required message for public course details
                         if (!isAuthenticated) {
-                            errorMessage = 'هذه الدورة غير متاحة للعرض العام. يرجى تسجيل الدخول لعرض التفاصيل الكاملة.';
+                            errorMessage = t('courseDetail.loginRequiredForDetails');
                         } else {
-                            errorMessage = 'يرجى تسجيل الدخول لعرض هذه الدورة';
+                            errorMessage = t('courseDetail.loginRequired');
                         }
                     } else if (error.response.data?.detail) {
                         errorMessage = error.response.data.detail;
@@ -518,10 +657,10 @@ const CourseDetail = () => {
                     }
                 } else if (error.request) {
                     // Network error
-                    errorMessage = 'خطأ في الشبكة. يرجى التحقق من اتصال الإنترنت.';
+                    errorMessage = t('courseDetail.networkError');
                 } else {
                     // Other error
-                    errorMessage = error.message || 'حدث خطأ غير متوقع';
+                    errorMessage = error.message || t('courseDetail.unexpectedError');
                 }
 
                 setError(errorMessage);
@@ -618,7 +757,7 @@ const CourseDetail = () => {
             thumbnail: getImageUrl(apiCourse.image || apiCourse.thumbnail || apiCourse.cover_image),
             category: apiCourse.category?.name || apiCourse.category || '',
             level: apiCourse.level || '',
-            duration: apiCourse.duration || `${totalHours} ساعة`,
+            duration: apiCourse.duration || `${totalHours} ${t('courseDetail.hours')}`,
             totalHours: totalHours,
             lectures: totalLessons,
             resources: apiCourse.resources_count || apiCourse.materials_count || 0,
@@ -647,6 +786,14 @@ const CourseDetail = () => {
     // Transform modules data
     const transformModulesData = (modulesData, courseData, isUserEnrolled = false) => {
         console.log('transformModulesData called with:', { modulesData, courseData, isUserEnrolled });
+
+        // Convert module duration from seconds to readable format
+        const formatModuleDuration = (seconds) => {
+            if (!seconds) return '1h 00m';
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+        };
 
         // Ensure modulesData is an array
         if (!modulesData || !Array.isArray(modulesData)) {
@@ -680,6 +827,9 @@ const CourseDetail = () => {
                 module.submodules.reduce((total, sub) => total + (sub.lessons ? sub.lessons.length : 0), 0) : 0;
             return Array.isArray(mainLessons) && (mainLessons.length > 0 || subModulesLessons > 0);
         });
+
+        // Always show modules structure, but content availability depends on enrollment
+        console.log('User enrolled status:', isUserEnrolled, 'Has valid modules:', hasValidModules);
 
         // If no valid modules, return empty array
         if (!hasValidModules) {
@@ -715,49 +865,49 @@ const CourseDetail = () => {
                 });
             };
 
-            // Transform quizzes
-            const transformQuizzes = (quizzes) => {
-                if (!Array.isArray(quizzes)) return [];
+            // // Transform quizzes
+            // const transformQuizzes = (quizzes) => {
+            //     if (!Array.isArray(quizzes)) return [];
 
-                return quizzes.map((quiz, qIndex) => {
-                    return {
-                        id: `quiz_${quiz.id || qIndex + 1}`,
-                        title: quiz.title || `كويز ${qIndex + 1}`,
-                        duration: quiz.time_limit ? `${quiz.time_limit}:00` : '20:00',
-                        type: 'quiz',
-                        isPreview: false,
-                        completed: false,
-                        description: quiz.description || '',
-                        passMark: quiz.pass_mark || 60,
-                        totalQuestions: quiz.get_total_questions ? quiz.get_total_questions() : 0,
-                        order: quiz.order || qIndex + 1,
-                        isActive: quiz.is_active !== false,
-                        ...quiz
-                    };
-                });
-            };
+            //     return quizzes.map((quiz, qIndex) => {
+            //         return {
+            //             id: `quiz_${quiz.id || qIndex + 1}`,
+            //             title: quiz.title || `كويز ${qIndex + 1}`,
+            //             duration: quiz.time_limit ? `${quiz.time_limit}:00` : '20:00',
+            //             type: 'quiz',
+            //             isPreview: false,
+            //             completed: false,
+            //             description: quiz.description || '',
+            //             passMark: quiz.pass_mark || 60,
+            //             totalQuestions: quiz.get_total_questions ? quiz.get_total_questions() : 0,
+            //             order: quiz.order || qIndex + 1,
+            //             isActive: quiz.is_active !== false,
+            //             ...quiz
+            //         };
+            //     });
+            // };
 
-            // Transform exams
-            const transformExams = (exams) => {
-                if (!Array.isArray(exams)) return [];
+            // // Transform exams
+            // const transformExams = (exams) => {
+            //     if (!Array.isArray(exams)) return [];
 
-                return exams.map((exam, eIndex) => {
-                    return {
-                        id: `exam_${exam.id || eIndex + 1}`,
-                        title: exam.title || `امتحان ${eIndex + 1}`,
-                        duration: exam.time_limit ? `${exam.time_limit}:00` : '60:00',
-                        type: 'exam',
-                        isPreview: false,
-                        completed: false,
-                        description: exam.description || '',
-                        passMark: exam.pass_mark || 60,
-                        isFinal: exam.is_final || false,
-                        order: exam.order || eIndex + 1,
-                        isActive: exam.is_active !== false,
-                        ...exam
-                    };
-                });
-            };
+            //     return exams.map((exam, eIndex) => {
+            //         return {
+            //             id: `exam_${exam.id || eIndex + 1}`,
+            //             title: exam.title || `امتحان ${eIndex + 1}`,
+            //             duration: exam.time_limit ? `${exam.time_limit}:00` : '60:00',
+            //             type: 'exam',
+            //             isPreview: false,
+            //             completed: false,
+            //             description: exam.description || '',
+            //             passMark: exam.pass_mark || 60,
+            //             isFinal: exam.is_final || false,
+            //             order: exam.order || eIndex + 1,
+            //             isActive: exam.is_active !== false,
+            //             ...exam
+            //         };
+            //     });
+            // };
 
             // Transform lessons with better type detection for real API data
             const transformLessons = (lessons) => {
@@ -796,9 +946,12 @@ const CourseDetail = () => {
                         return hours > 0 ? `${hours}:${mins.toString().padStart(2, '0')}` : `${mins}:00`;
                     };
 
+                    // Check if lesson is accessible
+                    const isAccessible = lesson.is_free || lesson.is_preview || !lesson.locked;
+
                     return {
                         id: lesson.id || lIndex + 1,
-                        title: lesson.title || lesson.name || `الدرس ${lIndex + 1}`,
+                        title: lesson.title || lesson.name || `${t('courseDetail.lesson')} ${lIndex + 1}`,
                         duration: formatDuration(lesson.duration_minutes || lesson.duration),
                         type: lessonType,
                         isPreview: lesson.is_free || lesson.is_preview || lesson.isPreview || false,
@@ -809,6 +962,8 @@ const CourseDetail = () => {
                         content: lesson.content || '',
                         difficulty: lesson.difficulty || 'beginner',
                         order: lesson.order || lIndex + 1,
+                        locked: lesson.locked || !isAccessible,
+                        is_free: lesson.is_free || false,
                         ...lesson
                     };
                 });
@@ -820,10 +975,39 @@ const CourseDetail = () => {
             const quizzes = module.quizzes || [];
             const exams = module.exams || [];
 
-            // For non-enrolled users, show placeholder content structure
+            // For non-enrolled users with no lessons, show placeholder content structure
             if (!isUserEnrolled && lessons.length === 0) {
-                // Create placeholder lessons to show module structure
-                const placeholderLessons = [
+                // Transform submodules first to show them even for non-enrolled users
+                const transformedSubModules = module.submodules ? module.submodules.map((subModule, subIndex) => {
+                    const placeholderSubLessons = [
+                        {
+                            id: `placeholder_sub_${subModule.id}_1`,
+                            title: t('courseDetail.protectedContent'),
+                            duration: '--:--',
+                            type: 'locked',
+                            isPreview: false,
+                            completed: false,
+                            description: 'هذا المحتوى متاح فقط للطلاب المسجلين في الدورة',
+                            locked: true
+                        }
+                    ];
+                    
+                    return {
+                        id: subModule.id || `sub_${subIndex + 1}`,
+                        title: subModule.name || subModule.title || `الوحدة الفرعية ${subIndex + 1}`,
+                        description: subModule.description || '',
+                        duration: formatModuleDuration(subModule.video_duration || subModule.duration),
+                        lessons: placeholderSubLessons,
+                        order: subModule.order || subIndex + 1,
+                        status: subModule.status || 'published',
+                        isActive: subModule.is_active !== false,
+                        isSubModule: true,
+                        isLocked: true
+                    };
+                }) : [];
+
+                // If there are submodules, don't show main module lessons for non-enrolled users
+                const placeholderLessons = module.submodules && module.submodules.length > 0 ? [] : [
                     {
                         id: `placeholder_${module.id}_1`,
                         title: 'محتوى محمي - يرجى التسجيل في الدورة',
@@ -842,7 +1026,7 @@ const CourseDetail = () => {
                     description: module.description || '',
                     duration: formatModuleDuration(module.video_duration || module.duration),
                     lessons: placeholderLessons,
-                    submodules: [],
+                    submodules: transformedSubModules, // Show submodules even for non-enrolled users
                     order: module.order || index + 1,
                     status: module.status || 'published',
                     isActive: module.is_active !== false,
@@ -850,12 +1034,6 @@ const CourseDetail = () => {
                 };
             }
 
-            console.log(`Module ${module.id || index + 1}:`, {
-                lessons: lessons.length,
-                assignments: assignments.length,
-                quizzes: quizzes.length,
-                exams: exams.length
-            });
 
             // Transform all content types
             const transformedLessons = transformLessons(lessons);
@@ -890,13 +1068,6 @@ const CourseDetail = () => {
                 ];
             }
 
-            // Convert module duration from seconds to readable format
-            const formatModuleDuration = (seconds) => {
-                if (!seconds) return '1h 00m';
-                const hours = Math.floor(seconds / 3600);
-                const minutes = Math.floor((seconds % 3600) / 60);
-                return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
-            };
 
             // Transform submodules if they exist
             const transformedSubModules = module.submodules ? module.submodules.map((subModule, subIndex) => {
@@ -904,6 +1075,35 @@ const CourseDetail = () => {
                 const subAssignments = subModule.assignments || [];
                 const subQuizzes = subModule.quizzes || [];
                 const subExams = subModule.exams || [];
+
+                // For non-enrolled users with no lessons in submodule, show placeholder content structure
+                if (!isUserEnrolled && subLessons.length === 0) {
+                    const placeholderSubLessons = [
+                        {
+                            id: `placeholder_sub_${subModule.id}_1`,
+                            title: t('courseDetail.protectedContent'),
+                            duration: '--:--',
+                            type: 'locked',
+                            isPreview: false,
+                            completed: false,
+                            description: 'هذا المحتوى متاح فقط للطلاب المسجلين في الدورة',
+                            locked: true
+                        }
+                    ];
+                    
+                    return {
+                        id: subModule.id || `sub_${subIndex + 1}`,
+                        title: subModule.name || subModule.title || `الوحدة الفرعية ${subIndex + 1}`,
+                        description: subModule.description || '',
+                        duration: formatModuleDuration(subModule.video_duration || subModule.duration),
+                        lessons: placeholderSubLessons,
+                        order: subModule.order || subIndex + 1,
+                        status: subModule.status || 'published',
+                        isActive: subModule.is_active !== false,
+                        isSubModule: true,
+                        isLocked: true
+                    };
+                }
 
                 const transformedSubLessons = transformLessons(subLessons);
                 const transformedSubAssignments = transformAssignments(subAssignments);
@@ -916,6 +1116,20 @@ const CourseDetail = () => {
                     ...transformedSubQuizzes,
                     ...transformedSubExams
                 ].sort((a, b) => (a.order || 0) - (b.order || 0));
+
+                // If no content found for non-enrolled users, show placeholder content
+                if (!isUserEnrolled && allSubContent.length === 0) {
+                    allSubContent.push({
+                        id: `placeholder_sub_${subModule.id}`,
+                        title: 'محتوى محمي - يرجى التسجيل في الدورة',
+                        duration: '--:--',
+                        type: 'locked',
+                        isPreview: false,
+                        completed: false,
+                        description: 'هذا المحتوى متاح فقط للطلاب المسجلين في الدورة',
+                        locked: true
+                    });
+                }
 
                 return {
                     id: subModule.id || `sub_${subIndex + 1}`,
@@ -1121,7 +1335,7 @@ const CourseDetail = () => {
             console.log('Review submitted successfully:', response);
 
             // Show success message
-            alert('تم إضافة تقييمك بنجاح!');
+            alert(t('courseDetail.reviewSubmittedSuccessfully'));
 
             // Reset form and close
             setReviewForm({ rating: 5, comment: '' });
@@ -1131,13 +1345,13 @@ const CourseDetail = () => {
             window.location.reload();
         } catch (error) {
             console.error('Error submitting review:', error);
-            let errorMessage = 'فشل في إضافة التقييم';
+            let errorMessage = t('courseDetail.failedToAddReview');
 
             if (error.response) {
                 if (error.response.status === 403) {
-                    errorMessage = 'يجب أن تكون مسجلاً في الدورة لتتمكن من تقييمها';
+                    errorMessage = t('courseDetail.mustBeEnrolledToReview');
                 } else if (error.response.status === 400) {
-                    errorMessage = error.response.data?.error || 'بيانات التقييم غير صحيحة';
+                    errorMessage = error.response.data?.error || t('courseDetail.invalidReviewData');
                 } else if (error.response.data?.error) {
                     errorMessage = error.response.data.error;
                 }
@@ -1170,7 +1384,7 @@ const CourseDetail = () => {
             }));
         } catch (error) {
             console.error('Error liking review:', error);
-            alert('فشل في إعجاب التقييم');
+            alert(t('courseDetail.failedToLikeReview'));
         }
     };
 
@@ -1184,10 +1398,10 @@ const CourseDetail = () => {
             console.log('Added to cart:', response);
 
             // Show success message
-            alert('تم إضافة الدورة إلى السلة بنجاح!');
+            alert(t('courseDetail.courseAddedToCart'));
         } catch (error) {
             console.error('Error adding to cart:', error);
-            let errorMessage = 'حدث خطأ أثناء إضافة الدورة إلى السلة';
+            let errorMessage = t('courseDetail.errorAddingToCart');
 
             if (error.response) {
                 if (error.response.data?.detail) {
@@ -1289,7 +1503,7 @@ const CourseDetail = () => {
                             fontWeight: 600
                         }}
                     >
-                        حاول مرة أخرى
+                        {t('courseDetail.tryAgain')}
                     </Button>
                     <Button
                         variant="outlined"
@@ -1306,7 +1520,7 @@ const CourseDetail = () => {
                             fontWeight: 600
                         }}
                     >
-                        تصفح الدورات
+                        {t('courseDetail.browseCourses')}
                     </Button>
                 </Box>
             </Container>
@@ -1324,7 +1538,7 @@ const CourseDetail = () => {
                     <Typography variant="h4" component="h1" gutterBottom sx={{
                         fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' }
                     }}>
-                        الدورة غير موجودة
+                        {t('courseDetail.courseNotFound')}
                     </Typography>
                     <Typography variant="body1" color="text.secondary" paragraph sx={{
                         fontSize: { xs: '0.9rem', sm: '1rem' },
@@ -1349,7 +1563,7 @@ const CourseDetail = () => {
                         fontWeight: 600
                     }}
                 >
-                    تصفح جميع الدورات
+                    {t('courseDetail.browseAllCourses')}
                 </Button>
             </Container>
         );
@@ -1361,53 +1575,68 @@ const CourseDetail = () => {
 
     return (
         <Box sx={{ 
-            bgcolor: 'background.default', 
-            minHeight: '100vh', 
             display: 'flex', 
             flexDirection: 'column', 
-            position: 'relative',
+            minHeight: '100vh',
             width: '100%',
             maxWidth: '100vw',
-            overflowX: 'hidden',
-            // إضافة مسافة إضافية من الأعلى لضمان عدم التداخل مع الـ header
-            paddingTop: { xs: '80px', sm: '90px', md: '100px' }
+            overflowX: 'hidden'
         }}>
-            <AnimatedBackground>
-                <FloatingShape />
-                <FloatingShape style={{ 
-                    width: '200px', 
-                    height: '200px', 
-                    bottom: '20%', 
-                    right: '15%', 
-                    animationDelay: '5s',
-                    '@media (max-width: 768px)': {
-                        width: '120px',
-                        height: '120px',
-                        bottom: '15%',
-                        right: '10%',
-                    }
-                }} />
-                <FloatingShape style={{ 
-                    width: '250px', 
-                    height: '250px', 
-                    top: '30%', 
-                    left: '15%', 
-                    animationDelay: '7s',
-                    '@media (max-width: 768px)': {
-                        width: '150px',
-                        height: '150px',
-                        top: '25%',
-                        left: '10%',
-                    }
-                }} />
-            </AnimatedBackground>
-            {/* Header */}
-            <Header pageType="course-detail" />
+            <Header />
+
+            <Box component="main" sx={{ flex: 1 }}>
+                {/* Hero Section */}
+                <HeroSection backgroundImage={headerBanner?.image_url}>
+                    <AnimatedTriangle />
+                    <Container sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
+                        <motion.div
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.8 }}
+                        >
+                            <HeroContentContainer>
+                                {/* Breadcrumbs */}
+                                <BreadcrumbsContainer>
+                                    <Breadcrumbs aria-label="breadcrumb">
+                                        <StyledBreadcrumbLink 
+                                            component={Link} 
+                                            to="/"
+                                            sx={{ display: 'flex', alignItems: 'center' }}
+                                        >
+                                            {t('courseDetail.home')}
+                                        </StyledBreadcrumbLink>
+                                        <StyledBreadcrumbLink 
+                                            component={Link} 
+                                            to="/courses"
+                                            sx={{ display: 'flex', alignItems: 'center' }}
+                                        >
+                                            {t('courseDetail.courses')}
+                                        </StyledBreadcrumbLink>
+                                        <Typography 
+                                            sx={{ 
+                                                color: '#ffffff', 
+                                                fontSize: '1.1rem',
+                                                fontWeight: 600 
+                                            }}
+                                        >
+                                            {course?.title || t('courseDetail.courseDetails')}
+                                        </Typography>
+                                    </Breadcrumbs>
+                                </BreadcrumbsContainer>
+
+                                {/* Course Title */}
+                                <CourseTitle variant="h1" component="h1">
+                                    {course?.title || t('courseDetail.courseDetails')}
+                                </CourseTitle>             
+                            </HeroContentContainer>
+                        </motion.div>
+                    </Container>
+                </HeroSection>
 
             {/* Course Banner */}
-            <CourseDetailBanner
+            {/* <CourseDetailBanner
                 course={course}
-            />
+            /> */}
 
             {/* Course Promotional Video */}
             <Container maxWidth="lg" sx={{ 
@@ -1421,6 +1650,7 @@ const CourseDetail = () => {
             {/* Course Detail Card with Image */}
             <CourseDetailCard
                 course={course}
+                totalLessons={totalLessons}
                 isAddingToCart={isAddingToCart}
                 handleAddToCart={handleAddToCart}
             />
@@ -1467,7 +1697,7 @@ const CourseDetail = () => {
                         gap: { xs: 1, sm: 1.5, md: 2 },
                         maxWidth: '1200px',
                         margin: '0 auto',
-                        direction: 'rtl', // Right to left direction
+                        direction: 'ltr', // Left to right direction
                         width: '100%'
                     }}>
                         {/* Navigation Tabs */}
@@ -1497,7 +1727,7 @@ const CourseDetail = () => {
                                             fontWeight: 600
                                         },
                                         '&:not(:last-child)': {
-                                            marginRight: '2px'
+                                            marginLeft: '2px'
                                         }
                                     },
                                     '& .MuiTabs-indicator': {
@@ -1511,23 +1741,23 @@ const CourseDetail = () => {
                                 }}
                             >
                                 <Tab
-                                    label="الوصف"
-                                    icon={<DescriptionOutlined sx={{ fontSize: { xs: 16, sm: 18, md: 20 }, mr: { xs: 0.5, sm: 1 } }} />}
+                                    label={t('courseDetail.description')}
+                                    icon={<DescriptionOutlined sx={{ fontSize: { xs: 16, sm: 18, md: 20 }, ml: { xs: 0.5, sm: 1 } }} />}
                                     iconPosition="start"
                                 />
                                 <Tab
-                                    label="محتوى الدورة"
-                                    icon={<VideoLibraryIcon sx={{ fontSize: { xs: 16, sm: 18, md: 20 }, mr: { xs: 0.5, sm: 1 } }} />}
+                                    label={t('courseDetail.courseContent')}
+                                    icon={<VideoLibraryIcon sx={{ fontSize: { xs: 16, sm: 18, md: 20 }, ml: { xs: 0.5, sm: 1 } }} />}
                                     iconPosition="start"
                                 />
                                 <Tab
-                                    label="العرض التوضيحي"
-                                    icon={<PlayCircleOutline sx={{ fontSize: { xs: 16, sm: 18, md: 20 }, mr: { xs: 0.5, sm: 1 } }} />}
+                                    label={t('courseDetail.demo')}
+                                    icon={<PlayCircleOutline sx={{ fontSize: { xs: 16, sm: 18, md: 20 }, ml: { xs: 0.5, sm: 1 } }} />}
                                     iconPosition="start"
                                 />
                                 <Tab
-                                    label="التقييمات"
-                                    icon={<StarIcon sx={{ fontSize: { xs: 16, sm: 18, md: 20 }, mr: { xs: 0.5, sm: 1 } }} />}
+                                    label={t('courseDetail.reviews')}
+                                    icon={<StarIcon sx={{ fontSize: { xs: 16, sm: 18, md: 20 }, ml: { xs: 0.5, sm: 1 } }} />}
                                     iconPosition="start"
                                 />
                             </Tabs>
@@ -1573,6 +1803,7 @@ const CourseDetail = () => {
                         </Box>
                     </Box>
                 </Container>
+                </Box>
             </Box>
 
 
@@ -1610,7 +1841,7 @@ const CourseDetail = () => {
                         textAlign: 'center',
                         fontSize: { xs: '1.3rem', sm: '1.5rem', md: '1.75rem' }
                     }}>
-                        تقييم الدورة
+                        {t('courseDetail.rateCourse')}
                     </Typography>
 
                     <Box sx={{ mb: { xs: 2, sm: 3 } }}>
@@ -1620,7 +1851,7 @@ const CourseDetail = () => {
                             textAlign: 'right',
                             fontSize: { xs: '0.9rem', sm: '1rem' }
                         }}>
-                            تقييمك للدورة
+                            {t('courseDetail.yourRating')}
                         </Typography>
                         <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                             <Rating
@@ -1652,12 +1883,12 @@ const CourseDetail = () => {
                             textAlign: 'right',
                             fontSize: { xs: '0.9rem', sm: '1rem' }
                         }}>
-                            تعليقك (اختياري)
+                            {t('courseDetail.yourComment')}
                         </Typography>
                         <textarea
                             value={reviewForm.comment}
                             onChange={(e) => handleReviewFormChange('comment', e.target.value)}
-                            placeholder="اكتب تعليقك عن الدورة..."
+                            placeholder={t('courseDetail.writeYourComment')}
                             style={{
                                 width: '100%',
                                 minHeight: window.innerWidth < 600 ? '100px' : '120px',
@@ -1702,7 +1933,7 @@ const CourseDetail = () => {
                                 order: { xs: 2, sm: 1 }
                             }}
                         >
-                            إلغاء
+                            {t('courseDetail.cancel')}
                         </Button>
                         <Button
                             variant="contained"
@@ -1729,7 +1960,7 @@ const CourseDetail = () => {
                                 order: { xs: 1, sm: 2 }
                             }}
                         >
-                            {submittingReview ? 'جاري الإرسال...' : 'إرسال التقييم'}
+                            {submittingReview ? t('courseDetail.submitting') : t('courseDetail.submitReview')}
                         </Button>
                     </Box>
                 </DialogContent>

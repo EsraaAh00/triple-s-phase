@@ -103,7 +103,7 @@ const CoursePromotionalVideo = ({ course }) => {
       return (
         <Box sx={{ textAlign: 'center', py: 4 }}>
           <Typography variant="h6" gutterBottom>
-            فيديو تعريفي خارجي
+            {t('coursePromo.externalIntroVideo')}
           </Typography>
           <Button
             variant="contained"
@@ -113,7 +113,7 @@ const CoursePromotionalVideo = ({ course }) => {
             rel="noopener noreferrer"
             startIcon={<PlayIcon />}
           >
-            مشاهدة الفيديو
+            {t('coursePromo.watchVideo')}
           </Button>
         </Box>
       );
@@ -184,7 +184,7 @@ const CoursePromotionalVideo = ({ course }) => {
           }}>
             <Chip
               icon={videoSource === 'bunny' ? <CheckIcon /> : <VideoIcon />}
-              label={videoSource === 'bunny' ? 'Bunny CDN' : 'فيديو خارجي'}
+              label={videoSource === 'bunny' ? 'Bunny CDN' : t('coursePromo.externalVideo')}
               color={videoSource === 'bunny' ? 'success' : 'primary'}
               size="small"
               sx={{ 
@@ -207,7 +207,7 @@ const CoursePromotionalVideo = ({ course }) => {
               fontSize: { xs: '1rem', sm: '1.1rem', md: '1.25rem' }
             }}
           >
-            الفيديو التعريفي للدورة
+            {t('coursePromo.courseIntroVideo')}
           </Typography>
           <Typography 
             variant="body2" 
@@ -265,7 +265,7 @@ const CoursePromotionalVideo = ({ course }) => {
           pb: 1,
         }}>
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
-            الفيديو التعريفي - {course?.title}
+            {t('coursePromo.introVideo')} - {course?.title}
           </Typography>
           <IconButton onClick={handleClose} size="small">
             <CloseIcon />

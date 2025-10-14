@@ -132,7 +132,7 @@ const CourseContentTab = ({
                             fontSize: { xs: '0.9rem', sm: '1rem' }
                         }}
                     >
-                        🔒 محتوى الدورة الحقيقي
+                        🔒 {t('courseContent.realCourseContent')}
                     </Typography>
                     <Typography 
                         variant="body2"
@@ -171,7 +171,7 @@ const CourseContentTab = ({
                             fontSize: { xs: '0.9rem', sm: '1rem' }
                         }}
                     >
-                        ✅ محتوى الدورة الكامل
+                        ✅ {t('courseContent.fullCourseContent')}
                     </Typography>
                     <Typography 
                         variant="body2"
@@ -180,7 +180,7 @@ const CourseContentTab = ({
                             lineHeight: { xs: 1.4, sm: 1.5 }
                         }}
                     >
-                        مرحباً بك في الدورة! يمكنك الآن الوصول إلى جميع المحتويات: المحاضرات والواجبات والكويزات والامتحانات.
+                        {t('courseContent.welcomeToCourse')}
                     </Typography>
                 </Alert>
             )}
@@ -196,7 +196,7 @@ const CourseContentTab = ({
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
                     <VideoLibraryIcon sx={{ color: 'primary.main' }} />
                     <SectionTitle variant="h5" component="h2" sx={{ mb: 0 }}>
-                        محتوى الدورة
+                        {t('courseContent.courseContent')}
                     </SectionTitle>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
@@ -219,7 +219,7 @@ const CourseContentTab = ({
                         color="default"
                         variant="outlined"
                         icon={<AccessTime />}
-                        label={`${course.totalHours} ساعة`}
+                        label={`${course.totalHours} ${t('courseContent.hours')}`}
                     />
                     {!course.isEnrolled && (
                         <Chip
@@ -227,7 +227,7 @@ const CourseContentTab = ({
                             color="warning"
                             variant="outlined"
                             icon={<LockIcon />}
-                            label="محتوى حقيقي"
+                            label={t('courseContent.realContent')}
                         />
                     )}
                     {course.isEnrolled && (
@@ -236,7 +236,7 @@ const CourseContentTab = ({
                             color="success"
                             variant="outlined"
                             icon={<CheckCircleIcon />}
-                            label="محتوى كامل"
+                            label={t('courseContent.fullContent')}
                         />
                     )}
                 </Box>
@@ -278,9 +278,9 @@ const CourseContentTab = ({
                                             const subModulesLessons = module.submodules ? 
                                                 module.submodules.reduce((total, sub) => total + (sub.lessons ? sub.lessons.length : 0), 0) : 0;
                                             const totalLessons = mainLessons + subModulesLessons;
-                                            return `${totalLessons} درس`;
+                                            return `${totalLessons} ${t('courseContent.lessons')}`;
                                         })()}
-                                        {module.submodules && module.submodules.length > 0 && ` • ${module.submodules.length} وحدة فرعية`}
+                                        {module.submodules && module.submodules.length > 0 && ` • ${module.submodules.length} ${t('courseContent.subModules')}`}
                                     </Typography>
                                 </Box>
                             </Box>
@@ -289,7 +289,7 @@ const CourseContentTab = ({
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                         <CircularProgress size={16} sx={{ color: '#4DBFB3' }} />
                                         <Typography variant="caption" sx={{ color: '#4DBFB3', fontWeight: 600 }}>
-                                            جاري التحميل...
+                                            {t('courseContent.loading')}...
                                         </Typography>
                                     </Box>
                                 ) : (
@@ -334,7 +334,7 @@ const CourseContentTab = ({
                                             mb: 1,
                                             px: 1
                                         }}>
-                                            دروس الوحدة الرئيسية ({module.lessons.length})
+                                            {t('courseContent.mainModuleLessons')} ({module.lessons.length})
                                         </Typography>
                                         {module.lessons.map((lesson, lessonIndex) => (
                                             <LessonItem
@@ -380,7 +380,7 @@ const CourseContentTab = ({
                                                                     ml: 1,
                                                                     fontSize: '0.7rem'
                                                                 }}>
-                                                                    (محتوى محمي)
+                                                                    ({t('courseContent.protectedContent')})
                                                                 </Typography>
                                                             )}
                                                         </Typography>
@@ -392,7 +392,7 @@ const CourseContentTab = ({
                                                         {lesson.isPreview && (
                                                             <Chip
                                                                 size="small"
-                                                                label="عرض مجاني"
+                                                                label={t('courseContent.freePreview')}
                                                                 sx={{
                                                                     bgcolor: 'rgba(14, 81, 129, 0.1)',
                                                                     color: '#333679',
@@ -458,7 +458,7 @@ const CourseContentTab = ({
                                                             {subModule.title}
                                                         </Typography>
                                                         <Typography variant="caption" sx={{ color: '#666' }}>
-                                                            ({subModule.lessons ? subModule.lessons.length : 0} درس)
+                                                            ({subModule.lessons ? subModule.lessons.length : 0} {t('courseContent.lessons')})
                                                         </Typography>
                                                     </Box>
                                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -517,7 +517,7 @@ const CourseContentTab = ({
                                                                                     ml: 1,
                                                                                     fontSize: '0.65rem'
                                                                                 }}>
-                                                                                    (محتوى محمي)
+                                                                                    ({t('courseContent.protectedContent')})
                                                                                 </Typography>
                                                                             )}
                                                                         </Typography>
@@ -529,7 +529,7 @@ const CourseContentTab = ({
                                                                         {lesson.isPreview && (
                                                                             <Chip
                                                                                 size="small"
-                                                                                label="عرض مجاني"
+                                                                                label={t('courseContent.freePreview')}
                                                                                 sx={{
                                                                                     bgcolor: 'rgba(76, 175, 80, 0.1)',
                                                                                     color: '#4caf50',
@@ -575,7 +575,7 @@ const CourseContentTab = ({
                                 fontSize: { xs: '0.9rem', sm: '1rem' }
                             }}
                         >
-                            📚 محتوى الدورة
+                            📚 {t('courseContent.courseContent')}
                         </Typography>
                         <Typography 
                             variant="body2"

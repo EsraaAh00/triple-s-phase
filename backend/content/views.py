@@ -434,31 +434,28 @@ class LessonResourceViewSet(ModelViewSet):
 # New APIs for course content
 class CourseModulesWithLessonsViewSet(ModelViewSet):
     """Get all modules with their lessons for a specific course"""
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]  # Allow public access
     
     def list(self, request, course_id=None):
         try:
             # Get the course
             course = get_object_or_404(Course, id=course_id)
             
-            # Check if user is enrolled or is instructor/admin
-            user = request.user
-            is_enrolled = course.enrollments.filter(student=user, status__in=['active', 'completed']).exists()
+            # Check if user is enrolled or is instructor/admin (for authenticated users)
+            user = request.user if request.user.is_authenticated else None
+            is_enrolled = False
             is_instructor_or_admin = False
             
-            try:
-                profile = user.profile
-                is_instructor_or_admin = (
-                    profile.role in ['instructor', 'admin'] or 
-                    course.instructor == user
-                )
-            except:
-                pass
-            
-            if not (is_enrolled or is_instructor_or_admin):
-                return Response({
-                    'error': 'ليس لديك صلاحية للوصول إلى هذا الكورس'
-                }, status=status.HTTP_403_FORBIDDEN)
+            if user:
+                is_enrolled = course.enrollments.filter(student=user, status__in=['active', 'completed']).exists()
+                try:
+                    profile = user.profile
+                    is_instructor_or_admin = (
+                        profile.role in ['instructor', 'admin'] or 
+                        course.instructor == user
+                    )
+                except:
+                    pass
             
             # Get modules with lessons (including submodules)
             modules = Module.objects.filter(course=course, is_active=True).prefetch_related('lessons', 'submodules').order_by('order')
@@ -488,15 +485,23 @@ class CourseModulesWithLessonsViewSet(ModelViewSet):
                         else:
                             duration_text = f"{minutes}د"
                     
+                    # Check if lesson is accessible (enrolled users or free lessons)
+                    is_accessible = is_enrolled or is_instructor_or_admin or lesson.is_free
+                    
                     lesson_data = {
                         'id': lesson.id,
                         'title': lesson.title,
-                        'content_type': lesson.lesson_type,
+                        'lesson_type': lesson.lesson_type,
                         'duration': duration_text,
+                        'duration_minutes': lesson.duration_minutes,
                         'order': lesson.order,
                         'is_completed': False,  # This should be calculated based on user progress
+                        'is_preview': lesson.is_free or False,
+                        'is_free': lesson.is_free or False,
+                        'locked': not is_accessible,
                         'module_name': module.name,
-                        'module_id': module.id
+                        'module_id': module.id,
+                        'description': lesson.description or ''
                     }
                     module_data['lessons'].append(lesson_data)
                 
@@ -508,6 +513,11 @@ class CourseModulesWithLessonsViewSet(ModelViewSet):
                     'id': course.id,
                     'title': course.title,
                     'description': course.description
+                },
+                'user_info': {
+                    'is_authenticated': user is not None,
+                    'is_enrolled': is_enrolled,
+                    'is_instructor_or_admin': is_instructor_or_admin
                 }
             })
             

@@ -22,10 +22,12 @@ import {
 
 const CourseDetailCard = ({
     course,
+    totalLessons,
     isAddingToCart,
     handleAddToCart
 }) => {
     const { t } = useTranslation();
+    
     // Return null if course data is not loaded yet
     if (!course) {
         return null;
@@ -634,7 +636,9 @@ const CourseDetailCard = ({
                                                     fontSize: { xs: '11px', sm: '12px', md: '13px', lg: '14px', xl: '15px' },
                                                     fontWeight: 500
                                                 }}>
-                                                    <span style={{ color: '#666' }}>الفيديوهات:</span> <span style={{ color: '#4DBFB3', fontWeight: 'bold' }}>{course?.lectures || '14'}</span>
+                                                    <span style={{ color: '#666' }}>{t('courseDetail.lessons')}:</span> <span style={{ color: '#4DBFB3', fontWeight: 'bold' }}>
+                                                        {totalLessons || course?.lectures || '--'}
+                                                    </span>
                                                 </Typography>
                                             </Box>
 
@@ -653,7 +657,7 @@ const CourseDetailCard = ({
                                                     fontSize: { xs: '11px', sm: '12px', md: '13px', lg: '14px', xl: '15px' },
                                                     fontWeight: 500
                                                 }}>
-                                                    <span style={{ color: '#666' }}>المدة:</span> <span style={{ color: '#FF6B6B', fontWeight: 'bold' }}>{course?.duration || '6 ساعات'}</span>
+                                                    <span style={{ color: '#666' }}>{t('courseDetail.modules')}:</span> <span style={{ color: '#FF6B6B', fontWeight: 'bold' }}>{course?.modules?.length || '--'}</span>
                                                 </Typography>
                                             </Box>
                                         </Box>
@@ -697,7 +701,7 @@ const CourseDetailCard = ({
                                             onClick={handleAddToCart}
                                             disabled={isAddingToCart}
                                         >
-                                            {isAddingToCart ? 'جاري الإضافة...' : 'أضف إلى السلة'}
+                                            {isAddingToCart ? t('courseDetail.addingToCart') : t('courseDetail.addToCart')}
                                         </Button>
                                     </Box>
                                 </Paper>
@@ -893,7 +897,7 @@ const CourseDetailCard = ({
                                             color: '#666666',
                                             fontSize: { xs: '13px', sm: '14px' }
                                         }}>
-                                            {course?.studentCount || '1,234'} طالب مسجل
+                                            {course?.studentCount || '1,234'} {t('courseDetail.enrolledStudents')}
                                         </Typography>
                                     </Box>
 
@@ -911,7 +915,7 @@ const CourseDetailCard = ({
                                             color: '#666666',
                                             fontSize: { xs: '13px', sm: '14px' }
                                         }}>
-                                            {course?.duration || '12 ساعة'} مدة الدورة
+                                            {course?.duration || '12 ساعة'} {t('courseDetail.courseDuration')}
                                         </Typography>
                                     </Box>
 

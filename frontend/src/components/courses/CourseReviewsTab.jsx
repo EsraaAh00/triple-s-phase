@@ -153,7 +153,7 @@ const CourseReviewsTab = ({
                             py: 2
                         }}
                     >
-                        سجل الدخول لكتابة تقييمك
+                        {t('courseReviews.loginToWriteReview')}
                     </Typography>
                 )}
             </Box>
@@ -161,12 +161,12 @@ const CourseReviewsTab = ({
             {/* Rating Distribution */}
             <Box sx={{ mb: 4, p: 3, bgcolor: 'background.paper', borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
                 <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                    تفصيل التقييمات
+                    {t('courseReviews.ratingBreakdown')}
                 </Typography>
                 {[5, 4, 3, 2, 1].map((star) => (
                     <Box key={star} sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
                         <Box sx={{ width: 80, display: 'flex', justifyContent: 'space-between', mr: 2 }}>
-                            <Typography variant="body2" fontWeight={500}>{star} نجمة</Typography>
+                            <Typography variant="body2" fontWeight={500}>{star} {t('courseReviews.star')}</Typography>
                             <Box sx={{ width: 8 }} />
                         </Box>
                         <Box sx={{ flexGrow: 1, mx: 2 }}>
@@ -182,7 +182,7 @@ const CourseReviewsTab = ({
                             </Box>
                         </Box>
                         <Typography variant="body2" color="text.secondary" sx={{ minWidth: 40, textAlign: 'right' }}>
-                            {Math.round((star / 5) * (course.courseReviews?.length || 0))} تقييم
+                            {Math.round((star / 5) * (course.courseReviews?.length || 0))} {t('courseReviews.review')}
                         </Typography>
                     </Box>
                 ))}
@@ -274,7 +274,7 @@ const CourseReviewsTab = ({
                             }
                         }}
                     >
-                        تحميل المزيد من التقييمات
+                        {t('courseReviews.loadMoreReviews')}
                     </Button>
                 </Box>
             </Box>

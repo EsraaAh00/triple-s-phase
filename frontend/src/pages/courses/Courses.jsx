@@ -10,8 +10,6 @@ import {
   Grid,
   TextField,
   Typography,
-  Tabs,
-  Tab,
   Avatar,
   InputAdornment,
   Skeleton,
@@ -32,9 +30,6 @@ import {
   People,
   Category,
   School,
-  TrendingUp,
-  NewReleases,
-  Whatshot,
   CheckCircle,
   ShoppingCart,
   AddShoppingCart,
@@ -78,7 +73,6 @@ const cardVariants = {
 };
 
 const StyledCard = styled(Card)(({ theme }) => ({
-  height: '100%',
   display: 'flex',
   flexDirection: 'column',
   borderRadius: '16px',
@@ -490,7 +484,6 @@ const CourseTitle = styled(Typography)(({ theme }) => ({
 const InstructorInfo = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  marginTop: 'auto',
   paddingTop: '12px',
   borderTop: '1px solid rgba(0,0,0,0.05)'
 }));
@@ -522,14 +515,13 @@ const AnimatedBackgroundComponent = () => (
 const Courses = () => {
   const theme = useTheme();
   const { isAuthenticated } = useSelector((state) => state.auth);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [courses, setCourses] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [tabValue, setTabValue] = useState('all');
   const [activeCategory, setActiveCategory] = useState(searchParams.get('category') || 'all');
   const [cartItems, setCartItems] = useState({});
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
@@ -711,17 +703,13 @@ const Courses = () => {
       }
     }
 
-    // Level filter
-    const matchesLevel = tabValue === 'all' || course.level === tabValue;
-
-    const result = matchesSearch && matchesCategory && matchesLevel;
+    const result = matchesSearch && matchesCategory;
 
     // Debug logging for filtering
     if (courses.indexOf(course) < 3) {
       console.log(`Course "${course.title}" filter result:`, {
         matchesSearch,
         matchesCategory,
-        matchesLevel,
         finalResult: result
       });
     }
@@ -729,9 +717,6 @@ const Courses = () => {
     return result;
   });
 
-  const handleTabChange = (event, newValue) => {
-    setTabValue(newValue);
-  };
 
   const handleCategoryChange = (categoryId) => {
     console.log('Category changed to:', categoryId);
@@ -781,18 +766,6 @@ const Courses = () => {
     }
   };
 
-  const getLevelLabel = (level) => {
-    switch (level?.toLowerCase()) {
-      case 'beginner':
-        return 'مبتدئ';
-      case 'intermediate':
-        return 'متوسط';
-      case 'advanced':
-        return 'متقدم';
-      default:
-        return level || 'غير محدد';
-    }
-  };
 
   const getInstructorName = (instructors) => {
     if (!instructors || instructors.length === 0) return 'غير محدد';
@@ -1121,214 +1094,180 @@ const Courses = () => {
         zIndex: 1 
       }}>
         <Box sx={{ mb: { xs: 4, sm: 5, md: 6 } }}>
-          {/* Categories Filter Section */}
+          {/* Title and Categories in same row */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <Box sx={{ mb: { xs: 3, sm: 4 } }}>
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: { xs: 'flex-start', sm: 'center' }, 
+              mb: { xs: 3, sm: 4 }, 
+              flexWrap: { xs: 'wrap', sm: 'nowrap' }, 
+              gap: { xs: 2, sm: 3 },
+              flexDirection: { xs: 'column', sm: 'row' },
+              direction: i18n.dir() // Use actual language direction
+            }}>
+              {/* Title Section */}
               <Box sx={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center', 
-                mb: 2,
-                flexWrap: 'wrap',
-                gap: 1
+                width: { xs: '100%', sm: 'auto' }, 
+                minWidth: { sm: '200px' },
+                textAlign: { xs: 'center', sm: i18n.dir() === 'rtl' ? 'right' : 'left' }
               }}>
                 <Typography 
-                  variant="h6" 
-                  component="h3" 
-                  fontWeight={600} 
-                  sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: 1,
-                    fontSize: { xs: '1rem', sm: '1.1rem', md: '1.25rem' }
+                  variant="h4" 
+                  component="h2" 
+                  fontWeight={700}
+                  sx={{
+                    fontSize: { xs: '1.5rem', sm: '1.8rem', md: '2.125rem' },
+                    lineHeight: { xs: 1.3, sm: 1.2 },
+                    mb: { xs: 1, sm: 0.5 },
+                    wordBreak: 'break-word',
+                    textAlign: 'inherit'
                   }}
                 >
-                  <Category sx={{ color: 'primary.main', fontSize: { xs: '1.1rem', sm: '1.25rem' } }} />
-                  {t('coursesCategories')}
+                  {t('coursesAllCourses')}
                 </Typography>
-                {(activeCategory !== 'all' || searchTerm || tabValue !== 'all') && (
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    color="primary"
-                    onClick={() => {
-                      setSearchTerm('');
-                      setActiveCategory('all');
-                      setTabValue('all');
-                      setSearchParams({});
-                    }}
-                    startIcon={<FilterList sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }} />}
-                    sx={{
-                      borderRadius: '20px',
-                      textTransform: 'none',
-                      fontSize: { xs: '0.7rem', sm: '0.8rem' },
-                      minWidth: 'auto',
-                      px: { xs: 1.5, sm: 2 }
-                    }}
-                  >
-                    {t('coursesClearFilters')}
-                  </Button>
-                )}
-              </Box>
-              <Box sx={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: { xs: 1, sm: 1.5 },
-                maxHeight: { xs: '120px', sm: '140px', md: 'auto' },
-                overflowY: { xs: 'auto', md: 'visible' },
-                pb: { xs: 1, sm: 0 },
-                '&::-webkit-scrollbar': {
-                  width: '6px',
-                },
-                '&::-webkit-scrollbar-track': {
-                  background: 'rgba(0,0,0,0.1)',
-                  borderRadius: '3px',
-                },
-                '&::-webkit-scrollbar-thumb': {
-                  background: 'rgba(0,0,0,0.3)',
-                  borderRadius: '3px',
-                  '&:hover': {
-                    background: 'rgba(0,0,0,0.5)',
-                  },
-                },
-              }}>
-                <CategoryChip
-                  label={t('coursesAllCategories')}
-                  selected={activeCategory === 'all'}
-                  onClick={() => handleCategoryChange('all')}
-                  icon={<Category fontSize="small" />}
-                  size="small"
-                  sx={{
-                    backgroundColor: activeCategory === 'all' ? 'primary.main' : 'background.paper',
-                    color: activeCategory === 'all' ? 'white' : 'text.primary',
-                    fontSize: { xs: '0.7rem', sm: '0.8rem' },
-                    height: { xs: '28px', sm: '32px' },
-                    '&:hover': {
-                      backgroundColor: activeCategory === 'all' ? 'primary.dark' : 'primary.light',
-                      color: 'white',
-                    },
+                <Typography 
+                  variant="body2" 
+                  color="text.secondary" 
+                  sx={{ 
+                    mt: 0.5, 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 0.5,
+                    flexWrap: 'wrap',
+                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                    justifyContent: { xs: 'center', sm: i18n.dir() === 'rtl' ? 'flex-end' : 'flex-start' }
                   }}
-                />
-                {categories.map((category) => {
-                  console.log('Rendering category:', category);
-                  return (
-                    <CategoryChip
-                      key={category.id}
-                      label={category.name}
-                      selected={activeCategory === category.id.toString()}
-                      onClick={() => handleCategoryChange(category.id.toString())}
+                >
+                  <span style={{ fontWeight: 600, color: 'primary.main' }}>{filteredCourses.length}</span>
+                  {t('coursesAvailableCourses')} {courses.length} {t('coursesTotalCourses')}
+                  {(activeCategory !== 'all' || searchTerm) && (
+                    <Chip
+                      label={t('coursesFiltered')}
                       size="small"
+                      color="primary"
+                      variant="outlined"
                       sx={{
-                        backgroundColor: activeCategory === category.id.toString() ? 'primary.main' : 'background.paper',
-                        color: activeCategory === category.id.toString() ? 'white' : 'text.primary',
-                        fontSize: { xs: '0.7rem', sm: '0.8rem' },
-                        height: { xs: '28px', sm: '32px' },
-                        '&:hover': {
-                          backgroundColor: activeCategory === category.id.toString() ? 'primary.dark' : 'primary.light',
-                          color: 'white',
-                        },
+                        height: '18px',
+                        fontSize: { xs: '0.6rem', sm: '0.7rem' },
+                        ml: 1
                       }}
                     />
-                  );
-                })}
+                  )}
+                </Typography>
+              </Box>
+
+              {/* Categories Section */}
+              <Box sx={{ 
+                width: { xs: '100%', sm: 'auto' },
+                flex: { sm: 1 },
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: { xs: 'center', sm: i18n.dir() === 'rtl' ? 'flex-start' : 'flex-end' },
+                textAlign: { xs: 'center', sm: i18n.dir() === 'rtl' ? 'left' : 'right' }
+              }}>
+                <Box sx={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'center', 
+                  mb: 1,
+                  width: '100%',
+                  flexWrap: 'wrap',
+                  gap: 1
+                }}>
+                  {(activeCategory !== 'all' || searchTerm) && (
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      color="primary"
+                      onClick={() => {
+                        setSearchTerm('');
+                        setActiveCategory('all');
+                        setSearchParams({});
+                      }}
+                      startIcon={<FilterList sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }} />}
+                      sx={{
+                        borderRadius: '20px',
+                        textTransform: 'none',
+                        fontSize: { xs: '0.7rem', sm: '0.8rem' },
+                        minWidth: 'auto',
+                        px: { xs: 1.5, sm: 2 }
+                      }}
+                    >
+                      {t('coursesClearFilters')}
+                    </Button>
+                  )}
+                </Box>
+                <Box sx={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: { xs: 1, sm: 1.5 },
+                  maxHeight: { xs: '120px', sm: '140px', md: 'auto' },
+                  overflowY: { xs: 'auto', md: 'visible' },
+                  pb: { xs: 1, sm: 0 },
+                  justifyContent: { xs: 'center', sm: i18n.dir() === 'rtl' ? 'flex-start' : 'flex-end' },
+                  '&::-webkit-scrollbar': {
+                    width: '6px',
+                  },
+                  '&::-webkit-scrollbar-track': {
+                    background: 'rgba(0,0,0,0.1)',
+                    borderRadius: '3px',
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    background: 'rgba(0,0,0,0.3)',
+                    borderRadius: '3px',
+                    '&:hover': {
+                      background: 'rgba(0,0,0,0.5)',
+                    },
+                  },
+                }}>
+                  <CategoryChip
+                    label={t('coursesAllCategories')}
+                    selected={activeCategory === 'all'}
+                    onClick={() => handleCategoryChange('all')}
+                    icon={<Category fontSize="small" />}
+                    size="small"
+                    sx={{
+                      backgroundColor: activeCategory === 'all' ? 'primary.main' : 'background.paper',
+                      color: activeCategory === 'all' ? 'white' : 'text.primary',
+                      fontSize: { xs: '0.7rem', sm: '0.8rem' },
+                      height: { xs: '28px', sm: '32px' },
+                      '&:hover': {
+                        backgroundColor: activeCategory === 'all' ? 'primary.dark' : 'primary.light',
+                        color: 'white',
+                      },
+                    }}
+                  />
+                  {categories.map((category) => {
+                    console.log('Rendering category:', category);
+                    return (
+                      <CategoryChip
+                        key={category.id}
+                        label={category.name}
+                        selected={activeCategory === category.id.toString()}
+                        onClick={() => handleCategoryChange(category.id.toString())}
+                        size="small"
+                        sx={{
+                          backgroundColor: activeCategory === category.id.toString() ? 'primary.main' : 'background.paper',
+                          color: activeCategory === category.id.toString() ? 'white' : 'text.primary',
+                          fontSize: { xs: '0.7rem', sm: '0.8rem' },
+                          height: { xs: '28px', sm: '32px' },
+                          '&:hover': {
+                            backgroundColor: activeCategory === category.id.toString() ? 'primary.dark' : 'primary.light',
+                            color: 'white',
+                          },
+                        }}
+                      />
+                    );
+                  })}
+                </Box>
               </Box>
             </Box>
           </motion.div>
-
-          <Box sx={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: { xs: 'flex-start', sm: 'center' }, 
-            mb: { xs: 3, sm: 4 }, 
-            flexWrap: 'wrap', 
-            gap: 2,
-            flexDirection: { xs: 'column', sm: 'row' }
-          }}>
-            <Box sx={{ width: { xs: '100%', sm: 'auto' } }}>
-              <Typography 
-                variant="h4" 
-                component="h2" 
-                fontWeight={700}
-                sx={{
-                  fontSize: { xs: '1.5rem', sm: '1.8rem', md: '2.125rem' },
-                  lineHeight: { xs: 1.3, sm: 1.2 },
-                  mb: { xs: 1, sm: 0.5 },
-                  wordBreak: 'break-word'
-                }}
-              >
-                {activeCategory === 'all' ? t('coursesAllCourses') : `${t('coursesCoursesOf')} ${categories.find(c => c.id === parseInt(activeCategory))?.name || ''}`}
-                {searchTerm && `: ${t('coursesSearchResults')} "${searchTerm}"`}
-              </Typography>
-              <Typography 
-                variant="body2" 
-                color="text.secondary" 
-                sx={{ 
-                  mt: 0.5, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: 0.5,
-                  flexWrap: 'wrap',
-                  fontSize: { xs: '0.75rem', sm: '0.875rem' }
-                }}
-              >
-                <span style={{ fontWeight: 600, color: 'primary.main' }}>{filteredCourses.length}</span>
-{t('coursesAvailableCourses')} {courses.length} {t('coursesTotalCourses')}
-                {(activeCategory !== 'all' || searchTerm || tabValue !== 'all') && (
-                  <Chip
-                    label={t('coursesFiltered')}
-                    size="small"
-                    color="primary"
-                    variant="outlined"
-                    sx={{
-                      height: '18px',
-                      fontSize: { xs: '0.6rem', sm: '0.7rem' },
-                      ml: 1
-                    }}
-                  />
-                )}
-              </Typography>
-            </Box>
-
-            <Tabs
-              value={tabValue}
-              onChange={handleTabChange}
-              textColor="primary"
-              indicatorColor="primary"
-              variant="scrollable"
-              scrollButtons="auto"
-              allowScrollButtonsMobile
-              sx={{
-                width: { xs: '100%', sm: 'auto' },
-                '& .MuiTabs-flexContainer': {
-                  gap: { xs: 0.5, sm: 1 },
-                },
-                '& .MuiTab-root': {
-                  minHeight: { xs: 32, sm: 36 },
-                  padding: { xs: '4px 12px', sm: '6px 16px' },
-                  borderRadius: '20px',
-                  fontWeight: 500,
-                  minWidth: 'auto',
-                  fontSize: { xs: '0.7rem', sm: '0.875rem' },
-                  '&.Mui-selected': {
-                    color: 'white',
-                    backgroundColor: 'primary.main',
-                    '&:hover': {
-                      backgroundColor: 'primary.dark',
-                    },
-                  },
-                },
-              }}
-            >
-              <Tab value="all" label={t('coursesAll')} />
-              <Tab value="beginner" label={t('coursesBeginner')} icon={<School fontSize="small" />} iconPosition="start" />
-              <Tab value="intermediate" label={t('coursesIntermediate')} icon={<TrendingUp fontSize="small" />} iconPosition="start" />
-              <Tab value="advanced" label={t('coursesAdvanced')} icon={<Whatshot fontSize="small" />} iconPosition="start" />
-            </Tabs>
-          </Box>
 
           {filteredCourses.length > 0 ? (
             <Box sx={{
@@ -1351,7 +1290,6 @@ const Courses = () => {
                     whileInView="onscreen"
                     viewport={{ once: true, margin: "-100px" }}
                     variants={cardVariants}
-                    style={{ height: '100%' }}
                   >
                     <StyledCard 
                       elevation={0} 
@@ -1360,8 +1298,8 @@ const Courses = () => {
                       style={{ textDecoration: 'none', color: 'inherit' }}
                       sx={{
                         // Responsive card adjustments
-                        height: '100%',
-                        minHeight: { xs: '400px', sm: '450px', md: '500px' }
+                        height: 'auto',
+                        minHeight: 'auto'
                       }}
                     >
                       <CourseMedia>
@@ -1425,10 +1363,9 @@ const Courses = () => {
                       <CardContent sx={{
                         display: 'flex',
                         flexDirection: 'column',
-                        flexGrow: 1,
                         p: { xs: 2, sm: 2.5, md: 3 },
                       }}>
-                        <Box sx={{ mb: { xs: 1, sm: 1.5 } }}>
+                        <Box sx={{ mb: 1 }}>
                           {getCategoryName(course) && (
                             <Chip
                               label={getCategoryName(course)}
@@ -1454,11 +1391,10 @@ const Courses = () => {
                           <CourseTitle 
                             variant="h6" 
                             component="h3" 
-                            gutterBottom
                             sx={{
                               fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
                               lineHeight: { xs: 1.3, sm: 1.2 },
-                              mb: { xs: 1, sm: 1.5 }
+                              mb: 0.5
                             }}
                           >
                             {course.title}
@@ -1466,8 +1402,7 @@ const Courses = () => {
                         </Box>
 
                         <InstructorInfo sx={{
-                          mt: 'auto',
-                          pt: { xs: 1, sm: 1.5 }
+                          pt: 0.5
                         }}>
                           <Avatar
                             src={getInstructorAvatar(course.instructors)}
@@ -1618,7 +1553,6 @@ const Courses = () => {
                   onClick={() => {
                     setSearchTerm('');
                     setActiveCategory('all');
-                    setTabValue('all');
                     setSearchParams({});
                   }}
                   startIcon={<FilterList />}

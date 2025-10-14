@@ -159,24 +159,6 @@ const CourseDemoTab = ({ course }) => {
                             }}
                         />
                     </Box>
-                    <Button
-                        variant="text"
-                        size="small"
-                        sx={{
-                            textTransform: 'none',
-                            color: '#333679',
-                            fontWeight: 600,
-                            fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                            order: { xs: 3, sm: 3 },
-                            alignSelf: { xs: 'flex-start', sm: 'center' },
-                            '&:hover': {
-                                bgcolor: 'rgba(14, 81, 129, 0.1)',
-                                color: '#333679'
-                            }
-                        }}
-                    >
-                        {t('coursesViewProfile')}
-                    </Button>
                 </Box>
             </Box>
 

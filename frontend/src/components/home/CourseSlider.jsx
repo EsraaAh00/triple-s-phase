@@ -836,7 +836,9 @@ const CourseCollections = () => {
                     },
                   }}
                 >
-                  {collection.courses.map((course) => (
+                  {collection.courses.map((course) => {
+                    console.log('Full course data:', course);
+                    return (
                     <CourseCard 
                       key={course.id} 
                       component={RouterLink} 
@@ -904,7 +906,10 @@ const CourseCollections = () => {
                             color: '#666'
                           }}>
                             <span>📑</span>
-                            <span>{course.units_count || course.units?.length || 0} وحدة</span>
+                            <span>{(() => {
+                              const count = course.modules_count || course.modules?.length || course.units?.length || course.units_count || 0;
+                              return count;
+                            })()} وحدة</span>
                             </Box>
                           
                           <Box sx={{ 
@@ -915,7 +920,16 @@ const CourseCollections = () => {
                             color: '#666'
                           }}>
                             <span>📚</span>
-                            <span>{course.lessons_count || course.lessons?.length || 0} درس</span>
+                            <span>{(() => {
+                              const count = course.lessons_count || course.lessons?.length || course.lectures || 0;
+                              console.log(`Lessons count for ${course.title}:`, {
+                                lessons_count: course.lessons_count,
+                                lessons: course.lessons?.length,
+                                lectures: course.lectures,
+                                final: count
+                              });
+                              return count;
+                            })()} درس</span>
                           </Box>
                           
                             <Box sx={{
@@ -986,7 +1000,8 @@ const CourseCollections = () => {
                         </Box>
                       </CourseCardContent>
                     </CourseCard>
-                  ))}
+                    );
+                  })}
                 </SliderTrack>
 
                 {/* Slider Dots */}

@@ -32,6 +32,8 @@ class CourseBasicSerializer(serializers.ModelSerializer):
     rating = serializers.SerializerMethodField()
     image_url = serializers.SerializerMethodField()
     duration = serializers.SerializerMethodField()
+    modules_count = serializers.SerializerMethodField()
+    lessons_count = serializers.SerializerMethodField()
     
     class Meta:
         model = Course
@@ -39,9 +41,10 @@ class CourseBasicSerializer(serializers.ModelSerializer):
             'id', 'title', 'subtitle', 'description', 'short_description', 'image', 'image_url', 'price',
             'discount_price', 'category', 'category_name', 'instructors', 'tags',
             'level', 'status', 'is_complete_course', 'created_at', 'rating', 'enrolled_count',
-            'is_free', 'is_featured', 'is_certified', 'total_enrollments', 'average_rating', 'duration'
+            'is_free', 'is_featured', 'is_certified', 'total_enrollments', 'average_rating', 'duration',
+            'modules_count', 'lessons_count'
         ]
-        read_only_fields = ['id', 'created_at', 'rating', 'total_enrollments', 'average_rating', 'duration']
+        read_only_fields = ['id', 'created_at', 'rating', 'total_enrollments', 'average_rating', 'duration', 'modules_count', 'lessons_count']
     
     def get_instructors(self, obj):
         instructors = []
@@ -120,6 +123,29 @@ class CourseBasicSerializer(serializers.ModelSerializer):
             logger = logging.getLogger(__name__)
             logger.error(f"Error calculating duration for course {obj.id}: {str(e)}")
             return "غير محدد"
+    
+    def get_modules_count(self, obj):
+        """Get the number of modules in the course"""
+        try:
+            return obj.modules.count()
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error getting modules count for course {obj.id}: {str(e)}")
+            return 0
+    
+    def get_lessons_count(self, obj):
+        """Get the total number of lessons across all modules"""
+        try:
+            total_lessons = 0
+            for module in obj.modules.all():
+                total_lessons += module.lessons.count()
+            return total_lessons
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error getting lessons count for course {obj.id}: {str(e)}")
+            return 0
 
 
 class CourseInstructorSerializer(serializers.Serializer):

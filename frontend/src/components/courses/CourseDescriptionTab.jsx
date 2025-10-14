@@ -169,7 +169,7 @@ const CourseDescriptionTab = ({ course, totalLessons }) => {
                                     boxShadow: '0 4px 15px rgba(14, 81, 129, 0.05)'
                                 }}>
                                     <SectionTitle variant="h6" component="h3" sx={{ mb: 2, color: '#333679' }}>
-                                        📋 المتطلبات الأساسية
+                                        📋 {t('courseDescription.prerequisites')}
                                     </SectionTitle>
                                     <List disablePadding>
                                         {course.requirements.map((req, idx) => (
@@ -216,7 +216,7 @@ const CourseDescriptionTab = ({ course, totalLessons }) => {
             {overviewSubTab === 1 && (
                 <Box>
                     <SectionTitle variant="h5" component="h2" gutterBottom>
-                        الخطة الزمنية
+                        {t('courseDescription.timeline')}
                     </SectionTitle>
                     {course.planPdfUrl ? (
                         <Box sx={{
@@ -236,7 +236,7 @@ const CourseDescriptionTab = ({ course, totalLessons }) => {
                                 alignItems: 'center'
                             }}>
                                 <Typography variant="h6" fontWeight={600}>
-                                    📅 الخطة الزمنية للدورة
+                                    📅 {t('courseDescription.courseTimeline')}
                                 </Typography>
                                 <Button
                                     variant="contained"
@@ -256,7 +256,7 @@ const CourseDescriptionTab = ({ course, totalLessons }) => {
                             </Box>
                             <Box component="iframe"
                                 src={course.planPdfUrl}
-                                title="الخطة الزمنية"
+                                title={t('courseDescription.timeline')}
                                 width="100%"
                                 height="600px"
                                 style={{ border: 0 }}
@@ -268,7 +268,7 @@ const CourseDescriptionTab = ({ course, totalLessons }) => {
                             background: 'linear-gradient(135deg, rgba(14, 81, 129, 0.05) 0%, rgba(229, 151, 139, 0.05) 100%)',
                             border: '1px solid rgba(14, 81, 129, 0.1)'
                         }}>
-                            لا توجد خطة زمنية متاحة حالياً.
+                            {t('courseDescription.noTimelineAvailable')}.
                         </Alert>
                     )}
                 </Box>
@@ -277,7 +277,7 @@ const CourseDescriptionTab = ({ course, totalLessons }) => {
             {overviewSubTab === 2 && (
                 <Box>
                     <SectionTitle variant="h5" component="h2" gutterBottom>
-                        المحتوى الإثرائي
+                        {t('courseDescription.enrichmentContent')}
                     </SectionTitle>
                     {course.enrichmentPdfUrl ? (
                         <Box sx={{
@@ -297,7 +297,7 @@ const CourseDescriptionTab = ({ course, totalLessons }) => {
                                 alignItems: 'center'
                             }}>
                                 <Typography variant="h6" fontWeight={600}>
-                                    📚 المحتوى الإثرائي والموارد
+                                    📚 {t('courseDescription.enrichmentContentAndResources')}
                                 </Typography>
                                 <Button
                                     variant="contained"
@@ -317,7 +317,7 @@ const CourseDescriptionTab = ({ course, totalLessons }) => {
                             </Box>
                             <Box component="iframe"
                                 src={course.enrichmentPdfUrl}
-                                title="المحتوى الإثرائي"
+                                title={t('courseDescription.enrichmentContent')}
                                 width="100%"
                                 height="600px"
                                 style={{ border: 0 }}
@@ -329,7 +329,7 @@ const CourseDescriptionTab = ({ course, totalLessons }) => {
                             background: 'linear-gradient(135deg, rgba(14, 81, 129, 0.05) 0%, rgba(229, 151, 139, 0.05) 100%)',
                             border: '1px solid rgba(14, 81, 129, 0.1)'
                         }}>
-                            لا يوجد محتوى إثرائي متاح حالياً.
+                            {t('courseDescription.noEnrichmentContentAvailable')}.
                         </Alert>
                     )}
                 </Box>

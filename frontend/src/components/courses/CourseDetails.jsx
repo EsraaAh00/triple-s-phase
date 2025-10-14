@@ -78,7 +78,7 @@ const CourseDetails = ({ course, onClose }) => {
       } catch (err) {
         console.error('Error loading modules:', err);
         setModules([]);
-        console.warn('فشل في تحميل الوحدات. تأكد من أنك مسجل في المقرر.');
+        console.warn(t('courseDetails.failedToLoadModules'));
       } finally {
         setLoading(prev => ({ ...prev, modules: false }));
       }
@@ -106,7 +106,7 @@ const CourseDetails = ({ course, onClose }) => {
       } catch (err) {
         console.error('Error loading questions:', err);
         setQuestions([]);
-        console.warn('فشل في تحميل الأسئلة. تأكد من أنك مسجل في المقرر.');
+        console.warn(t('courseDetails.failedToLoadQuestions'));
       } finally {
         setLoading(prev => ({ ...prev, questions: false }));
       }
@@ -135,7 +135,7 @@ const CourseDetails = ({ course, onClose }) => {
       } catch (err) {
         console.error('Error loading flashcards:', err);
         setFlashcards([]);
-        console.warn('فشل في تحميل البطاقات التعليمية. تأكد من أنك مسجل في المقرر.');
+        console.warn(t('courseDetails.failedToLoadFlashcards'));
       } finally {
         setLoading(prev => ({ ...prev, flashcards: false }));
       }
@@ -240,7 +240,7 @@ const CourseDetails = ({ course, onClose }) => {
                         module.submodules.reduce((subTotal, sub) => subTotal + (sub.lessons ? sub.lessons.length : 0), 0) : 0;
                       return total + mainLessons + subModulesLessons;
                     }, 0);
-                    return `${totalLessons} درس`;
+                    return `${totalLessons} ${t('courseDetails.lessons')}`;
                   })()}
                 </Typography>
                 <Typography variant="caption" sx={{ opacity: 0.8 }}>
@@ -384,9 +384,9 @@ const CourseDetails = ({ course, onClose }) => {
                                   const subModulesLessons = module.submodules ? 
                                     module.submodules.reduce((total, sub) => total + (sub.lessons ? sub.lessons.length : 0), 0) : 0;
                                   const totalLessons = mainLessons + subModulesLessons;
-                                  return `${totalLessons} درس`;
+                                  return `${totalLessons} ${t('courseDetails.lessons')}`;
                                 })()}
-                                {module.submodules && module.submodules.length > 0 && ` • ${module.submodules.length} وحدة فرعية`}
+                                {module.submodules && module.submodules.length > 0 && ` • ${module.submodules.length} ${t('courseDetails.subModules')}`}
                               </Typography>
                             </Box>
                             <Button
@@ -423,7 +423,7 @@ const CourseDetails = ({ course, onClose }) => {
                                     display: 'block',
                                     mb: 1
                                   }}>
-                                    دروس الوحدة الرئيسية ({module.lessons.length})
+                                    {t('courseDetails.mainModuleLessons')} ({module.lessons.length})
                                   </Typography>
                                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                                     {module.lessons.map((lesson, lessonIndex) => (
@@ -507,7 +507,7 @@ const CourseDetails = ({ course, onClose }) => {
                                               color: '#666',
                                               display: 'block'
                                             }}>
-                                              {subModule.lessons ? `${subModule.lessons.length} درس` : '0 درس'}
+                                              {subModule.lessons ? `${subModule.lessons.length} ${t('courseDetails.lessons')}` : `0 ${t('courseDetails.lessons')}`}
                                             </Typography>
                                           </Box>
                                           <Typography variant="caption" sx={{ 
@@ -730,7 +730,7 @@ const CourseDetails = ({ course, onClose }) => {
                                 {flashcard.front_text?.substring(0, 60)}...
                               </Typography>
                               <Typography variant="caption" color="text.secondary">
-                                {flashcard.lesson_title || 'بدون درس مرتبط'}
+                                {flashcard.lesson_title || t('courseDetails.noAssociatedLesson')}
                               </Typography>
                             </Box>
                           </Box>
