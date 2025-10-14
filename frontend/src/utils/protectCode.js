@@ -12,7 +12,7 @@ class CodeProtection {
   init() {
     this.disableConsole();
     this.preventInspect();
-    this.detectDevTools();
+    // Removed detectDevTools() to prevent showing detection screens
     this.disableShortcuts();
     this.preventCopy();
   }
@@ -105,68 +105,8 @@ class CodeProtection {
     });
   }
 
-  detectDevTools() {
-    let devtools = { isOpen: false };
-    const threshold = 160;
-
-    const detectOpenDevTools = () => {
-      const widthThreshold = window.outerWidth - window.innerWidth > threshold;
-      const heightThreshold = window.outerHeight - window.innerHeight > threshold;
-
-      if (widthThreshold || heightThreshold) {
-        if (!devtools.isOpen) {
-          devtools.isOpen = true;
-          this.handleDevToolsOpen();
-        }
-      } else {
-        devtools.isOpen = false;
-      }
-    };
-
-    // Check every 500ms
-    setInterval(detectOpenDevTools, 500);
-
-    // Debugger detection
-    setInterval(() => {
-      const start = performance.now();
-      debugger;
-      const end = performance.now();
-      if (end - start > 100) {
-        this.handleDevToolsOpen();
-      }
-    }, 1000);
-  }
-
-  handleDevToolsOpen() {
-    // Clear the page
-    document.body.innerHTML = `
-      <div style="
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        font-family: Arial, sans-serif;
-        text-align: center;
-      ">
-        <h1 style="font-size: 3rem; margin-bottom: 1rem;">⚠️</h1>
-        <h2 style="font-size: 2rem; margin-bottom: 1rem;">Access Denied</h2>
-        <p style="font-size: 1.2rem; margin-bottom: 2rem;">Developer tools are not allowed on this site.</p>
-        <button onclick="window.location.reload()" style="
-          padding: 12px 32px;
-          font-size: 1rem;
-          background: white;
-          color: #667eea;
-          border: none;
-          border-radius: 25px;
-          cursor: pointer;
-          font-weight: bold;
-        ">Reload Page</button>
-      </div>
-    `;
-  }
+  // Removed detectDevTools() and handleDevToolsOpen() methods
+  // to prevent showing detection screens while keeping console disabled
 
   preventCopy() {
     // Prevent drag and drop
