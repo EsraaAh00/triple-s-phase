@@ -155,6 +155,22 @@ class DashboardService {
       };
     }
   }
+
+  // إحصائيات البطاقات التعليمية
+  async getFlashcardsStats() {
+    try {
+      const response = await apiService.get('/api/assessment/flashcards/stats/');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching flashcards stats:', error);
+      return {
+        total_flashcards: 0,
+        flashcards_by_topic: {},
+        flashcards_by_difficulty: {},
+        most_used_flashcards: []
+      };
+    }
+  }
 }
 
 export default new DashboardService();

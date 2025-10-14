@@ -960,25 +960,61 @@
         <li class="menu-section">
             <span>نظام التقييمات</span>
         </li>
+        
+        <!-- Question Bank Products -->
+        <li>
+            <a href="{% url 'admin:assessment_questionbankproduct_changelist' %}" class="{% if '/admin/assessment/questionbankproduct/' in request.path %}active{% endif %}">
+                <i class="fas fa-store"></i>
+                <span>منتجات بنك الأسئلة</span>
+            </a>
+        </li>
+    
+        <li>
+            <a href="{% url 'admin:assessment_questionbankchapter_changelist' %}" class="{% if '/admin/assessment/questionbankchapter/' in request.path %}active{% endif %}">
+                <i class="fas fa-book"></i>
+                <span>فصول الأسئلة</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'admin:assessment_questionbanktopic_changelist' %}" class="{% if '/admin/assessment/questionbanktopic/' in request.path %}active{% endif %}">
+                <i class="fas fa-bookmark"></i>
+                <span>مواضيع الأسئلة</span>
+            </a>
+        </li>
         <li>
             <a href="{% url 'admin:assessment_questionbank_changelist' %}" class="{% if '/admin/assessment/questionbank/' in request.path %}active{% endif %}">
-                <i class="fas fa-database"></i>
+                <i class="fas fa-question-circle"></i>
                 <span>بنك الأسئلة</span>
+            </a>
+        </li>
+        
+        <!-- Flashcard Products -->
+        <li>
+            <a href="{% url 'admin:assessment_flashcardproduct_changelist' %}" class="{% if '/admin/assessment/flashcardproduct/' in request.path %}active{% endif %}">
+                <i class="fas fa-store"></i>
+                <span>منتجات البطاقات التعليمية</span>
+            </a>
+        </li>
+ 
+        <li>
+            <a href="{% url 'admin:assessment_flashcardchapter_changelist' %}" class="{% if '/admin/assessment/flashcardchapter/' in request.path %}active{% endif %}">
+                <i class="fas fa-layer-group"></i>
+                <span>فصول البطاقات</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'admin:assessment_flashcardtopic_changelist' %}" class="{% if '/admin/assessment/flashcardtopic/' in request.path %}active{% endif %}">
+                <i class="fas fa-tags"></i>
+                <span>مواضيع البطاقات</span>
             </a>
         </li>
         <li>
             <a href="{% url 'admin:assessment_flashcard_changelist' %}" class="{% if '/admin/assessment/flashcard/' in request.path %}active{% endif %}">
-                <i class="fas fa-layer-group"></i>
+                <i class="fas fa-credit-card"></i>
                 <span>البطاقات التعليمية</span>
             </a>
         </li>
 
-        <li>
-            <a href="{% url 'admin:reviews_coursereview_changelist' %}" class="{% if '/admin/reviews/coursereview/' in request.path %}active{% endif %}">
-                <i class="fas fa-star"></i>
-                <span>التقييمات</span>
-            </a>
-        </li>
        
         <!-- Extras Section -->
         <li class="menu-section">
@@ -1033,28 +1069,47 @@
                     <span>الشركاء</span>
                 </a>
             </li>
+            
+        <li>
+            <a href="{% url 'admin:reviews_coursereview_changelist' %}" class="{% if '/admin/reviews/coursereview/' in request.path %}active{% endif %}">
+                <i class="fas fa-star"></i>
+                <span>التقييمات</span>
+            </a>
+        </li>
         <!-- Store Section -->
         <li class="menu-section">
             <span>المتجر</span>
         </li>
-        <li>
+        <!-- <li>
             <a href="{% url 'admin:store_order_changelist' %}" class="{% if '/admin/store/order/' in request.path %}active{% endif %}">
                 <i class="fas fa-shopping-cart"></i>
                 <span>الطلبات</span>
             </a>
-        </li>
+        </li> -->
         <li>
             <a href="{% url 'admin:courses_enrollment_changelist' %}" class="{% if '/admin/courses/enrollment/' in request.path %}active{% endif %}">
                 <i class="fas fa-user-check"></i>
-                <span>الاشتراكات</span>
+                <span>اشتراكات الكورسات</span>
             </a>
         </li>
         <li>
+            <a href="{% url 'admin:assessment_questionbankproductenrollment_changelist' %}" class="{% if '/admin/assessment/questionbankproductenrollment/' in request.path %}active{% endif %}">
+                <i class="fas fa-user-check"></i>
+                <span>اشتراكات بنك الأسئلة</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'admin:assessment_flashcardproductenrollment_changelist' %}" class="{% if '/admin/assessment/flashcardproductenrollment/' in request.path %}active{% endif %}">
+                <i class="fas fa-user-check"></i>
+                <span>اشتراكات البطاقات التعليمية</span>
+            </a>
+        </li>
+        <!-- <li>
             <a href="{% url 'admin:store_coupon_changelist' %}" class="{% if '/admin/store/coupon/' in request.path %}active{% endif %}">
                 <i class="fas fa-tag"></i>
                 <span>كوبونات الخصم</span>
             </a>
-        </li>
+        </li> -->
     </ul>
 </aside>
 

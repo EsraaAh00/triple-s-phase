@@ -4,6 +4,11 @@ from django.utils import timezone
 from django.db.models import Count
 from django.contrib.auth import get_user_model
 from courses.models import Course, Enrollment
+from assessment.models import (
+    FlashcardProduct, FlashcardProductEnrollment,
+    QuestionBankProduct, QuestionBankProductEnrollment,
+    Flashcard, QuestionBank
+)
 from datetime import timedelta
 
 User = get_user_model()
@@ -20,6 +25,19 @@ def admin_dashboard(request):
     total_teachers = User.objects.filter(groups__name='Teachers').count()
     total_courses = Course.objects.count()
     total_enrollments = Enrollment.objects.count()
+    
+    # Get assessment statistics
+    total_flashcards = Flashcard.objects.count()
+    total_questions = QuestionBank.objects.count()
+    
+    # Get product statistics
+    flashcard_products = FlashcardProduct.objects.count()
+    questionbank_products = QuestionBankProduct.objects.count()
+    
+    # Get enrollment statistics
+    course_enrollments = Enrollment.objects.count()
+    flashcard_enrollments = FlashcardProductEnrollment.objects.count()
+    questionbank_enrollments = QuestionBankProductEnrollment.objects.count()
     
     # Get recent activities (simplified for now)
     recent_activities = [
@@ -59,6 +77,13 @@ def admin_dashboard(request):
             'total_teachers': total_teachers,
             'total_courses': total_courses,
             'total_enrollments': total_enrollments,
+            'total_flashcards': total_flashcards,
+            'total_questions': total_questions,
+            'flashcard_products': flashcard_products,
+            'questionbank_products': questionbank_products,
+            'course_enrollments': course_enrollments,
+            'flashcard_enrollments': flashcard_enrollments,
+            'questionbank_enrollments': questionbank_enrollments,
         },
         'recent_activities': recent_activities,
         'recent_courses': recent_courses,

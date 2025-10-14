@@ -25,6 +25,26 @@ const ASSESSMENT_API = {
   FLASHCARD_DETAIL: (id) => `/api/assessment/flashcards/${id}/`,
   FLASHCARD_REVIEW: (id) => `/api/assessment/flashcards/${id}/review/`,
   FLASHCARD_PROGRESS: '/api/assessment/flashcard-progress/',
+  
+  // Product APIs
+  QUESTION_BANK_PRODUCTS: '/api/assessment/question-bank-products/',
+  QUESTION_BANK_PRODUCT_DETAIL: (id) => `/api/assessment/question-bank-products/${id}/`,
+  QUESTION_BANK_ENROLLMENTS: '/api/assessment/question-bank-enrollments/',
+  
+  FLASHCARD_PRODUCTS: '/api/assessment/flashcard-products/',
+  FLASHCARD_PRODUCT_DETAIL: (id) => `/api/assessment/flashcard-products/${id}/`,
+  FLASHCARD_ENROLLMENTS: '/api/assessment/flashcard-enrollments/',
+  
+  // Chapter and Topic APIs
+  QUESTION_BANK_CHAPTERS: '/api/assessment/question-bank-chapters/',
+  QUESTION_BANK_CHAPTER_DETAIL: (id) => `/api/assessment/question-bank-chapters/${id}/`,
+  QUESTION_BANK_TOPICS: '/api/assessment/question-bank-topics/',
+  QUESTION_BANK_TOPIC_DETAIL: (id) => `/api/assessment/question-bank-topics/${id}/`,
+  
+  FLASHCARD_CHAPTERS: '/api/assessment/flashcard-chapters/',
+  FLASHCARD_CHAPTER_DETAIL: (id) => `/api/assessment/flashcard-chapters/${id}/`,
+  FLASHCARD_TOPICS: '/api/assessment/flashcard-topics/',
+  FLASHCARD_TOPIC_DETAIL: (id) => `/api/assessment/flashcard-topics/${id}/`,
 };
 
 class AssessmentService {
@@ -101,7 +121,8 @@ class AssessmentService {
       formData.append('correct_answer', questionData.correct_answer);
       formData.append('explanation', questionData.explanation || '');
       formData.append('tags', JSON.stringify(questionData.tags || []));
-      formData.append('lesson', questionData.lesson || '');
+      formData.append('product', questionData.product || '');
+      formData.append('topic', questionData.topic || '');
       formData.append('options', JSON.stringify(questionData.options || []));
       
       // Add media files if they exist
@@ -159,7 +180,8 @@ class AssessmentService {
       formData.append('correct_answer', questionData.correct_answer);
       formData.append('explanation', questionData.explanation || '');
       formData.append('tags', JSON.stringify(questionData.tags || []));
-      formData.append('lesson', questionData.lesson || '');
+      formData.append('product', questionData.product || '');
+      formData.append('topic', questionData.topic || '');
       formData.append('options', JSON.stringify(questionData.options || []));
       
       // Add media files if they exist
@@ -435,6 +457,8 @@ class AssessmentService {
    * @returns {Object} Formatted data for API
    */
   formatQuestionData(formData) {
+    console.log('formatQuestionData - Input formData:', formData);
+    
     const formattedData = {
       question_text: formData.question_text,
       question_type: formData.question_type,
@@ -442,9 +466,13 @@ class AssessmentService {
       correct_answer: formData.correct_answer,
       explanation: formData.explanation || '',
       tags: formData.tags || [],
-      lesson: formData.lesson || null,
-      course: formData.course || null
+      product: formData.product || null,
+      topic: formData.topic || null
     };
+    
+    console.log('formatQuestionData - Output formattedData:', formattedData);
+    console.log('formatQuestionData - Product ID:', formattedData.product);
+    console.log('formatQuestionData - Topic ID:', formattedData.topic);
 
     // Handle different question types
     if (formData.question_type === 'mcq') {
@@ -463,6 +491,28 @@ class AssessmentService {
     }
 
     return formattedData;
+  }
+
+  /**
+   * Generic helper to build FormData for product create/update
+   */
+  makeFormData(data) {
+    const formData = new FormData();
+    Object.entries(data || {}).forEach(([key, value]) => {
+      if (value === undefined || value === null || value === '') return;
+      if (key === 'image' && value instanceof File) {
+        formData.append('image', value);
+        return;
+      }
+      if (Array.isArray(value)) {
+        value.forEach((item, idx) => {
+          formData.append(`${key}[${idx}]`, item);
+        });
+        return;
+      }
+      formData.append(key, value);
+    });
+    return formData;
   }
 
   // ==================== FLASHCARDS ====================
@@ -674,6 +724,504 @@ class AssessmentService {
     });
 
     return formData;
+  }
+
+  // ==================== PRODUCTS ====================
+  
+  /**
+   * Get all question bank products
+   * @param {Object} params - Query parameters
+   * @returns {Promise<Object>} Products data with pagination
+   */
+  async getQuestionBankProducts(params = {}) {
+    try {
+      const response = await api.get(ASSESSMENT_API.QUESTION_BANK_PRODUCTS, { params });
+      return {
+        success: true,
+        data: response.data.results || response.data,
+        pagination: {
+          count: response.data.count,
+          next: response.data.next,
+          previous: response.data.previous,
+          page: response.data.page || 1,
+          totalPages: Math.ceil(response.data.count / (params.page_size || 20))
+        }
+      };
+    } catch (error) {
+      console.error('Error fetching question bank products:', error);
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Failed to fetch question bank products'
+      };
+    }
+  }
+
+  /**
+   * Get question bank product by ID
+   * @param {number} id - Product ID
+   * @returns {Promise<Object>} Product data
+   */
+  async getQuestionBankProduct(id) {
+    try {
+      const response = await api.get(ASSESSMENT_API.QUESTION_BANK_PRODUCT_DETAIL(id));
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      console.error('Error fetching question bank product:', error);
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Failed to fetch question bank product'
+      };
+    }
+  }
+
+  /**
+   * Create new question bank product
+   * @param {Object} productData - Product data
+   * @returns {Promise<Object>} Created product data
+   */
+  async createQuestionBankProduct(productData) {
+    try {
+      const formData = new FormData();
+      Object.entries(productData || {}).forEach(([key, value]) => {
+        if (value === undefined || value === null || value === '') return;
+        if (key === 'image' && value instanceof File) {
+          formData.append('image', value);
+        } else if (Array.isArray(value)) {
+          value.forEach((item, idx) => formData.append(`${key}[${idx}]`, item));
+        } else {
+          formData.append(key, value);
+        }
+      });
+      const response = await api.post(ASSESSMENT_API.QUESTION_BANK_PRODUCTS, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      console.error('Error creating question bank product:', error);
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Failed to create question bank product'
+      };
+    }
+  }
+
+  /**
+   * Update question bank product
+   * @param {number} id - Product ID
+   * @param {Object} productData - Updated product data
+   * @returns {Promise<Object>} Updated product data
+   */
+  async updateQuestionBankProduct(id, productData) {
+    try {
+      const formData = new FormData();
+      Object.entries(productData || {}).forEach(([key, value]) => {
+        if (value === undefined || value === null || value === '') return;
+        if (key === 'image' && value instanceof File) {
+          formData.append('image', value);
+        } else if (Array.isArray(value)) {
+          value.forEach((item, idx) => formData.append(`${key}[${idx}]`, item));
+        } else {
+          formData.append(key, value);
+        }
+      });
+      const response = await api.put(ASSESSMENT_API.QUESTION_BANK_PRODUCT_DETAIL(id), formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      console.error('Error updating question bank product:', error);
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Failed to update question bank product'
+      };
+    }
+  }
+
+  /**
+   * Delete question bank product
+   * @param {number} id - Product ID
+   * @returns {Promise<Object>} Deletion result
+   */
+  async deleteQuestionBankProduct(id) {
+    try {
+      await api.delete(ASSESSMENT_API.QUESTION_BANK_PRODUCT_DETAIL(id));
+      return {
+        success: true,
+        message: 'Question bank product deleted successfully'
+      };
+    } catch (error) {
+      console.error('Error deleting question bank product:', error);
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Failed to delete question bank product'
+      };
+    }
+  }
+
+  /**
+   * Get all flashcard products
+   * @param {Object} params - Query parameters
+   * @returns {Promise<Object>} Products data with pagination
+   */
+  async getFlashcardProducts(params = {}) {
+    try {
+      const response = await api.get(ASSESSMENT_API.FLASHCARD_PRODUCTS, { params });
+      return {
+        success: true,
+        data: response.data.results || response.data,
+        pagination: {
+          count: response.data.count,
+          next: response.data.next,
+          previous: response.data.previous,
+          page: response.data.page || 1,
+          totalPages: Math.ceil(response.data.count / (params.page_size || 20))
+        }
+      };
+    } catch (error) {
+      console.error('Error fetching flashcard products:', error);
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Failed to fetch flashcard products'
+      };
+    }
+  }
+
+  /**
+   * Get flashcard product by ID
+   * @param {number} id - Product ID
+   * @returns {Promise<Object>} Product data
+   */
+  async getFlashcardProduct(id) {
+    try {
+      const response = await api.get(ASSESSMENT_API.FLASHCARD_PRODUCT_DETAIL(id));
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      console.error('Error fetching flashcard product:', error);
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Failed to fetch flashcard product'
+      };
+    }
+  }
+
+  /**
+   * Create new flashcard product
+   * @param {Object} productData - Product data
+   * @returns {Promise<Object>} Created product data
+   */
+  async createFlashcardProduct(productData) {
+    try {
+      const formData = new FormData();
+      Object.entries(productData || {}).forEach(([key, value]) => {
+        if (value === undefined || value === null || value === '') return;
+        if (key === 'image' && value instanceof File) {
+          formData.append('image', value);
+        } else if (Array.isArray(value)) {
+          value.forEach((item, idx) => formData.append(`${key}[${idx}]`, item));
+        } else {
+          formData.append(key, value);
+        }
+      });
+      const response = await api.post(ASSESSMENT_API.FLASHCARD_PRODUCTS, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      console.error('Error creating flashcard product:', error);
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Failed to create flashcard product'
+      };
+    }
+  }
+
+  /**
+   * Update flashcard product
+   * @param {number} id - Product ID
+   * @param {Object} productData - Updated product data
+   * @returns {Promise<Object>} Updated product data
+   */
+  async updateFlashcardProduct(id, productData) {
+    try {
+      const formData = new FormData();
+      Object.entries(productData || {}).forEach(([key, value]) => {
+        if (value === undefined || value === null || value === '') return;
+        if (key === 'image' && value instanceof File) {
+          formData.append('image', value);
+        } else if (Array.isArray(value)) {
+          value.forEach((item, idx) => formData.append(`${key}[${idx}]`, item));
+        } else {
+          formData.append(key, value);
+        }
+      });
+      const response = await api.put(ASSESSMENT_API.FLASHCARD_PRODUCT_DETAIL(id), formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      console.error('Error updating flashcard product:', error);
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Failed to update flashcard product'
+      };
+    }
+  }
+
+  /**
+   * Delete flashcard product
+   * @param {number} id - Product ID
+   * @returns {Promise<Object>} Deletion result
+   */
+  async deleteFlashcardProduct(id) {
+    try {
+      await api.delete(ASSESSMENT_API.FLASHCARD_PRODUCT_DETAIL(id));
+      return {
+        success: true,
+        message: 'Flashcard product deleted successfully'
+      };
+    } catch (error) {
+      console.error('Error deleting flashcard product:', error);
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Failed to delete flashcard product'
+      };
+    }
+  }
+
+  // ==================== CHAPTERS ====================
+  
+  /**
+   * Get chapters for a product
+   * @param {number} productId - Product ID
+   * @param {string} type - Type ('questionbank' or 'flashcard')
+   * @returns {Promise<Object>} Chapters data
+   */
+  async getChapters(productId, type) {
+    try {
+      const endpoint = type === 'questionbank' 
+        ? ASSESSMENT_API.QUESTION_BANK_CHAPTERS
+        : ASSESSMENT_API.FLASHCARD_CHAPTERS;
+      
+      const response = await api.get(endpoint, { params: { product: productId } });
+      
+      return {
+        success: true,
+        data: response.data.results || response.data
+      };
+    } catch (error) {
+      console.error('Error fetching chapters:', error);
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Failed to fetch chapters'
+      };
+    }
+  }
+
+  /**
+   * Create new chapter
+   * @param {Object} chapterData - Chapter data
+   * @param {string} type - Type ('questionbank' or 'flashcard')
+   * @returns {Promise<Object>} Created chapter data
+   */
+  async createChapter(chapterData, type) {
+    try {
+      const endpoint = type === 'questionbank' 
+        ? ASSESSMENT_API.QUESTION_BANK_CHAPTERS
+        : ASSESSMENT_API.FLASHCARD_CHAPTERS;
+      
+      const response = await api.post(endpoint, chapterData);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      console.error('Error creating chapter:', error);
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Failed to create chapter'
+      };
+    }
+  }
+
+  /**
+   * Update chapter
+   * @param {number} id - Chapter ID
+   * @param {Object} chapterData - Updated chapter data
+   * @param {string} type - Type ('questionbank' or 'flashcard')
+   * @returns {Promise<Object>} Updated chapter data
+   */
+  async updateChapter(id, chapterData, type) {
+    try {
+      const endpoint = type === 'questionbank' 
+        ? ASSESSMENT_API.QUESTION_BANK_CHAPTER_DETAIL(id)
+        : ASSESSMENT_API.FLASHCARD_CHAPTER_DETAIL(id);
+      
+      const response = await api.put(endpoint, chapterData);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      console.error('Error updating chapter:', error);
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Failed to update chapter'
+      };
+    }
+  }
+
+  /**
+   * Delete chapter
+   * @param {number} id - Chapter ID
+   * @param {string} type - Type ('questionbank' or 'flashcard')
+   * @returns {Promise<Object>} Deletion result
+   */
+  async deleteChapter(id, type) {
+    try {
+      const endpoint = type === 'questionbank' 
+        ? ASSESSMENT_API.QUESTION_BANK_CHAPTER_DETAIL(id)
+        : ASSESSMENT_API.FLASHCARD_CHAPTER_DETAIL(id);
+      
+      await api.delete(endpoint);
+      return {
+        success: true,
+        message: 'Chapter deleted successfully'
+      };
+    } catch (error) {
+      console.error('Error deleting chapter:', error);
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Failed to delete chapter'
+      };
+    }
+  }
+
+  // ==================== TOPICS ====================
+  
+  /**
+   * Get topics for a chapter
+   * @param {number} chapterId - Chapter ID
+   * @param {string} type - Type ('questionbank' or 'flashcard')
+   * @returns {Promise<Object>} Topics data
+   */
+  async getTopics(chapterId, type) {
+    try {
+      const endpoint = type === 'questionbank' 
+        ? ASSESSMENT_API.QUESTION_BANK_TOPICS
+        : ASSESSMENT_API.FLASHCARD_TOPICS;
+      
+      const response = await api.get(endpoint, { 
+        params: { chapter: chapterId } 
+      });
+      
+      return {
+        success: true,
+        data: response.data.results || response.data
+      };
+    } catch (error) {
+      console.error('Error fetching topics:', error);
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Failed to fetch topics'
+      };
+    }
+  }
+
+  /**
+   * Create new topic
+   * @param {Object} topicData - Topic data
+   * @param {string} type - Type ('questionbank' or 'flashcard')
+   * @returns {Promise<Object>} Created topic data
+   */
+  async createTopic(topicData, type) {
+    try {
+      const endpoint = type === 'questionbank' 
+        ? ASSESSMENT_API.QUESTION_BANK_TOPICS
+        : ASSESSMENT_API.FLASHCARD_TOPICS;
+      
+      const response = await api.post(endpoint, topicData);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      console.error('Error creating topic:', error);
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Failed to create topic'
+      };
+    }
+  }
+
+  /**
+   * Update topic
+   * @param {number} id - Topic ID
+   * @param {Object} topicData - Updated topic data
+   * @param {string} type - Type ('questionbank' or 'flashcard')
+   * @returns {Promise<Object>} Updated topic data
+   */
+  async updateTopic(id, topicData, type) {
+    try {
+      const endpoint = type === 'questionbank' 
+        ? ASSESSMENT_API.QUESTION_BANK_TOPIC_DETAIL(id)
+        : ASSESSMENT_API.FLASHCARD_TOPIC_DETAIL(id);
+      
+      const response = await api.put(endpoint, topicData);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      console.error('Error updating topic:', error);
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Failed to update topic'
+      };
+    }
+  }
+
+  /**
+   * Delete topic
+   * @param {number} id - Topic ID
+   * @param {string} type - Type ('questionbank' or 'flashcard')
+   * @returns {Promise<Object>} Deletion result
+   */
+  async deleteTopic(id, type) {
+    try {
+      const endpoint = type === 'questionbank' 
+        ? ASSESSMENT_API.QUESTION_BANK_TOPIC_DETAIL(id)
+        : ASSESSMENT_API.FLASHCARD_TOPIC_DETAIL(id);
+      
+      await api.delete(endpoint);
+      return {
+        success: true,
+        message: 'Topic deleted successfully'
+      };
+    } catch (error) {
+      console.error('Error deleting topic:', error);
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Failed to delete topic'
+      };
+    }
   }
 }
 

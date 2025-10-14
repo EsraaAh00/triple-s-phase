@@ -3,10 +3,89 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from .models import (
     Assessment, QuestionBank, AssessmentQuestions, 
-    StudentSubmission, StudentAnswer, Flashcard, StudentFlashcardProgress
+    StudentSubmission, StudentAnswer, Flashcard, StudentFlashcardProgress,
+    QuestionBankProduct, QuestionBankProductEnrollment,
+    QuestionBankChapter, QuestionBankTopic, 
+    FlashcardProduct, FlashcardProductEnrollment,
+    FlashcardChapter, FlashcardTopic
 )
 
 User = get_user_model()
+
+
+# Serializers for new models
+class QuestionBankTopicSerializer(serializers.ModelSerializer):
+    """Serializer for QuestionBankTopic model"""
+    
+    created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True)
+    chapter_title = serializers.CharField(source='chapter.title', read_only=True)
+    product_title = serializers.CharField(source='chapter.product.title', read_only=True)
+    questions_count = serializers.ReadOnlyField()
+    
+    class Meta:
+        model = QuestionBankTopic
+        fields = [
+            'id', 'title', 'description', 'order', 'chapter', 'chapter_title',
+            'product_title', 'created_by', 'created_by_name', 'questions_count',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['created_by', 'created_at', 'updated_at']
+
+
+class QuestionBankChapterSerializer(serializers.ModelSerializer):
+    """Serializer for QuestionBankChapter model"""
+    
+    created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True)
+    product_title = serializers.CharField(source='product.title', read_only=True)
+    topics_count = serializers.ReadOnlyField()
+    questions_count = serializers.ReadOnlyField()
+    topics = QuestionBankTopicSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = QuestionBankChapter
+        fields = [
+            'id', 'title', 'description', 'order', 'product', 'product_title',
+            'created_by', 'created_by_name', 'topics_count', 'questions_count',
+            'topics', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['created_by', 'created_at', 'updated_at']
+
+
+class FlashcardTopicSerializer(serializers.ModelSerializer):
+    """Serializer for FlashcardTopic model"""
+    
+    created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True)
+    chapter_title = serializers.CharField(source='chapter.title', read_only=True)
+    product_title = serializers.CharField(source='chapter.product.title', read_only=True)
+    flashcards_count = serializers.ReadOnlyField()
+    
+    class Meta:
+        model = FlashcardTopic
+        fields = [
+            'id', 'title', 'description', 'order', 'chapter', 'chapter_title',
+            'product_title', 'created_by', 'created_by_name', 'flashcards_count',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['created_by', 'created_at', 'updated_at']
+
+
+class FlashcardChapterSerializer(serializers.ModelSerializer):
+    """Serializer for FlashcardChapter model"""
+    
+    created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True)
+    product_title = serializers.CharField(source='product.title', read_only=True)
+    topics_count = serializers.ReadOnlyField()
+    flashcards_count = serializers.ReadOnlyField()
+    topics = FlashcardTopicSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = FlashcardChapter
+        fields = [
+            'id', 'title', 'description', 'order', 'product', 'product_title',
+            'created_by', 'created_by_name', 'topics_count', 'flashcards_count',
+            'topics', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['created_by', 'created_at', 'updated_at']
 
 
 class QuestionBankSerializer(serializers.ModelSerializer):
@@ -15,19 +94,22 @@ class QuestionBankSerializer(serializers.ModelSerializer):
     options_list = serializers.ReadOnlyField()
     is_mcq = serializers.ReadOnlyField()
     created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True)
-    lesson_title = serializers.CharField(source='lesson.title', read_only=True)
-    course_title = serializers.CharField(source='lesson.module.course.title', read_only=True)
-    module_title = serializers.CharField(source='lesson.module.title', read_only=True)
-    course = serializers.IntegerField(source='lesson.module.course.id', read_only=True)
+    
+    # New fields for course-based structure
+    product_title = serializers.CharField(source='product.title', read_only=True)
+    topic_title = serializers.CharField(source='topic.title', read_only=True)
+    chapter_title = serializers.CharField(source='chapter.title', read_only=True)
+    
     
     class Meta:
         model = QuestionBank
         fields = [
             'id', 'question_text', 'question_type', 'difficulty_level',
             'options', 'correct_answer', 'explanation', 'tags',
-            'image', 'audio', 'video', 'lesson', 'lesson_title',
-            'course', 'course_title', 'module_title', 'created_by', 'created_by_name',
-            'created_at', 'updated_at', 'options_list', 'is_mcq'
+            'image', 'audio', 'video', 
+            'product', 'product_title', 'topic', 'topic_title', 'chapter_title',
+            'created_by', 'created_by_name', 'created_at', 'updated_at', 
+            'options_list', 'is_mcq'
         ]
         read_only_fields = ['created_by', 'created_at', 'updated_at']
     
@@ -136,17 +218,20 @@ class FlashcardSerializer(serializers.ModelSerializer):
     
     created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True)
     related_question_text = serializers.CharField(source='related_question.question_text', read_only=True)
-    lesson_title = serializers.CharField(source='lesson.title', read_only=True)
-    course_title = serializers.CharField(source='lesson.module.course.title', read_only=True)
-    module_title = serializers.CharField(source='lesson.module.title', read_only=True)
+    
+    # New fields for course-based structure
+    product_title = serializers.CharField(source='product.title', read_only=True)
+    topic_title = serializers.CharField(source='topic.title', read_only=True)
+    chapter_title = serializers.CharField(source='chapter.title', read_only=True)
+    
     
     class Meta:
         model = Flashcard
         fields = [
-            'id', 'front_text', 'back_text', 'related_question',
-            'related_question_text', 'lesson', 'lesson_title', 
-            'course_title', 'module_title', 'tags', 'front_image', 'back_image',
-            'created_by', 'created_by_name', 'created_at', 'updated_at'
+            'id', 'front_text', 'back_text', 'related_question', 'related_question_text',
+            'product', 'product_title', 'topic', 'topic_title', 'chapter_title',
+            'tags', 'front_image', 'back_image', 'created_by', 'created_by_name', 
+            'created_at', 'updated_at'
         ]
         read_only_fields = ['created_by', 'created_at', 'updated_at']
 
@@ -307,3 +392,78 @@ class QuestionBankStatsSerializer(serializers.Serializer):
     questions_by_type = serializers.DictField()
     questions_by_difficulty = serializers.DictField()
     most_used_questions = serializers.ListField()
+
+
+# Product Serializers
+class QuestionBankProductSerializer(serializers.ModelSerializer):
+    """Serializer for QuestionBankProduct model"""
+    
+    created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True)
+    course_title = serializers.CharField(source='course.title', read_only=True)
+    course_image = serializers.ImageField(source='course.image', read_only=True)
+    chapters_count = serializers.ReadOnlyField()
+    questions_count = serializers.ReadOnlyField()
+    total_enrollments = serializers.ReadOnlyField()
+    
+    class Meta:
+        model = QuestionBankProduct
+        fields = [
+            'id', 'title', 'description', 'status', 'course', 'course_title', 'course_image',
+            'price', 'is_free', 'image', 'tags', 'created_by', 'created_by_name',
+            'chapters_count', 'questions_count', 'total_enrollments',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['created_by', 'created_at', 'updated_at']
+
+
+class QuestionBankProductEnrollmentSerializer(serializers.ModelSerializer):
+    """Serializer for QuestionBankProductEnrollment model"""
+    
+    student_name = serializers.CharField(source='student.get_full_name', read_only=True)
+    student_email = serializers.CharField(source='student.email', read_only=True)
+    product_title = serializers.CharField(source='product.title', read_only=True)
+    
+    class Meta:
+        model = QuestionBankProductEnrollment
+        fields = [
+            'id', 'student', 'student_name', 'student_email',
+            'product', 'product_title', 'enrolled_at', 'is_active'
+        ]
+        read_only_fields = ['enrolled_at']
+
+
+class FlashcardProductSerializer(serializers.ModelSerializer):
+    """Serializer for FlashcardProduct model"""
+    
+    created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True)
+    course_title = serializers.CharField(source='course.title', read_only=True)
+    course_image = serializers.ImageField(source='course.image', read_only=True)
+    chapters_count = serializers.ReadOnlyField()
+    flashcards_count = serializers.ReadOnlyField()
+    total_enrollments = serializers.ReadOnlyField()
+    
+    class Meta:
+        model = FlashcardProduct
+        fields = [
+            'id', 'title', 'description', 'status', 'course', 'course_title', 'course_image',
+            'price', 'is_free', 'image', 'tags', 'created_by', 'created_by_name',
+            'chapters_count', 'flashcards_count', 'total_enrollments',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['created_by', 'created_at', 'updated_at']
+
+
+class FlashcardProductEnrollmentSerializer(serializers.ModelSerializer):
+    """Serializer for FlashcardProductEnrollment model"""
+    
+    student_name = serializers.CharField(source='student.get_full_name', read_only=True)
+    student_email = serializers.CharField(source='student.email', read_only=True)
+    product_title = serializers.CharField(source='product.title', read_only=True)
+    
+    class Meta:
+        model = FlashcardProductEnrollment
+        fields = [
+            'id', 'student', 'student_name', 'student_email',
+            'product', 'product_title', 'enrolled_at', 'is_active'
+        ]
+        read_only_fields = ['enrolled_at']

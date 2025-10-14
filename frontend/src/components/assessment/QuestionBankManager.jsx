@@ -208,7 +208,7 @@ const HeaderContainer = styled(Box)(({ theme }) => ({
   }
 }));
 
-const QuestionBankManager = () => {
+const QuestionBankManager = ({ product = null, chapter = null, topic = null }) => {
   const { t } = useTranslation();
   const theme = useTheme();
   const [tabValue, setTabValue] = useState(0);
@@ -218,8 +218,8 @@ const QuestionBankManager = () => {
   const [filters, setFilters] = useState({
     questionType: '',
     difficulty: '',
-    course: '',
-    lesson: ''
+    product: product?.id || '',
+    topic: topic?.id || ''
   });
   const [selectedQuestions, setSelectedQuestions] = useState([]);
   const [bulkAction, setBulkAction] = useState('');
@@ -513,49 +513,6 @@ const QuestionBankManager = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      {/* Compact Header */}
-      <Box sx={{ 
-        mb: 4, 
-        p: 3, 
-        background: 'linear-gradient(90deg, #333679 0%, #4DBFB3 100%)',
-        borderRadius: 3,
-        color: 'white',
-        position: 'relative',
-        overflow: 'hidden'
-      }}>
-        <Box sx={{ 
-          position: 'absolute', 
-          top: -20, 
-          right: -20, 
-          width: 100, 
-          height: 100, 
-          borderRadius: '50%', 
-          background: 'rgba(255,255,255,0.1)',
-          zIndex: 1
-        }} />
-        <Box sx={{ 
-          position: 'absolute', 
-          bottom: -30, 
-          left: -30, 
-          width: 80, 
-          height: 80, 
-          borderRadius: '50%', 
-          background: 'rgba(255,255,255,0.08)',
-          zIndex: 1
-        }} />
-        
-        <Box sx={{ position: 'relative', zIndex: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-            <QuizIcon sx={{ fontSize: 32, color: 'white' }} />
-            <Typography variant="h4" fontWeight={700} sx={{ color: 'white' }}>
-          {t('questionBankTitle')}
-        </Typography>
-          </Box>
-          <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.9)', fontSize: '1.1rem' }}>
-          {t('questionBankDescription')}
-        </Typography>
-        </Box>
-      </Box>
 
       <Container sx={{ py: 3 }}>
         {/* Create Question Button - Fixed */}
@@ -580,151 +537,7 @@ const QuestionBankManager = () => {
           </IconButton>
         </Box>
         
-        {/* Compact Statistics Row */}
-        <Box sx={{ 
-          display: 'flex', 
-          gap: 2, 
-          mb: 4, 
-          flexWrap: 'wrap',
-          justifyContent: 'center'
-        }}>
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: 2, 
-            p: 2, 
-            backgroundColor: 'background.paper', 
-            borderRadius: 2, 
-            border: '1px solid #e0e0e0',
-            minWidth: 140,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-          }}>
-            <QuizIcon sx={{ color: '#663399', fontSize: 24 }} />
-                <Box>
-              <Typography variant="h5" fontWeight={700} color="primary">
-                    {stats?.total_questions || 0}
-                  </Typography>
-              <Typography variant="caption" color="text.secondary">
-                    {t('questionBankTotalQuestions')}
-                  </Typography>
-                </Box>
-              </Box>
 
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: 2, 
-            p: 2, 
-            backgroundColor: 'background.paper', 
-            borderRadius: 2, 
-            border: '1px solid #e0e0e0',
-            minWidth: 140,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-          }}>
-            <QuestionAnswerIcon sx={{ color: '#2e7d32', fontSize: 24 }} />
-                <Box>
-              <Typography variant="h5" fontWeight={700} color="success.main">
-                    {stats?.questions_by_type?.mcq || 0}
-                  </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {t('questionBankMultipleChoice')}
-                  </Typography>
-                </Box>
-              </Box>
-
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: 2, 
-            p: 2, 
-            backgroundColor: 'background.paper', 
-            borderRadius: 2, 
-            border: '1px solid #e0e0e0',
-            minWidth: 140,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-          }}>
-            <TrendingUpIcon sx={{ color: '#f57c00', fontSize: 24 }} />
-                <Box>
-              <Typography variant="h5" fontWeight={700} color="warning.main">
-                    {stats?.questions_by_difficulty?.medium || 0}
-                  </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {t('questionBankMediumDifficulty')}
-                  </Typography>
-                </Box>
-              </Box>
-
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: 2, 
-            p: 2, 
-            backgroundColor: 'background.paper', 
-            borderRadius: 2, 
-            border: '1px solid #e0e0e0',
-            minWidth: 140,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-          }}>
-            <SchoolIcon sx={{ color: '#7b1fa2', fontSize: 24 }} />
-                <Box>
-              <Typography variant="h5" fontWeight={700} color="secondary.main">
-                    0
-                  </Typography>
-              <Typography variant="caption" color="text.secondary">
-                    {t('questionBankAvailableCourses')}
-                  </Typography>
-                </Box>
-              </Box>
-        </Box>
-
-        {/* Filters and Search */}
-        <HeaderContainer>
-          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center', mb: 2 }}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mr: 2, color: 'primary.main' }}>
-              {t('assessmentFilterQuestions')}:
-            </Typography>
-            
-            <SearchBox
-                      placeholder={t('assessmentSearchQuestions')}
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-              }}
-              sx={{ 
-                minWidth: 280, 
-                flexGrow: 1,
-              }}
-            />
-            
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <FilterChip
-                label={t('questionBankAll')}
-                onClick={() => setFilters({...filters, questionType: '', difficulty: '', course: '', lesson: ''})}
-                active={!filters.questionType && !filters.difficulty && !filters.course && !filters.lesson}
-              />
-              <FilterChip
-                label={t('questionBankMultipleChoice')}
-                onClick={() => setFilters({...filters, questionType: 'mcq'})}
-                active={filters.questionType === 'mcq'}
-              />
-              <FilterChip
-                label={t('questionBankTrueFalse')}
-                onClick={() => setFilters({...filters, questionType: 'true_false'})}
-                active={filters.questionType === 'true_false'}
-              />
-              <FilterChip
-                label={t('questionBankShortAnswer')}
-                onClick={() => setFilters({...filters, questionType: 'short_answer'})}
-                active={filters.questionType === 'short_answer'}
-              />
-            </Box>
-              </Box>
-        </HeaderContainer>
 
         {/* Main Content */}
         <Box sx={{ mt: 3 }}>
@@ -830,7 +643,6 @@ const QuestionBankManager = () => {
                               </TableSortLabel>
                             </TableCell>
                             <TableCell align="center">{t('questionBankQuestionText')}</TableCell>
-                            <TableCell align="center">{t('questionBankCourseLesson')}</TableCell>
                             <TableCell align="center">
                               <TableSortLabel
                                 active={orderBy === 'created_at'}
@@ -885,20 +697,6 @@ const QuestionBankManager = () => {
                               >
                                 {question.question_text}
                               </Typography>
-                            </TableCell>
-                            <TableCell align="center">
-                              <Box sx={{ textAlign: 'center' }}>
-                                {question.course_title && (
-                                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                                    📚 {question.course_title}
-                                  </Typography>
-                                )}
-                                {question.lesson_title && (
-                                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                                    📖 {question.lesson_title}
-                                  </Typography>
-                                )}
-                              </Box>
                             </TableCell>
                             <TableCell align="center">
                               <Typography variant="caption" color="text.secondary">
@@ -1002,12 +800,15 @@ const QuestionBankManager = () => {
         maxWidth="md"
         fullWidth
       >
-        <DialogContent sx={{ p: 0 }}>
+        <DialogContent sx={{ p: 0, direction: 'ltr' }}>
           <QuestionForm
             question={editingQuestion}
             onSubmit={handleQuestionSubmit}
             onCancel={handleCloseDialog}
             lessons={lessons || []}
+            product={product}
+            chapter={chapter}
+            topic={topic}
           />
         </DialogContent>
       </Dialog>

@@ -55,7 +55,7 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
     { text: t('navMyCourses'), icon: <ClassIcon />, path: '/teacher/my-courses' },
     { text: t('navQuestionBank'), icon: <QuizIcon />, path: '/teacher/question-bank' },
     { text: t('navFlashcards'), icon: <PsychologyIcon />, path: '/teacher/flashcards' },
-    { text: t('navMeetings'), icon: <VideoCallIcon />, path: '/teacher/meetings' },
+    // { text: t('navMeetings'), icon: <VideoCallIcon />, path: '/teacher/meetings' },
     { text: t('navArticles'), icon: <ArticleIcon />, path: '/teacher/articles' },
     { text: t('navSettings'), icon: <SettingsIcon />, path: '/teacher/settings' },
   ];
@@ -65,7 +65,7 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
     { text: t('navHome'), icon: <HomeIcon />, path: '/', exact: true },
     { text: t('navDashboard'), icon: <DashboardIcon />, path: '/student/dashboard' },
     { text: t('navMyCourses'), icon: <ClassIcon />, path: '/student/my-courses', isDropdown: true },
-    { text: t('navMyMeetings'), icon: <VideoCallIcon />, path: '/student/meetings' },
+    // { text: t('navMyMeetings'), icon: <VideoCallIcon />, path: '/student/meetings' },
     { text: t('navSettings'), icon: <SettingsIcon />, path: '/student/settings' },
   ];
   const theme = useTheme();

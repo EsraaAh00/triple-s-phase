@@ -10,7 +10,11 @@ from django.shortcuts import get_object_or_404
 
 from .models import (
     Assessment, QuestionBank, AssessmentQuestions, 
-    StudentSubmission, StudentAnswer, Flashcard, StudentFlashcardProgress
+    StudentSubmission, StudentAnswer, Flashcard, StudentFlashcardProgress,
+    QuestionBankProduct, QuestionBankProductEnrollment,
+    QuestionBankChapter, QuestionBankTopic, 
+    FlashcardProduct, FlashcardProductEnrollment,
+    FlashcardChapter, FlashcardTopic
 )
 from .serializers import (
     AssessmentSerializer, AssessmentDetailSerializer, AssessmentCreateSerializer,
@@ -19,7 +23,10 @@ from .serializers import (
     StudentAnswerSerializer, StudentAnswerSubmissionSerializer,
     AssessmentSubmissionSerializer, FlashcardSerializer,
     StudentFlashcardProgressSerializer, AssessmentStatsSerializer,
-    QuestionBankStatsSerializer
+    QuestionBankStatsSerializer, QuestionBankChapterSerializer, QuestionBankTopicSerializer,
+    FlashcardChapterSerializer, FlashcardTopicSerializer,
+    QuestionBankProductSerializer, QuestionBankProductEnrollmentSerializer,
+    FlashcardProductSerializer, FlashcardProductEnrollmentSerializer
 )
 
 
@@ -210,8 +217,8 @@ class QuestionBankViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['question_type', 'difficulty_level', 'lesson', 'lesson__module__course', 'created_by']
-    search_fields = ['question_text', 'tags', 'lesson__title', 'lesson__module__course__title']
+    filterset_fields = ['question_type', 'difficulty_level', 'product', 'topic', 'created_by']
+    search_fields = ['question_text', 'tags', 'product__title', 'topic__title']
     ordering_fields = ['created_at', 'difficulty_level']
     ordering = ['-created_at']
     
@@ -270,30 +277,19 @@ class QuestionBankViewSet(viewsets.ModelViewSet):
             'total_questions': queryset.count(),
             'by_type': queryset.values('question_type').annotate(count=Count('id')),
             'by_difficulty': queryset.values('difficulty_level').annotate(count=Count('id')),
-            'by_course': queryset.values('lesson__module__course__title').annotate(count=Count('id')),
+            'by_course': queryset.values('course__title').annotate(count=Count('id')),
             'recent_questions': queryset.order_by('-created_at')[:5].values('id', 'question_text', 'question_type', 'created_at'),
         }
         
         return Response(stats)
     
-    @action(detail=False, methods=['get'])
-    def by_lesson(self, request):
-        """Get questions for a specific lesson"""
-        lesson_id = request.query_params.get('lesson_id')
-        if lesson_id:
-            questions = self.get_queryset().filter(lesson_id=lesson_id)
-        else:
-            questions = self.get_queryset()
-        
-        serializer = self.get_serializer(questions, many=True)
-        return Response(serializer.data)
     
     @action(detail=False, methods=['get'])
     def by_course(self, request):
         """Get questions for a specific course"""
         course_id = request.query_params.get('course_id')
         if course_id:
-            questions = self.get_queryset().filter(lesson__module__course_id=course_id)
+            questions = self.get_queryset().filter(course_id=course_id)
         else:
             questions = self.get_queryset()
         
@@ -311,9 +307,6 @@ class QuestionBankViewSet(viewsets.ModelViewSet):
                 count=Count('id')
             )),
             'questions_by_difficulty': dict(queryset.values_list('difficulty_level').annotate(
-                count=Count('id')
-            )),
-            'questions_by_lesson': dict(queryset.values_list('lesson__title').annotate(
                 count=Count('id')
             )),
             'most_used_questions': list(queryset.annotate(
@@ -476,7 +469,7 @@ class FlashcardViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['created_by', 'lesson']
+    filterset_fields = ['created_by', 'product', 'topic']
     search_fields = ['front_text', 'back_text']
     ordering_fields = ['created_at']
     ordering = ['-created_at']
@@ -492,7 +485,7 @@ class FlashcardViewSet(viewsets.ModelViewSet):
                 related_question__assessment_questions__assessment__status='published'
             ).distinct()
         
-        return queryset.select_related('created_by', 'related_question', 'lesson', 'lesson__module', 'lesson__module__course')
+        return queryset.select_related('created_by', 'related_question', 'product', 'topic', 'topic__chapter')
     
     def perform_create(self, serializer):
         """Set the creator when creating a flashcard"""
@@ -524,6 +517,31 @@ class FlashcardViewSet(viewsets.ModelViewSet):
         
         serializer = StudentFlashcardProgressSerializer(progress)
         return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def stats(self, request):
+        """Get flashcards statistics"""
+        queryset = self.get_queryset()
+        user = request.user
+        
+        # Filter by user if teacher
+        if hasattr(user, 'profile') and user.profile.status == 'Teacher':
+            queryset = queryset.filter(created_by=user)
+        
+        stats = {
+            'total_flashcards': queryset.count(),
+            'flashcards_by_topic': dict(queryset.values_list('topic__title').annotate(
+                count=Count('id')
+            )),
+            'flashcards_by_product': dict(queryset.values_list('product__title').annotate(
+                count=Count('id')
+            )),
+            'recent_flashcards': queryset.order_by('-created_at')[:5].values(
+                'id', 'front_text', 'back_text', 'created_at'
+            ),
+        }
+        
+        return Response(stats)
 
 
 class StudentFlashcardProgressViewSet(viewsets.ReadOnlyModelViewSet):
@@ -553,4 +571,229 @@ class StudentFlashcardProgressViewSet(viewsets.ReadOnlyModelViewSet):
         """Get current user's flashcard progress"""
         progress = self.get_queryset().filter(student=request.user)
         serializer = self.get_serializer(progress, many=True)
+        return Response(serializer.data)
+
+
+# New ViewSets for Chapter and Topic models
+class QuestionBankChapterViewSet(viewsets.ModelViewSet):
+    """ViewSet for QuestionBankChapter model"""
+    
+    queryset = QuestionBankChapter.objects.all()
+    serializer_class = QuestionBankChapterSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['product', 'created_by']
+    search_fields = ['title', 'description']
+    ordering_fields = ['order', 'created_at', 'title']
+    ordering = ['product', 'order', 'title']
+    
+    def get_queryset(self):
+        """Filter chapters based on user permissions"""
+        queryset = super().get_queryset()
+        user = self.request.user
+        
+        # Students can see chapters from courses they're enrolled in
+        if hasattr(user, 'profile') and user.profile.status == 'Student':
+            # Add enrollment filter here if needed
+            pass
+        
+        return queryset.select_related('product', 'created_by').prefetch_related('topics')
+    
+    def perform_create(self, serializer):
+        """Set the creator when creating a chapter"""
+        serializer.save(created_by=self.request.user)
+    
+    @action(detail=True, methods=['get'])
+    def topics(self, request, pk=None):
+        """Get all topics for a chapter"""
+        chapter = self.get_object()
+        topics = chapter.topics.all().order_by('order')
+        serializer = QuestionBankTopicSerializer(topics, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def by_product(self, request):
+        """Get chapters for a specific product"""
+        product_id = request.query_params.get('product_id')
+        if product_id:
+            chapters = self.get_queryset().filter(product_id=product_id)
+        else:
+            chapters = self.get_queryset()
+        
+        serializer = self.get_serializer(chapters, many=True)
+        return Response(serializer.data)
+
+
+class QuestionBankTopicViewSet(viewsets.ModelViewSet):
+    """ViewSet for QuestionBankTopic model"""
+    
+    queryset = QuestionBankTopic.objects.all()
+    serializer_class = QuestionBankTopicSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['chapter', 'chapter__product', 'created_by']
+    search_fields = ['title', 'description']
+    ordering_fields = ['order', 'created_at', 'title']
+    ordering = ['chapter', 'order', 'title']
+    
+    def get_queryset(self):
+        """Filter topics based on user permissions"""
+        queryset = super().get_queryset()
+        user = self.request.user
+        
+        # Students can see topics from courses they're enrolled in
+        if hasattr(user, 'profile') and user.profile.status == 'Student':
+            # Add enrollment filter here if needed
+            pass
+        
+        return queryset.select_related('chapter', 'chapter__product', 'created_by')
+    
+    def perform_create(self, serializer):
+        """Set the creator when creating a topic"""
+        serializer.save(created_by=self.request.user)
+    
+    @action(detail=True, methods=['get'])
+    def questions(self, request, pk=None):
+        """Get all questions for a topic"""
+        topic = self.get_object()
+        questions = topic.questions.all()
+        serializer = QuestionBankSerializer(questions, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def by_chapter(self, request):
+        """Get topics for a specific chapter"""
+        chapter_id = request.query_params.get('chapter_id')
+        if chapter_id:
+            topics = self.get_queryset().filter(chapter_id=chapter_id)
+        else:
+            topics = self.get_queryset()
+        
+        serializer = self.get_serializer(topics, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def by_product(self, request):
+        """Get topics for a specific product"""
+        product_id = request.query_params.get('product_id')
+        if product_id:
+            topics = self.get_queryset().filter(chapter__product_id=product_id)
+        else:
+            topics = self.get_queryset()
+        
+        serializer = self.get_serializer(topics, many=True)
+        return Response(serializer.data)
+
+
+class FlashcardChapterViewSet(viewsets.ModelViewSet):
+    """ViewSet for FlashcardChapter model"""
+    
+    queryset = FlashcardChapter.objects.all()
+    serializer_class = FlashcardChapterSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['product', 'created_by']
+    search_fields = ['title', 'description']
+    ordering_fields = ['order', 'created_at', 'title']
+    ordering = ['product', 'order', 'title']
+    
+    def get_queryset(self):
+        """Filter chapters based on user permissions"""
+        queryset = super().get_queryset()
+        user = self.request.user
+        
+        # Students can see chapters from courses they're enrolled in
+        if hasattr(user, 'profile') and user.profile.status == 'Student':
+            # Add enrollment filter here if needed
+            pass
+        
+        return queryset.select_related('product', 'created_by').prefetch_related('topics')
+    
+    def perform_create(self, serializer):
+        """Set the creator when creating a chapter"""
+        serializer.save(created_by=self.request.user)
+    
+    @action(detail=True, methods=['get'])
+    def topics(self, request, pk=None):
+        """Get all topics for a chapter"""
+        chapter = self.get_object()
+        topics = chapter.topics.all().order_by('order')
+        serializer = FlashcardTopicSerializer(topics, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def by_product(self, request):
+        """Get chapters for a specific product"""
+        product_id = request.query_params.get('product_id')
+        if product_id:
+            chapters = self.get_queryset().filter(product_id=product_id)
+        else:
+            chapters = self.get_queryset()
+        
+        serializer = self.get_serializer(chapters, many=True)
+        return Response(serializer.data)
+
+
+class FlashcardTopicViewSet(viewsets.ModelViewSet):
+    """ViewSet for FlashcardTopic model"""
+    
+    queryset = FlashcardTopic.objects.all()
+    serializer_class = FlashcardTopicSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['chapter', 'chapter__product', 'created_by']
+    search_fields = ['title', 'description']
+    ordering_fields = ['order', 'created_at', 'title']
+    ordering = ['chapter', 'order', 'title']
+    
+    def get_queryset(self):
+        """Filter topics based on user permissions"""
+        queryset = super().get_queryset()
+        user = self.request.user
+        
+        # Students can see topics from courses they're enrolled in
+        if hasattr(user, 'profile') and user.profile.status == 'Student':
+            # Add enrollment filter here if needed
+            pass
+        
+        return queryset.select_related('chapter', 'chapter__product', 'created_by')
+    
+    def perform_create(self, serializer):
+        """Set the creator when creating a topic"""
+        serializer.save(created_by=self.request.user)
+    
+    @action(detail=True, methods=['get'])
+    def flashcards(self, request, pk=None):
+        """Get all flashcards for a topic"""
+        topic = self.get_object()
+        flashcards = topic.flashcards.all()
+        serializer = FlashcardSerializer(flashcards, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def by_chapter(self, request):
+        """Get topics for a specific chapter"""
+        chapter_id = request.query_params.get('chapter_id')
+        if chapter_id:
+            topics = self.get_queryset().filter(chapter_id=chapter_id)
+        else:
+            topics = self.get_queryset()
+        
+        serializer = self.get_serializer(topics, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def by_product(self, request):
+        """Get topics for a specific product"""
+        product_id = request.query_params.get('product_id')
+        if product_id:
+            topics = self.get_queryset().filter(chapter__product_id=product_id)
+        else:
+            topics = self.get_queryset()
+        
+        serializer = self.get_serializer(topics, many=True)
         return Response(serializer.data)

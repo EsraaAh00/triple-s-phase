@@ -169,7 +169,7 @@ const HeaderContainer = styled(Box)(({ theme }) => ({
   }
 }));
 
-const FlashcardManager = () => {
+const FlashcardManager = ({ product = null, topic = null }) => {
   const { t } = useTranslation();
   const theme = useTheme();
   const [openDialog, setOpenDialog] = useState(false);
@@ -299,10 +299,25 @@ const FlashcardManager = () => {
   const flashcardsWithQuestions = flashcards.filter(f => f.related_question).length;
 
   const LoadingSkeleton = () => (
-    <Grid container spacing={3}>
-      {[...Array(6)].map((_, index) => (
-        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={index}>
-          <Skeleton variant="rectangular" height={300} sx={{ borderRadius: 2 }} />
+    <Grid container spacing={{ xs: 2, sm: 3, md: 3, lg: 3 }}>
+      {[...Array(8)].map((_, index) => (
+        <Grid 
+          item 
+          xs={12} 
+          sm={6} 
+          md={4} 
+          lg={3} 
+          xl={2.4}
+          key={index}
+        >
+          <Skeleton 
+            variant="rectangular" 
+            height={{ xs: 250, sm: 280, md: 300, lg: 320 }} 
+            sx={{ 
+              borderRadius: 2,
+              width: '100%'
+            }} 
+          />
         </Grid>
       ))}
     </Grid>
@@ -384,10 +399,26 @@ const FlashcardManager = () => {
         </Box>
         
         <Container sx={{ py: 4 }}>
-          <Grid container spacing={3}>
-            {[1, 2, 3, 4, 5, 6].map((item) => (
-              <Grid size={{ xs: 12, md: 6 }} key={item}>
-                <Skeleton variant="rectangular" height={200} sx={{ borderRadius: 3, mb: 2 }} />
+          <Grid container spacing={{ xs: 2, sm: 3, md: 3, lg: 3 }}>
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
+              <Grid 
+                item 
+                xs={12} 
+                sm={6} 
+                md={4} 
+                lg={3} 
+                xl={2.4}
+                key={item}
+              >
+                <Skeleton 
+                  variant="rectangular" 
+                  height={{ xs: 250, sm: 280, md: 300, lg: 320 }} 
+                  sx={{ 
+                    borderRadius: 3, 
+                    mb: 2,
+                    width: '100%'
+                  }} 
+                />
                 <Skeleton variant="text" height={24} sx={{ mb: 1 }} />
                 <Skeleton variant="text" height={20} width="60%" sx={{ mb: 1 }} />
                 <Skeleton variant="text" height={20} width="40%" />
@@ -401,49 +432,6 @@ const FlashcardManager = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      {/* Compact Header */}
-       <Box sx={{ 
-         mb: 4, 
-         p: 3, 
-         background: 'linear-gradient(90deg, #333679 0%, #4DBFB3 100%)',
-         borderRadius: 3,
-         color: 'white',
-         position: 'relative',
-         overflow: 'hidden'
-       }}>
-        <Box sx={{ 
-          position: 'absolute', 
-          top: -20, 
-          right: -20, 
-          width: 100, 
-          height: 100, 
-          borderRadius: '50%', 
-          background: 'rgba(255,255,255,0.1)',
-          zIndex: 1
-        }} />
-        <Box sx={{ 
-          position: 'absolute', 
-          bottom: -30, 
-          left: -30, 
-          width: 80, 
-          height: 80, 
-          borderRadius: '50%', 
-          background: 'rgba(255,255,255,0.08)',
-          zIndex: 1
-        }} />
-        
-        <Box sx={{ position: 'relative', zIndex: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-            <PsychologyIcon sx={{ fontSize: 32, color: 'white' }} />
-            <Typography variant="h4" fontWeight={700} sx={{ color: 'white' }}>
-              {t('flashcardTitle')}
-            </Typography>
-          </Box>
-          <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.9)', fontSize: '1.1rem' }}>
-            {t('flashcardDescription')}
-          </Typography>
-        </Box>
-      </Box>
 
       <Container sx={{ py: 3 }}>
         {/* Create Flashcard Button - Fixed */}
@@ -468,146 +456,7 @@ const FlashcardManager = () => {
           </IconButton>
         </Box>
 
-        {/* Compact Statistics Row */}
-        <Box sx={{ 
-          display: 'flex', 
-          gap: 2, 
-          mb: 4, 
-          flexWrap: 'wrap',
-          justifyContent: 'center'
-        }}>
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: 2, 
-            p: 2, 
-            backgroundColor: 'background.paper', 
-            borderRadius: 2, 
-            border: '1px solid #e0e0e0',
-            minWidth: 140,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-          }}>
-             <PsychologyIcon sx={{ color: '#663399', fontSize: 24 }} />
-             <Box>
-               <Typography variant="h5" fontWeight={700} color="#663399">
-                 {totalFlashcards}
-               </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {t('flashcardTotalCards')}
-              </Typography>
-            </Box>
-          </Box>
 
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: 2, 
-            p: 2, 
-            backgroundColor: 'background.paper', 
-            borderRadius: 2, 
-            border: '1px solid #e0e0e0',
-            minWidth: 140,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-          }}>
-            <QuestionAnswerIcon sx={{ color: '#2e7d32', fontSize: 24 }} />
-            <Box>
-              <Typography variant="h5" fontWeight={700} color="#2e7d32">
-                {flashcardsWithQuestions}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {t('flashcardLinkedToQuestions')}
-              </Typography>
-            </Box>
-          </Box>
-
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: 2, 
-            p: 2, 
-            backgroundColor: 'background.paper', 
-            borderRadius: 2, 
-            border: '1px solid #e0e0e0',
-            minWidth: 140,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-          }}>
-            <VisibilityIcon sx={{ color: '#f57c00', fontSize: 24 }} />
-            <Box>
-              <Typography variant="h5" fontWeight={700} color="#f57c00">
-                {flashcardsWithImages}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {t('flashcardWithImages')}
-              </Typography>
-            </Box>
-          </Box>
-
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: 2, 
-            p: 2, 
-            backgroundColor: 'background.paper', 
-            borderRadius: 2, 
-            border: '1px solid #e0e0e0',
-            minWidth: 140,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-          }}>
-            <TrendingUpIcon sx={{ color: '#7b1fa2', fontSize: 24 }} />
-            <Box>
-              <Typography variant="h5" fontWeight={700} color="#7b1fa2">
-                {Math.round((flashcardsWithImages / Math.max(totalFlashcards, 1)) * 100)}%
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {t('flashcardImagePercentage')}
-              </Typography>
-            </Box>
-          </Box>
-        </Box>
-
-        {/* Filters and Search */}
-        <HeaderContainer>
-          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center', mb: 2 }}>
-             <Typography variant="h6" sx={{ fontWeight: 600, mr: 2, color: '#663399' }}>
-               {t('assessmentFilterFlashcards')}:
-             </Typography>
-            
-            <SearchBox
-              placeholder={t('assessmentSearchFlashcards')}
-              value={searchTerm}
-              onChange={handleSearch}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-              }}
-              sx={{ 
-                minWidth: 280, 
-                flexGrow: 1,
-              }}
-            />
-            
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <FilterChip
-                label={t('flashcardAll')}
-                onClick={() => setFilters({related_question: '', has_images: ''})}
-                active={!filters.related_question && !filters.has_images}
-              />
-              <FilterChip
-                label={t('flashcardLinkedToQuestionsLabel')}
-                onClick={() => setFilters({...filters, related_question: 'with_question'})}
-                active={filters.related_question === 'with_question'}
-              />
-              <FilterChip
-                label={t('flashcardWithImagesLabel')}
-                onClick={() => setFilters({...filters, has_images: 'true'})}
-                active={filters.has_images === 'true'}
-              />
-            </Box>
-          </Box>
-        </HeaderContainer>
 
         {/* Main Content */}
         <Box sx={{ mt: 3 }}>
@@ -621,11 +470,23 @@ const FlashcardManager = () => {
             <EmptyState />
           ) : (
             <>
-              {/* Flashcards Grid - Side by Side */}
-              <Grid container spacing={3}>
+              {/* Flashcards Grid - Responsive */}
+              <Grid container spacing={{ xs: 2, sm: 3, md: 3, lg: 3 }}>
                 <AnimatePresence>
                   {flashcards.map((flashcard) => (
-                    <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={flashcard.id}>
+                    <Grid 
+                      item 
+                      xs={12} 
+                      sm={6} 
+                      md={4} 
+                      lg={3} 
+                      xl={2.4}
+                      key={flashcard.id}
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column'
+                      }}
+                    >
                       <FlashcardCard
                         flashcard={flashcard}
                         onEdit={handleOpenDialog}
@@ -664,6 +525,8 @@ const FlashcardManager = () => {
         onClose={handleCloseDialog}
         flashcard={editingFlashcard}
         onSuccess={handleFlashcardSubmit}
+        product={product}
+        topic={topic}
       />
 
       {/* Notification Snackbar */}

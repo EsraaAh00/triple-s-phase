@@ -4,7 +4,11 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 from .models import (
     Assessment, QuestionBank, AssessmentQuestions, 
-    StudentSubmission, StudentAnswer, Flashcard, StudentFlashcardProgress
+    StudentSubmission, StudentAnswer, Flashcard, StudentFlashcardProgress,
+    QuestionBankProduct, QuestionBankProductEnrollment,
+    QuestionBankChapter, QuestionBankTopic, 
+    FlashcardProduct, FlashcardProductEnrollment,
+    FlashcardChapter, FlashcardTopic
 )
 
 
@@ -62,16 +66,16 @@ class QuestionBankAdmin(admin.ModelAdmin):
     
     list_display = [
         'question_text_short', 'question_type', 'difficulty_level', 
-        'lesson', 'created_by', 'created_at', 'usage_count'
+        'product', 'topic', 'created_by', 'created_at', 'usage_count'
     ]
-    list_filter = ['question_type', 'difficulty_level', 'lesson', 'lesson__module__course', 'created_by', 'created_at']
-    search_fields = ['question_text', 'tags', 'lesson__title', 'lesson__module__course__title', 'created_by__username']
+    list_filter = ['question_type', 'difficulty_level', 'product', 'topic', 'created_by', 'created_at']
+    search_fields = ['question_text', 'tags', 'product__title', 'topic__title', 'created_by__username']
     readonly_fields = ['created_at', 'updated_at', 'usage_count', 'options_list', 'is_mcq']
     date_hierarchy = 'created_at'
     
     fieldsets = (
         ('Question Content', {
-            'fields': ('question_text', 'question_type', 'difficulty_level', 'lesson')
+            'fields': ('question_text', 'question_type', 'difficulty_level', 'product', 'topic')
         }),
         ('Answer Options', {
             'fields': ('options', 'correct_answer', 'explanation'),
@@ -207,17 +211,17 @@ class FlashcardAdmin(admin.ModelAdmin):
     """Admin interface for Flashcard model"""
     
     list_display = [
-        'front_text_short', 'back_text_short', 'lesson', 'related_question', 
+        'front_text_short', 'back_text_short', 'product', 'topic', 'related_question', 
         'created_by', 'created_at'
     ]
-    list_filter = ['lesson__module__course', 'lesson', 'created_by', 'created_at']
-    search_fields = ['front_text', 'back_text', 'lesson__title', 'created_by__username']
+    list_filter = ['product', 'topic', 'created_by', 'created_at']
+    search_fields = ['front_text', 'back_text', 'product__title', 'topic__title', 'created_by__username']
     readonly_fields = ['created_at', 'updated_at']
     date_hierarchy = 'created_at'
     
     fieldsets = (
         ('Flashcard Content', {
-            'fields': ('front_text', 'back_text', 'lesson', 'related_question')
+            'fields': ('front_text', 'back_text', 'product', 'topic', 'related_question')
         }),
         ('Media', {
             'fields': ('front_image', 'back_image'),
@@ -240,7 +244,7 @@ class FlashcardAdmin(admin.ModelAdmin):
     back_text_short.short_description = 'Back Text'
     
     def get_queryset(self, request):
-        return super().get_queryset(request).select_related('lesson', 'lesson__module', 'lesson__module__course', 'related_question', 'created_by')
+        return super().get_queryset(request).select_related('product', 'topic', 'related_question', 'created_by')
     
     def save_model(self, request, obj, form, change):
         if not change:  # Creating new object
@@ -277,6 +281,207 @@ class StudentFlashcardProgressAdmin(admin.ModelAdmin):
     
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('student', 'flashcard')
+
+
+# Admin classes for new models
+@admin.register(QuestionBankChapter)
+class QuestionBankChapterAdmin(admin.ModelAdmin):
+    """Admin interface for QuestionBankChapter model"""
+    
+    list_display = ['title', 'product', 'order', 'topics_count', 'questions_count', 'created_by', 'created_at']
+    list_filter = ['product', 'created_by', 'created_at']
+    search_fields = ['title', 'description', 'product__title']
+    readonly_fields = ['created_at', 'updated_at', 'topics_count', 'questions_count']
+    ordering = ['product', 'order', 'title']
+    
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('title', 'description', 'product', 'order', 'created_by')
+        }),
+        ('Statistics', {
+            'fields': ('topics_count', 'questions_count'),
+            'classes': ('collapse',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+
+
+@admin.register(QuestionBankTopic)
+class QuestionBankTopicAdmin(admin.ModelAdmin):
+    """Admin interface for QuestionBankTopic model"""
+    
+    list_display = ['title', 'chapter', 'product', 'order', 'questions_count', 'created_by', 'created_at']
+    list_filter = ['chapter', 'chapter__product', 'created_by', 'created_at']
+    search_fields = ['title', 'description', 'chapter__title', 'chapter__product__title']
+    readonly_fields = ['created_at', 'updated_at', 'questions_count']
+    ordering = ['chapter', 'order', 'title']
+    
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('title', 'description', 'chapter', 'order', 'created_by')
+        }),
+        ('Statistics', {
+            'fields': ('questions_count',),
+            'classes': ('collapse',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+    
+    def product(self, obj):
+        return obj.chapter.product.title if obj.chapter else '-'
+    product.short_description = 'Product'
+
+
+@admin.register(FlashcardChapter)
+class FlashcardChapterAdmin(admin.ModelAdmin):
+    """Admin interface for FlashcardChapter model"""
+    
+    list_display = ['title', 'product', 'order', 'topics_count', 'flashcards_count', 'created_by', 'created_at']
+    list_filter = ['product', 'created_by', 'created_at']
+    search_fields = ['title', 'description', 'product__title']
+    readonly_fields = ['created_at', 'updated_at', 'topics_count', 'flashcards_count']
+    ordering = ['product', 'order', 'title']
+    
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('title', 'description', 'product', 'order', 'created_by')
+        }),
+        ('Statistics', {
+            'fields': ('topics_count', 'flashcards_count'),
+            'classes': ('collapse',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+
+
+@admin.register(FlashcardTopic)
+class FlashcardTopicAdmin(admin.ModelAdmin):
+    """Admin interface for FlashcardTopic model"""
+    
+    list_display = ['title', 'chapter', 'product', 'order', 'flashcards_count', 'created_by', 'created_at']
+    list_filter = ['chapter', 'chapter__product', 'created_by', 'created_at']
+    search_fields = ['title', 'description', 'chapter__title', 'chapter__product__title']
+    readonly_fields = ['created_at', 'updated_at', 'flashcards_count']
+    ordering = ['chapter', 'order', 'title']
+    
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('title', 'description', 'chapter', 'order', 'created_by')
+        }),
+        ('Statistics', {
+            'fields': ('flashcards_count',),
+            'classes': ('collapse',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+    
+    def product(self, obj):
+        return obj.chapter.product.title if obj.chapter else '-'
+    product.short_description = 'Product'
+
+
+# Question Bank Product Admin
+@admin.register(QuestionBankProduct)
+class QuestionBankProductAdmin(admin.ModelAdmin):
+    """Admin interface for QuestionBankProduct model"""
+    
+    list_display = [
+        'title', 'course', 'price', 'is_free', 'status', 
+        'chapters_count', 'questions_count', 'total_enrollments', 'created_by', 'created_at'
+    ]
+    list_filter = ['status', 'is_free', 'course', 'created_by', 'created_at']
+    search_fields = ['title', 'description', 'course__title']
+    readonly_fields = ['created_at', 'updated_at', 'chapters_count', 'questions_count', 'total_enrollments']
+    date_hierarchy = 'created_at'
+    
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('title', 'description', 'course', 'status', 'created_by')
+        }),
+        ('Pricing', {
+            'fields': ('price', 'is_free')
+        }),
+        ('Product Details', {
+            'fields': ('image', 'tags')
+        }),
+        ('Statistics', {
+            'fields': ('chapters_count', 'questions_count', 'total_enrollments'),
+            'classes': ('collapse',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+
+
+@admin.register(QuestionBankProductEnrollment)
+class QuestionBankProductEnrollmentAdmin(admin.ModelAdmin):
+    """Admin interface for QuestionBankProductEnrollment model"""
+    
+    list_display = ['student', 'product', 'enrolled_at', 'is_active']
+    list_filter = ['is_active', 'enrolled_at', 'product']
+    search_fields = ['student__username', 'student__email', 'product__title']
+    readonly_fields = ['enrolled_at']
+    date_hierarchy = 'enrolled_at'
+
+
+# Flashcard Product Admin
+@admin.register(FlashcardProduct)
+class FlashcardProductAdmin(admin.ModelAdmin):
+    """Admin interface for FlashcardProduct model"""
+    
+    list_display = [
+        'title', 'course', 'price', 'is_free', 'status', 
+        'chapters_count', 'flashcards_count', 'total_enrollments', 'created_by', 'created_at'
+    ]
+    list_filter = ['status', 'is_free', 'course', 'created_by', 'created_at']
+    search_fields = ['title', 'description', 'course__title']
+    readonly_fields = ['created_at', 'updated_at', 'chapters_count', 'flashcards_count', 'total_enrollments']
+    date_hierarchy = 'created_at'
+    
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('title', 'description', 'course', 'status', 'created_by')
+        }),
+        ('Pricing', {
+            'fields': ('price', 'is_free')
+        }),
+        ('Product Details', {
+            'fields': ('image', 'tags')
+        }),
+        ('Statistics', {
+            'fields': ('chapters_count', 'flashcards_count', 'total_enrollments'),
+            'classes': ('collapse',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+
+
+@admin.register(FlashcardProductEnrollment)
+class FlashcardProductEnrollmentAdmin(admin.ModelAdmin):
+    """Admin interface for FlashcardProductEnrollment model"""
+    
+    list_display = ['student', 'product', 'enrolled_at', 'is_active']
+    list_filter = ['is_active', 'enrolled_at', 'product']
+    search_fields = ['student__username', 'student__email', 'product__title']
+    readonly_fields = ['enrolled_at']
+    date_hierarchy = 'enrolled_at'
 
 
 # Customize admin site headers

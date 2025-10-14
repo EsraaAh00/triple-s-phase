@@ -1,0 +1,148 @@
+from rest_framework import viewsets, status, permissions
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
+
+from .models import (
+    QuestionBankProduct, QuestionBankProductEnrollment,
+    FlashcardProduct, FlashcardProductEnrollment
+)
+from .serializers import (
+    QuestionBankProductSerializer, QuestionBankProductEnrollmentSerializer,
+    FlashcardProductSerializer, FlashcardProductEnrollmentSerializer
+)
+
+
+class StandardResultsSetPagination(PageNumberPagination):
+    """Standard pagination for assessment views"""
+    page_size = 20
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
+class QuestionBankProductViewSet(viewsets.ModelViewSet):
+    """ViewSet for QuestionBankProduct model"""
+    
+    queryset = QuestionBankProduct.objects.all()
+    serializer_class = QuestionBankProductSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['status', 'is_free', 'course', 'created_by']
+    search_fields = ['title', 'description', 'course__title']
+    ordering_fields = ['created_at', 'price', 'title']
+    ordering = ['-created_at']
+    
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+    
+    @action(detail=False, methods=['get'])
+    def by_course(self, request):
+        """Get products for a specific course"""
+        course_id = request.query_params.get('course_id')
+        if course_id:
+            products = self.get_queryset().filter(course_id=course_id)
+            serializer = self.get_serializer(products, many=True)
+            return Response(serializer.data)
+        return Response([])
+    
+    @action(detail=True, methods=['post'])
+    def enroll_student(self, request, pk=None):
+        """Enroll a student in this product"""
+        product = self.get_object()
+        student_id = request.data.get('student_id')
+        
+        if not student_id:
+            return Response({'error': 'Student ID is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Check if already enrolled
+        enrollment, created = QuestionBankProductEnrollment.objects.get_or_create(
+            student_id=student_id,
+            product=product,
+            defaults={'is_active': True}
+        )
+        
+        if not created:
+            return Response({'error': 'Student is already enrolled'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        serializer = QuestionBankProductEnrollmentSerializer(enrollment)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class QuestionBankProductEnrollmentViewSet(viewsets.ModelViewSet):
+    """ViewSet for QuestionBankProductEnrollment model"""
+    
+    queryset = QuestionBankProductEnrollment.objects.all()
+    serializer_class = QuestionBankProductEnrollmentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['is_active', 'product', 'student']
+    search_fields = ['student__username', 'student__email', 'product__title']
+    ordering_fields = ['enrolled_at']
+    ordering = ['-enrolled_at']
+
+
+class FlashcardProductViewSet(viewsets.ModelViewSet):
+    """ViewSet for FlashcardProduct model"""
+    
+    queryset = FlashcardProduct.objects.all()
+    serializer_class = FlashcardProductSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['status', 'is_free', 'course', 'created_by']
+    search_fields = ['title', 'description', 'course__title']
+    ordering_fields = ['created_at', 'price', 'title']
+    ordering = ['-created_at']
+    
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+    
+    @action(detail=False, methods=['get'])
+    def by_course(self, request):
+        """Get products for a specific course"""
+        course_id = request.query_params.get('course_id')
+        if course_id:
+            products = self.get_queryset().filter(course_id=course_id)
+            serializer = self.get_serializer(products, many=True)
+            return Response(serializer.data)
+        return Response([])
+    
+    @action(detail=True, methods=['post'])
+    def enroll_student(self, request, pk=None):
+        """Enroll a student in this product"""
+        product = self.get_object()
+        student_id = request.data.get('student_id')
+        
+        if not student_id:
+            return Response({'error': 'Student ID is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Check if already enrolled
+        enrollment, created = FlashcardProductEnrollment.objects.get_or_create(
+            student_id=student_id,
+            product=product,
+            defaults={'is_active': True}
+        )
+        
+        if not created:
+            return Response({'error': 'Student is already enrolled'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        serializer = FlashcardProductEnrollmentSerializer(enrollment)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class FlashcardProductEnrollmentViewSet(viewsets.ModelViewSet):
+    """ViewSet for FlashcardProductEnrollment model"""
+    
+    queryset = FlashcardProductEnrollment.objects.all()
+    serializer_class = FlashcardProductEnrollmentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['is_active', 'product', 'student']
+    search_fields = ['student__username', 'student__email', 'product__title']
+    ordering_fields = ['enrolled_at']
+    ordering = ['-enrolled_at']

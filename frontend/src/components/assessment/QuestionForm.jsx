@@ -48,11 +48,11 @@ import {
 } from '@mui/icons-material';
 import { useTheme, alpha, styled } from '@mui/material/styles';
 
-// Styled Components for Clean Form Design with RTL Support
+// Styled Components for Clean Form Design with LTR Support
 const FormContainer = styled(Container)(({ theme }) => ({
   maxWidth: '1200px',
   padding: theme.spacing(3),
-  direction: 'rtl',
+  direction: 'ltr',
   [theme.breakpoints.down('sm')]: {
   padding: theme.spacing(2),
   },
@@ -62,7 +62,7 @@ const FormCard = styled(Card)(({ theme }) => ({
   borderRadius: '8px',
   boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
   border: '1px solid #e0e0e0',
-  direction: 'rtl',
+  direction: 'ltr',
 }));
 
 const FormTextField = styled(TextField)(({ theme }) => ({
@@ -84,31 +84,31 @@ const FormTextField = styled(TextField)(({ theme }) => ({
     color: '#666666',
     fontSize: '14px',
     fontWeight: 500,
-    right: 14,
-    left: 'auto',
-    transformOrigin: 'right',
+    left: 14,
+    right: 'auto',
+    transformOrigin: 'left',
     '&.Mui-focused': {
       color: '#1976d2',
     },
     '&.MuiInputLabel-shrink': {
-      transform: 'translate(-14px, -9px) scale(0.75)',
+      transform: 'translate(14px, -9px) scale(0.75)',
     },
   },
   '& .MuiOutlinedInput-input': {
     padding: '12px 14px',
     fontSize: '14px',
-    textAlign: 'right',
+    textAlign: 'left',
     '&::placeholder': {
-      textAlign: 'right',
+      textAlign: 'left',
       opacity: 1,
     },
   },
   '& .MuiOutlinedInput-multiline': {
     padding: '8px 14px',
     '& textarea': {
-      textAlign: 'right',
+      textAlign: 'left',
       '&::placeholder': {
-        textAlign: 'right',
+        textAlign: 'left',
         opacity: 1,
       },
     },
@@ -133,13 +133,13 @@ const FormSelect = styled(FormControl)(({ theme }) => ({
   '& .MuiSelect-select': {
     padding: '12px 14px',
     fontSize: '14px',
-    textAlign: 'right',
-    paddingRight: '32px !important',
+    textAlign: 'left',
+    paddingLeft: '32px !important',
     color: '#333333',
   },
   '& .MuiSelect-icon': {
-    right: 14,
-    left: 'auto',
+    left: 14,
+    right: 'auto',
     color: '#666666',
   },
   '& .MuiOutlinedInput-notchedOutline': {
@@ -161,7 +161,7 @@ const FormButton = styled(Button)(({ theme }) => ({
   fontWeight: 600,
   fontSize: '14px',
   minHeight: '40px',
-  direction: 'rtl',
+  direction: 'ltr',
   '&.MuiButton-contained': {
     backgroundColor: '#1976d2',
   '&:hover': {
@@ -195,8 +195,8 @@ const SectionTitle = styled(Typography)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   gap: theme.spacing(1),
-  direction: 'rtl',
-  textAlign: 'right',
+  direction: 'ltr',
+  textAlign: 'left',
 }));
 
 const RequiredAsterisk = styled('span')({
@@ -211,10 +211,10 @@ const FormSection = styled(Box)(({ theme }) => ({
   backgroundColor: '#fafafa',
   borderRadius: '6px',
   border: '1px solid #e0e0e0',
-  direction: 'rtl',
+  direction: 'ltr',
 }));
 
-const QuestionForm = ({ open = true, onClose, question, onSubmit, onCancel, lessons = [] }) => {
+const QuestionForm = ({ open = true, onClose, question, onSubmit, onCancel, lessons = [], product = null, chapter = null, topic = null }) => {
   const { t } = useTranslation();
   const theme = useTheme();
   
@@ -225,7 +225,9 @@ const QuestionForm = ({ open = true, onClose, question, onSubmit, onCancel, less
     question_text: '',
     question_type: 'mcq',
     difficulty_level: 'medium',
-    lesson: '',
+    product: product?.id || '',
+    chapter: chapter?.id || '',
+    topic: topic?.id || '',
     options: [],
     correct_answer: '',
     explanation: '',
@@ -236,7 +238,7 @@ const QuestionForm = ({ open = true, onClose, question, onSubmit, onCancel, less
   });
 
   // Debug logging
-  console.log('QuestionForm props:', { lessons });
+  console.log('QuestionForm props:', { lessons, product, chapter, topic });
   console.log('Lessons type:', typeof lessons, 'Is array:', Array.isArray(lessons));
   console.log('Form data:', formData);
   const [errors, setErrors] = useState({});
@@ -249,7 +251,9 @@ const QuestionForm = ({ open = true, onClose, question, onSubmit, onCancel, less
         question_text: question.question_text || '',
         question_type: question.question_type || 'mcq',
         difficulty_level: question.difficulty_level || 'medium',
-        lesson: question.lesson || '',
+        product: product?.id || question.product || '',
+        chapter: chapter?.id || question.chapter || '',
+        topic: topic?.id || question.topic || '',
         options: question.options_list || [],
         correct_answer: question.correct_answer || '',
         explanation: question.explanation || '',
@@ -258,8 +262,16 @@ const QuestionForm = ({ open = true, onClose, question, onSubmit, onCancel, less
         audio: question.audio || null,
         video: question.video || null
       });
+    } else {
+      // For new questions, set the product and topic from props
+      setFormData(prev => ({
+        ...prev,
+        product: product?.id || '',
+        chapter: chapter?.id || '',
+        topic: topic?.id || ''
+      }));
     }
-  }, [question]);
+  }, [question, product, chapter, topic]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -350,7 +362,8 @@ const QuestionForm = ({ open = true, onClose, question, onSubmit, onCancel, less
           correct_answer: formData.correct_answer,
           explanation: formData.explanation || '',
           tags: formData.tags || [],
-          lesson: formData.lesson || null,
+          product: product?.id || formData.product || null,
+          topic: topic?.id || formData.topic || null,
           options: formData.question_type === 'mcq' ? formData.options : [],
           // Include media files if they exist
           ...(formData.image && { image: formData.image }),
@@ -589,7 +602,7 @@ const QuestionForm = ({ open = true, onClose, question, onSubmit, onCancel, less
       onClose={onClose} 
       maxWidth={false}
       fullWidth
-      dir="rtl"
+      dir="ltr"
       PaperProps={{
         sx: {
           borderRadius: 3,
@@ -612,7 +625,7 @@ const QuestionForm = ({ open = true, onClose, question, onSubmit, onCancel, less
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <QuizIcon />
           <Typography variant="h6" fontWeight={600}>
-            {question ? t('assessmentEditQuestion') : t('assessmentCreateQuestion')}
+            {question ? t('update') : t('questionBankCreateNew')}
           </Typography>
         </Box>
         <IconButton onClick={onClose} sx={{ color: 'white' }}>
@@ -628,19 +641,19 @@ const QuestionForm = ({ open = true, onClose, question, onSubmit, onCancel, less
             <FormSection>
               <SectionTitle>
                 <BookIcon sx={{ fontSize: 20 }} />
-                معلومات السؤال
+                {t('questionBankQuestionText')}
               </SectionTitle>
               <FormTextField
                 fullWidth
                 multiline
                 rows={4}
-                label="نص السؤال"
+                label={t('questionBankQuestionText')}
                 value={formData.question_text}
                 onChange={(e) => handleInputChange('question_text', e.target.value)}
                 error={!!errors.question_text}
                 helperText={errors.question_text}
                 required
-                placeholder="أدخل نص السؤال هنا..."
+                placeholder={t('questionBankQuestionText')}
               />
             </FormSection>
 
@@ -648,7 +661,7 @@ const QuestionForm = ({ open = true, onClose, question, onSubmit, onCancel, less
             <FormSection>
               <SectionTitle>
                 <SchoolIcon sx={{ fontSize: 20 }} />
-                إعدادات السؤال
+                {t('manageQuestions')}
               </SectionTitle>
               <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', sm: 'row' } }}>
                 <Box sx={{ flex: 1 }}>
@@ -657,9 +670,9 @@ const QuestionForm = ({ open = true, onClose, question, onSubmit, onCancel, less
                     fontSize: '14px', 
                     fontWeight: 500, 
                     mb: 1,
-                    textAlign: 'right'
+                    textAlign: 'left'
                   }}>
-                    نوع السؤال
+                    {t('questionBankQuestionType')}
                   </Typography>
                   <FormSelect fullWidth>
                 <Select
@@ -667,13 +680,9 @@ const QuestionForm = ({ open = true, onClose, question, onSubmit, onCancel, less
                   onChange={(e) => handleInputChange('question_type', e.target.value)}
                       displayEmpty
                 >
-                  <MenuItem value="mcq">اختيار من متعدد</MenuItem>
-                  <MenuItem value="true_false">صح أو خطأ</MenuItem>
-                  <MenuItem value="short_answer">إجابة قصيرة</MenuItem>
-                  <MenuItem value="essay">مقال</MenuItem>
-                  <MenuItem value="fill_blank">ملء الفراغ</MenuItem>
-                  <MenuItem value="matching">مطابقة</MenuItem>
-                  <MenuItem value="ordering">ترتيب</MenuItem>
+                  <MenuItem value="mcq">{t('questionBankMultipleChoice')}</MenuItem>
+                  <MenuItem value="true_false">{t('questionBankTrueFalse')}</MenuItem>
+                  <MenuItem value="short_answer">{t('questionBankShortAnswer')}</MenuItem>
                 </Select>
                   </FormSelect>
                 </Box>
@@ -684,9 +693,9 @@ const QuestionForm = ({ open = true, onClose, question, onSubmit, onCancel, less
                     fontSize: '14px', 
                     fontWeight: 500, 
                     mb: 1,
-                    textAlign: 'right'
+                    textAlign: 'left'
                   }}>
-                    مستوى الصعوبة
+                    {t('questionBankDifficultyLevel')}
                   </Typography>
                   <FormSelect fullWidth>
                 <Select
@@ -694,56 +703,22 @@ const QuestionForm = ({ open = true, onClose, question, onSubmit, onCancel, less
                   onChange={(e) => handleInputChange('difficulty_level', e.target.value)}
                       displayEmpty
                 >
-                  <MenuItem value="easy">سهل</MenuItem>
-                  <MenuItem value="medium">متوسط</MenuItem>
-                  <MenuItem value="hard">صعب</MenuItem>
+                  <MenuItem value="easy">{t('questionBankEasy')}</MenuItem>
+                  <MenuItem value="medium">{t('questionBankMedium')}</MenuItem>
+                  <MenuItem value="hard">{t('questionBankHard')}</MenuItem>
                 </Select>
                   </FormSelect>
                 </Box>
               </Box>
             </FormSection>
 
-            {/* Course and Lesson */}
-            <FormSection>
-              <SectionTitle>
-                <SchoolIcon sx={{ fontSize: 20 }} />
-                المقرر والدرس
-              </SectionTitle>
-              <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', sm: 'row' } }}>
-
-                <Box sx={{ flex: 1 }}>
-                  <Typography variant="body2" sx={{ 
-                    color: '#666666', 
-                    fontSize: '14px', 
-                    fontWeight: 500, 
-                    mb: 1,
-                    textAlign: 'right'
-                  }}>
-                    الدرس
-                  </Typography>
-                  <FormSelect fullWidth>
-                <Select
-                  value={formData.lesson}
-                  onChange={(e) => handleInputChange('lesson', e.target.value)}
-                      displayEmpty
-                >
-                  <MenuItem value="">اختر الدرس</MenuItem>
-                  {safeLessons.map((lesson) => (
-                    <MenuItem key={lesson.id} value={lesson.id}>
-                      {lesson.title}
-                    </MenuItem>
-                  ))}
-                </Select>
-                  </FormSelect>
-                </Box>
-              </Box>
-            </FormSection>
+            {/* Removed Course and Lesson section as per new product hierarchy */}
 
             {/* Answer Configuration */}
             <FormSection>
               <SectionTitle>
                 <QuizIcon sx={{ fontSize: 20 }} />
-                  إعدادات الإجابة
+                {t('manageAnswers')}
               </SectionTitle>
                 
                 {getQuestionTypeFields()}
@@ -754,10 +729,10 @@ const QuestionForm = ({ open = true, onClose, question, onSubmit, onCancel, less
                   fullWidth
                   multiline
                 rows={3}
-                  label="شرح الإجابة (اختياري)"
+                  label={t('answerExplanation')}
                   value={formData.explanation}
                   onChange={(e) => handleInputChange('explanation', e.target.value)}
-                  placeholder="أضف شرحاً للإجابة الصحيحة..."
+                  placeholder={t('answerExplanation')}
                 />
             </FormSection>
 
@@ -765,7 +740,7 @@ const QuestionForm = ({ open = true, onClose, question, onSubmit, onCancel, less
             <FormSection>
               <SectionTitle>
                 <TagIcon sx={{ fontSize: 20 }} />
-                  العلامات (Tags)
+                {t('tags')}
               </SectionTitle>
                 
               <Box sx={{ mb: 2, direction: 'rtl' }}>
@@ -796,12 +771,12 @@ const QuestionForm = ({ open = true, onClose, question, onSubmit, onCancel, less
                     size="small"
                     sx={{ order: 1 }}
                     >
-                      إضافة
+                      {t('add')}
                   </FormButton>
                   <FormTextField
                     value={newTag}
                     onChange={(e) => setNewTag(e.target.value)}
-                    placeholder="إضافة علامة جديدة"
+                  placeholder={t('addTag')}
                     size="small"
                     sx={{ flexGrow: 1, order: 2 }}
                   />
@@ -813,7 +788,7 @@ const QuestionForm = ({ open = true, onClose, question, onSubmit, onCancel, less
             <FormSection>
               <SectionTitle>
                 <AttachFileIcon sx={{ fontSize: 20 }} />
-                  الملفات المرفقة
+                {t('attachments')}
               </SectionTitle>
               
               <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', md: 'row' } }}>
@@ -835,7 +810,7 @@ const QuestionForm = ({ open = true, onClose, question, onSubmit, onCancel, less
                   }}>
                     <ImageIcon sx={{ fontSize: 48, color: '#1976d2', mb: 2 }} />
                     <Typography variant="h6" sx={{ mb: 1, fontWeight: 600, color: '#333333' }}>
-                        صورة السؤال
+                        {t('image')}
                       </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 3, display: 'block' }}>
                         PNG, JPG, GIF حتى 10MB
@@ -849,12 +824,12 @@ const QuestionForm = ({ open = true, onClose, question, onSubmit, onCancel, less
                       />
                       <label htmlFor="image-upload">
                       <FormButton variant="outlined" component="span" startIcon={<UploadIcon />}>
-                          رفع صورة
+                          {t('upload')}
                       </FormButton>
                       </label>
                       {formData.image && (
                       <Typography variant="body2" color="success.main" sx={{ display: 'block', mt: 2, fontWeight: 600 }}>
-                          ✓ تم رفع الملف بنجاح: {formData.image.name}
+                          ✓ {t('uploaded')}: {formData.image.name}
                         </Typography>
                       )}
                   </Box>
@@ -878,7 +853,7 @@ const QuestionForm = ({ open = true, onClose, question, onSubmit, onCancel, less
                   }}>
                     <AudioIcon sx={{ fontSize: 48, color: '#1976d2', mb: 2 }} />
                     <Typography variant="h6" sx={{ mb: 1, fontWeight: 600, color: '#333333' }}>
-                        ملف صوتي
+                        {t('audio')}
                       </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 3, display: 'block' }}>
                         MP3, WAV حتى 50MB
@@ -892,12 +867,12 @@ const QuestionForm = ({ open = true, onClose, question, onSubmit, onCancel, less
                       />
                       <label htmlFor="audio-upload">
                       <FormButton variant="outlined" component="span" startIcon={<UploadIcon />}>
-                          رفع صوت
+                          {t('upload')}
                       </FormButton>
                       </label>
                       {formData.audio && (
                       <Typography variant="body2" color="success.main" sx={{ display: 'block', mt: 2, fontWeight: 600 }}>
-                          ✓ تم رفع الملف بنجاح: {formData.audio.name}
+                          ✓ {t('uploaded')}: {formData.audio.name}
                         </Typography>
                       )}
                   </Box>
@@ -921,7 +896,7 @@ const QuestionForm = ({ open = true, onClose, question, onSubmit, onCancel, less
                   }}>
                     <VideoIcon sx={{ fontSize: 48, color: '#1976d2', mb: 2 }} />
                     <Typography variant="h6" sx={{ mb: 1, fontWeight: 600, color: '#333333' }}>
-                        فيديو
+                        {t('video')}
                       </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 3, display: 'block' }}>
                         MP4, AVI حتى 100MB
@@ -935,12 +910,12 @@ const QuestionForm = ({ open = true, onClose, question, onSubmit, onCancel, less
                       />
                       <label htmlFor="video-upload">
                       <FormButton variant="outlined" component="span" startIcon={<UploadIcon />}>
-                          رفع فيديو
+                          {t('upload')}
                       </FormButton>
                       </label>
                       {formData.video && (
                       <Typography variant="body2" color="success.main" sx={{ display: 'block', mt: 2, fontWeight: 600 }}>
-                          ✓ تم رفع الملف بنجاح: {formData.video.name}
+                          ✓ {t('uploaded')}: {formData.video.name}
                         </Typography>
                       )}
               </Box>
@@ -957,14 +932,14 @@ const QuestionForm = ({ open = true, onClose, question, onSubmit, onCancel, less
           variant="outlined" 
           onClick={onCancel}
         >
-          إلغاء
+          {t('cancel')}
         </FormButton>
         <FormButton 
           type="submit" 
           variant="contained"
           onClick={handleSubmit}
         >
-          {question ? 'تحديث السؤال' : 'إنشاء السؤال'}
+          {question ? t('update') : t('create')}
         </FormButton>
       </DialogActions>
     </Dialog>

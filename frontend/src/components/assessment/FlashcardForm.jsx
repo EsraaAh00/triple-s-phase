@@ -45,11 +45,11 @@ import {
 import { useTheme, alpha, styled } from '@mui/material/styles';
 import assessmentService from '../../services/assessment.service';
 
-// Styled Components for Clean Form Design with RTL Support
+// Styled Components for Clean Form Design with LTR Support
 const FormContainer = styled(Container)(({ theme }) => ({
   maxWidth: '1200px',
   padding: theme.spacing(3),
-  direction: 'rtl',
+  direction: 'ltr',
   [theme.breakpoints.down('sm')]: {
     padding: theme.spacing(2),
   },
@@ -59,7 +59,7 @@ const FormCard = styled(Card)(({ theme }) => ({
   borderRadius: '8px',
   boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
   border: '1px solid #e0e0e0',
-  direction: 'rtl',
+  direction: 'ltr',
 }));
 
 const FormTextField = styled(TextField)(({ theme }) => ({
@@ -81,31 +81,31 @@ const FormTextField = styled(TextField)(({ theme }) => ({
     color: '#666666',
     fontSize: '14px',
     fontWeight: 500,
-    right: 14,
-    left: 'auto',
-    transformOrigin: 'right',
+    left: 14,
+    right: 'auto',
+    transformOrigin: 'left',
     '&.Mui-focused': {
       color: '#1976d2',
     },
     '&.MuiInputLabel-shrink': {
-      transform: 'translate(-14px, -9px) scale(0.75)',
+      transform: 'translate(14px, -9px) scale(0.75)',
     },
   },
   '& .MuiOutlinedInput-input': {
     padding: '12px 14px',
     fontSize: '14px',
-    textAlign: 'right',
+    textAlign: 'left',
     '&::placeholder': {
-      textAlign: 'right',
+      textAlign: 'left',
       opacity: 1,
     },
   },
   '& .MuiOutlinedInput-multiline': {
     padding: '8px 14px',
     '& textarea': {
-      textAlign: 'right',
+      textAlign: 'left',
       '&::placeholder': {
-        textAlign: 'right',
+        textAlign: 'left',
         opacity: 1,
       },
     },
@@ -130,13 +130,13 @@ const FormSelect = styled(FormControl)(({ theme }) => ({
   '& .MuiSelect-select': {
     padding: '12px 14px',
     fontSize: '14px',
-    textAlign: 'right',
-    paddingRight: '32px !important',
+    textAlign: 'left',
+    paddingLeft: '32px !important',
     color: '#333333',
   },
   '& .MuiSelect-icon': {
-    right: 14,
-    left: 'auto',
+    left: 14,
+    right: 'auto',
     color: '#666666',
   },
   '& .MuiOutlinedInput-notchedOutline': {
@@ -158,7 +158,7 @@ const FormButton = styled(Button)(({ theme }) => ({
   fontWeight: 600,
   fontSize: '14px',
   minHeight: '40px',
-  direction: 'rtl',
+  direction: 'ltr',
   '&.MuiButton-contained': {
     backgroundColor: '#1976d2',
     '&:hover': {
@@ -175,12 +175,12 @@ const FormButton = styled(Button)(({ theme }) => ({
     },
   },
   '& .MuiButton-startIcon': {
-    marginLeft: theme.spacing(1),
-    marginRight: 0,
-  },
-  '& .MuiButton-endIcon': {
     marginRight: theme.spacing(1),
     marginLeft: 0,
+  },
+  '& .MuiButton-endIcon': {
+    marginLeft: theme.spacing(1),
+    marginRight: 0,
   },
 }));
 
@@ -192,14 +192,14 @@ const SectionTitle = styled(Typography)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   gap: theme.spacing(1),
-  direction: 'rtl',
-  textAlign: 'right',
+  direction: 'ltr',
+  textAlign: 'left',
 }));
 
 const RequiredAsterisk = styled('span')({
   color: '#d32f2f',
-  marginRight: '4px',
-  marginLeft: 0,
+  marginLeft: '4px',
+  marginRight: 0,
 });
 
 const FormSection = styled(Box)(({ theme }) => ({
@@ -208,10 +208,10 @@ const FormSection = styled(Box)(({ theme }) => ({
   backgroundColor: '#fafafa',
   borderRadius: '6px',
   border: '1px solid #e0e0e0',
-  direction: 'rtl',
+  direction: 'ltr',
 }));
 
-const FlashcardForm = ({ open, onClose, flashcard = null, onSuccess }) => {
+const FlashcardForm = ({ open, onClose, flashcard = null, onSuccess, product = null, topic = null }) => {
   const { t } = useTranslation();
   const theme = useTheme();
   const [loading, setLoading] = useState(false);
@@ -221,7 +221,8 @@ const FlashcardForm = ({ open, onClose, flashcard = null, onSuccess }) => {
     front_text: '',
     back_text: '',
     related_question: '',
-    lesson: '',
+    product: product?.id || '',
+    topic: topic?.id || '',
     front_image: null,
     back_image: null,
     front_image_preview: null,
@@ -230,20 +231,19 @@ const FlashcardForm = ({ open, onClose, flashcard = null, onSuccess }) => {
   });
 
   const [questions, setQuestions] = useState([]);
-  const [lessons, setLessons] = useState([]);
   const [errors, setErrors] = useState({});
   const [newTag, setNewTag] = useState('');
 
   useEffect(() => {
     if (open) {
       loadQuestions();
-      loadLessons();
       if (flashcard) {
         setFormData({
           front_text: flashcard.front_text || '',
           back_text: flashcard.back_text || '',
           related_question: flashcard.related_question || '',
-          lesson: flashcard.lesson || '',
+          product: flashcard.product || product?.id || '',
+          topic: flashcard.topic || topic?.id || '',
           front_image: null,
           back_image: null,
           front_image_preview: flashcard.front_image || null,
@@ -269,23 +269,13 @@ const FlashcardForm = ({ open, onClose, flashcard = null, onSuccess }) => {
     }
   };
 
-  const loadLessons = async () => {
-    try {
-      const result = await assessmentService.getLessons({ page_size: 100 });
-      if (result.success) {
-        setLessons(result.data);
-      }
-    } catch (err) {
-      console.error('Error loading lessons:', err);
-    }
-  };
-
   const resetForm = () => {
     setFormData({
       front_text: '',
       back_text: '',
       related_question: '',
-      lesson: '',
+      product: product?.id || '',
+      topic: topic?.id || '',
       front_image: null,
       back_image: null,
       front_image_preview: null,
@@ -353,11 +343,11 @@ const FlashcardForm = ({ open, onClose, flashcard = null, onSuccess }) => {
     const newErrors = {};
 
     if (!formData.front_text.trim()) {
-      newErrors.front_text = t('assessmentFrontTextRequired');
+      newErrors.front_text = t('flashcardFrontTextRequired');
     }
 
     if (!formData.back_text.trim()) {
-      newErrors.back_text = t('assessmentBackTextRequired');
+      newErrors.back_text = t('flashcardBackTextRequired');
     }
 
     setErrors(newErrors);
@@ -377,7 +367,8 @@ const FlashcardForm = ({ open, onClose, flashcard = null, onSuccess }) => {
           front_text: formData.front_text,
           back_text: formData.back_text,
           related_question: formData.related_question || null,
-          lesson: formData.lesson || null,
+          product: product?.id || formData.product || null,
+          topic: topic?.id || formData.topic || null,
           tags: formData.tags || [],
           ...(formData.front_image && { front_image: formData.front_image }),
           ...(formData.back_image && { back_image: formData.back_image })
@@ -397,10 +388,10 @@ const FlashcardForm = ({ open, onClose, flashcard = null, onSuccess }) => {
           onClose();
           resetForm();
         } else {
-          setError(result.error?.detail || result.error || 'حدث خطأ أثناء حفظ البطاقة');
+          setError(result.error?.detail || result.error || t('flashcardSaveError'));
         }
       } catch (err) {
-        setError('حدث خطأ أثناء حفظ البطاقة');
+        setError(t('flashcardSaveError'));
         console.error('Error saving flashcard:', err);
       } finally {
         setLoading(false);
@@ -414,7 +405,7 @@ const FlashcardForm = ({ open, onClose, flashcard = null, onSuccess }) => {
       onClose={onClose} 
       maxWidth={false}
       fullWidth
-      dir="rtl"
+      dir="ltr"
       PaperProps={{
         sx: {
           borderRadius: 3,
@@ -437,7 +428,7 @@ const FlashcardForm = ({ open, onClose, flashcard = null, onSuccess }) => {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <PsychologyIcon />
           <Typography variant="h6" fontWeight={600}>
-            {flashcard ? t('assessmentEditFlashcard') : t('assessmentCreateFlashcard')}
+            {flashcard ? t('editFlashcard') : t('createFlashcard')}
           </Typography>
         </Box>
         <IconButton onClick={onClose} sx={{ color: 'white' }}>
@@ -455,45 +446,11 @@ const FlashcardForm = ({ open, onClose, flashcard = null, onSuccess }) => {
 
           <Stack spacing={3} component="form" onSubmit={handleSubmit}>
 
-            {/* Lesson Selection */}
-            <FormSection>
-              <SectionTitle>
-                <BookIcon sx={{ fontSize: 20 }} />
-                ربط بالدرس
-              </SectionTitle>
-              
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="body2" sx={{ 
-                  color: '#666666', 
-                  fontSize: '14px', 
-                  fontWeight: 500, 
-                  mb: 1,
-                  textAlign: 'right'
-                }}>
-                  ربط البطاقة بالدرس *
-                </Typography>
-                <FormSelect fullWidth>
-                  <Select
-                    value={formData.lesson}
-                    onChange={(e) => handleInputChange('lesson', e.target.value)}
-                    displayEmpty
-                  >
-                    <MenuItem value="">لا يوجد ربط</MenuItem>
-                    {lessons.map((lesson) => (
-                      <MenuItem key={lesson.id} value={lesson.id}>
-                        {lesson.title} - {lesson.module?.title || lesson.module?.name || 'بدون وحدة'}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormSelect>
-              </Box>
-            </FormSection>
-
             {/* Related Question */}
             <FormSection>
               <SectionTitle>
                 <QuestionAnswerIcon sx={{ fontSize: 20 }} />
-                ربط بسؤال
+                {t('linkToQuestion')}
               </SectionTitle>
               
               <Box sx={{ mb: 2 }}>
@@ -502,9 +459,9 @@ const FlashcardForm = ({ open, onClose, flashcard = null, onSuccess }) => {
                   fontSize: '14px', 
                   fontWeight: 500, 
                   mb: 1,
-                  textAlign: 'right'
+                  textAlign: 'left'
                 }}>
-                  ربط البطاقة بسؤال (اختياري)
+                  {t('linkFlashcardToQuestion')} ({t('optional')})
                 </Typography>
                 <FormSelect fullWidth>
                   <Select
@@ -512,7 +469,7 @@ const FlashcardForm = ({ open, onClose, flashcard = null, onSuccess }) => {
                     onChange={(e) => handleInputChange('related_question', e.target.value)}
                     displayEmpty
                   >
-                    <MenuItem value="">لا يوجد ربط</MenuItem>
+                    <MenuItem value="">{t('noLink')}</MenuItem>
                     {questions.map((question) => (
                       <MenuItem key={question.id} value={question.id}>
                         {question.question_text?.substring(0, 100)}...
@@ -527,7 +484,7 @@ const FlashcardForm = ({ open, onClose, flashcard = null, onSuccess }) => {
             <FormSection>
               <SectionTitle>
                 <BookIcon sx={{ fontSize: 20 }} />
-                محتوى البطاقة التعليمية
+                {t('flashcardContent')}
               </SectionTitle>
               
               <Grid container spacing={6}>
@@ -550,13 +507,13 @@ const FlashcardForm = ({ open, onClose, flashcard = null, onSuccess }) => {
                         fontSize: '16px', 
                         fontWeight: 600, 
                         mb: 2,
-                        textAlign: 'right',
+                        textAlign: 'left',
                         display: 'flex',
                         alignItems: 'center',
                         gap: 1
                       }}>
                         <ImageIcon sx={{ fontSize: 20 }} />
-                        الوجه الأمامي
+                        {t('frontSide')}
                         <RequiredAsterisk>*</RequiredAsterisk>
                       </Typography>
                       <FormTextField
@@ -567,7 +524,7 @@ const FlashcardForm = ({ open, onClose, flashcard = null, onSuccess }) => {
                         onChange={(e) => handleInputChange('front_text', e.target.value)}
                         error={!!errors.front_text}
                         helperText={errors.front_text}
-                        placeholder="أدخل النص الذي سيظهر على الوجه الأمامي للبطاقة..."
+                        placeholder={t('enterFrontSideText')}
                         sx={{ mb: 3 }}
                       />
 
@@ -581,7 +538,7 @@ const FlashcardForm = ({ open, onClose, flashcard = null, onSuccess }) => {
                         />
                         <label htmlFor="front-image-upload">
                           <FormButton variant="outlined" component="span" startIcon={<UploadIcon />} fullWidth>
-                            رفع صورة للوجه الأمامي
+                            {t('uploadFrontImage')}
                           </FormButton>
                         </label>
                       </Box>
@@ -636,13 +593,13 @@ const FlashcardForm = ({ open, onClose, flashcard = null, onSuccess }) => {
                         fontSize: '16px', 
                         fontWeight: 600, 
                         mb: 2,
-                        textAlign: 'right',
+                        textAlign: 'left',
                         display: 'flex',
                         alignItems: 'center',
                         gap: 1
                       }}>
                         <QuestionAnswerIcon sx={{ fontSize: 20 }} />
-                        الوجه الخلفي
+                        {t('backSide')}
                         <RequiredAsterisk>*</RequiredAsterisk>
                       </Typography>
                       <FormTextField
@@ -653,7 +610,7 @@ const FlashcardForm = ({ open, onClose, flashcard = null, onSuccess }) => {
                         onChange={(e) => handleInputChange('back_text', e.target.value)}
                         error={!!errors.back_text}
                         helperText={errors.back_text}
-                        placeholder="أدخل النص الذي سيظهر على الوجه الخلفي للبطاقة..."
+                        placeholder={t('enterBackSideText')}
                         sx={{ mb: 3 }}
                       />
 
@@ -667,7 +624,7 @@ const FlashcardForm = ({ open, onClose, flashcard = null, onSuccess }) => {
                         />
                         <label htmlFor="back-image-upload">
                           <FormButton variant="outlined" component="span" startIcon={<UploadIcon />} fullWidth>
-                            رفع صورة للوجه الخلفي
+                            {t('uploadBackImage')}
                           </FormButton>
                         </label>
                       </Box>
@@ -714,7 +671,7 @@ const FlashcardForm = ({ open, onClose, flashcard = null, onSuccess }) => {
           variant="outlined" 
           onClick={onClose}
         >
-          إلغاء
+          {t('cancel')}
         </FormButton>
         <FormButton 
           type="submit" 
@@ -723,7 +680,7 @@ const FlashcardForm = ({ open, onClose, flashcard = null, onSuccess }) => {
           startIcon={loading ? <CircularProgress size={20} /> : <SaveIcon />}
           onClick={handleSubmit}
         >
-          {loading ? 'جاري الحفظ...' : (flashcard ? 'تحديث البطاقة' : 'إنشاء البطاقة')}
+          {loading ? t('saving') : (flashcard ? t('updateFlashcard') : t('createFlashcard'))}
         </FormButton>
       </DialogActions>
     </Dialog>

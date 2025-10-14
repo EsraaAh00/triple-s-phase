@@ -116,6 +116,249 @@ class Assessment(models.Model):
         return sum(aq.marks_allocated for aq in self.assessment_questions.all())
 
 
+# Question Bank Product Model
+class QuestionBankProduct(models.Model):
+    """Product model for question banks - links existing courses with pricing"""
+    
+    STATUS_CHOICES = [
+        ('draft', _('Draft')),
+        ('published', _('Published')),
+        ('archived', _('Archived')),
+    ]
+    
+    title = models.CharField(max_length=255, verbose_name=_('Product Title'))
+    description = models.TextField(blank=True, null=True, verbose_name=_('Description'))
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft', verbose_name=_('Status'))
+    
+    # Link to existing course
+    course = models.ForeignKey(
+        'courses.Course', 
+        on_delete=models.CASCADE, 
+        related_name='question_bank_products',
+        verbose_name=_('Course')
+    )
+    
+    # Pricing
+    price = models.DecimalField(
+        max_digits=10, decimal_places=2, 
+        default=0.00, verbose_name=_('Price')
+    )
+    is_free = models.BooleanField(default=False, verbose_name=_('Is Free'))
+    
+    # Product details
+    image = models.ImageField(upload_to='question_bank_products/', blank=True, null=True, verbose_name=_('Product Image'))
+    tags = models.JSONField(
+        default=list, blank=True,
+        verbose_name=_('Tags'),
+        help_text=_('JSON array of tags for categorization')
+    )
+    
+    # Metadata
+    created_by = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name='created_question_bank_products',
+        verbose_name=_('Created By')
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Created At'))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_('Updated At'))
+    
+    class Meta:
+        verbose_name = _('Question Bank Product')
+        verbose_name_plural = _('Question Bank Products')
+        ordering = ['-created_at']
+        unique_together = ['course', 'created_by']
+    
+    def __str__(self):
+        return f"{self.title} - {self.course.title}"
+    
+    @property
+    def total_enrollments(self):
+        """Get total number of students enrolled in this product"""
+        return self.enrollments.count()
+    
+    @property
+    def chapters_count(self):
+        """Get the number of chapters in this product"""
+        return self.chapters.count()
+    
+    @property
+    def questions_count(self):
+        """Get the total number of questions in this product"""
+        return sum(chapter.questions_count for chapter in self.chapters.all())
+
+
+# Question Bank Product Enrollment Model
+class QuestionBankProductEnrollment(models.Model):
+    """Model for student enrollment in question bank products"""
+    
+    PAYMENT_STATUS_CHOICES = [
+        ('pending', _('Pending')),
+        ('paid', _('Paid')),
+        ('failed', _('Failed')),
+        ('refunded', _('Refunded')),
+    ]
+    
+    PAYMENT_METHOD_CHOICES = [
+        ('credit_card', _('Credit Card')),
+        ('bank_transfer', _('Bank Transfer')),
+        ('paypal', _('PayPal')),
+        ('stripe', _('Stripe')),
+        ('free', _('Free')),
+    ]
+    
+    student = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name='question_bank_enrollments',
+        verbose_name=_('Student')
+    )
+    product = models.ForeignKey(
+        QuestionBankProduct, 
+        on_delete=models.CASCADE, 
+        related_name='enrollments',
+        verbose_name=_('Question Bank Product')
+    )
+    enrolled_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Enrolled At'))
+    is_active = models.BooleanField(default=True, verbose_name=_('Is Active'))
+    
+    # Payment fields
+    amount_paid = models.DecimalField(
+        max_digits=10, decimal_places=2, 
+        default=0.00, verbose_name=_('Amount Paid')
+    )
+    payment_status = models.CharField(
+        max_length=20, choices=PAYMENT_STATUS_CHOICES, 
+        default='pending', verbose_name=_('Payment Status')
+    )
+    payment_method = models.CharField(
+        max_length=20, choices=PAYMENT_METHOD_CHOICES, 
+        default='free', verbose_name=_('Payment Method')
+    )
+    payment_date = models.DateTimeField(
+        blank=True, null=True, verbose_name=_('Payment Date')
+    )
+    transaction_id = models.CharField(
+        max_length=255, blank=True, null=True, 
+        verbose_name=_('Transaction ID')
+    )
+    payment_reference = models.CharField(
+        max_length=255, blank=True, null=True, 
+        verbose_name=_('Payment Reference')
+    )
+    
+    class Meta:
+        verbose_name = _('Question Bank Product Enrollment')
+        verbose_name_plural = _('Question Bank Product Enrollments')
+        unique_together = ['student', 'product']
+        ordering = ['-enrolled_at']
+    
+    def __str__(self):
+        return f"{self.student.get_full_name()} - {self.product.title}"
+    
+    def is_paid(self):
+        """Check if the enrollment is paid"""
+        return self.payment_status == 'paid'
+    
+    def is_free(self):
+        """Check if the enrollment is free"""
+        return self.payment_method == 'free' or self.amount_paid == 0
+    
+    def get_payment_display(self):
+        """Get formatted payment information"""
+        if self.is_free():
+            return "مجاني"
+        return f"{self.amount_paid} ريال - {self.get_payment_status_display()}"
+
+
+# Question Bank Chapter Model
+class QuestionBankChapter(models.Model):
+    """Chapters for organizing questions within a question bank product"""
+    
+    title = models.CharField(max_length=255, verbose_name=_('Chapter Title'))
+    description = models.TextField(blank=True, null=True, verbose_name=_('Description'))
+    order = models.PositiveIntegerField(default=0, verbose_name=_('Order'))
+    
+    # Relationship to product instead of course
+    product = models.ForeignKey(
+        QuestionBankProduct, 
+        on_delete=models.CASCADE, 
+        related_name='chapters',
+        verbose_name=_('Question Bank Product'),
+        blank=True, null=True  # Make optional for migration
+    )
+    
+    # Metadata
+    created_by = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name='created_question_bank_chapters',
+        verbose_name=_('Created By')
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Created At'))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_('Updated At'))
+    
+    class Meta:
+        verbose_name = _('Question Bank Chapter')
+        verbose_name_plural = _('Question Bank Chapters')
+        ordering = ['product', 'order', 'title']
+        unique_together = ['product', 'order']
+    
+    def __str__(self):
+        return f"{self.product.title} - {self.title}"
+    
+    @property
+    def topics_count(self):
+        """Get the number of topics in this chapter"""
+        return self.topics.count()
+    
+    @property
+    def questions_count(self):
+        """Get the total number of questions in this chapter"""
+        return sum(topic.questions.count() for topic in self.topics.all())
+
+
+# Question Bank Topic Model
+class QuestionBankTopic(models.Model):
+    """Topics for organizing questions within question bank chapters"""
+    
+    title = models.CharField(max_length=255, verbose_name=_('Topic Title'))
+    description = models.TextField(blank=True, null=True, verbose_name=_('Description'))
+    order = models.PositiveIntegerField(default=0, verbose_name=_('Order'))
+    
+    # Relationship to chapter
+    chapter = models.ForeignKey(
+        QuestionBankChapter, 
+        on_delete=models.CASCADE, 
+        related_name='topics',
+        verbose_name=_('Chapter')
+    )
+    
+    # Metadata
+    created_by = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name='created_question_bank_topics',
+        verbose_name=_('Created By')
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Created At'))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_('Updated At'))
+    
+    class Meta:
+        verbose_name = _('Question Bank Topic')
+        verbose_name_plural = _('Question Bank Topics')
+        ordering = ['chapter', 'order', 'title']
+        unique_together = ['chapter', 'order']
+    
+    def __str__(self):
+        return f"{self.chapter.title} - {self.title}"
+    
+    @property
+    def questions_count(self):
+        """Get the number of questions in this topic"""
+        return self.questions.count()
+
+
 class QuestionBank(models.Model):
     """Question bank for reusable questions across assessments"""
     
@@ -160,15 +403,24 @@ class QuestionBank(models.Model):
     audio = models.FileField(upload_to='questions/audio/', blank=True, null=True, verbose_name=_('Question Audio'))
     video = models.FileField(upload_to='questions/video/', blank=True, null=True, verbose_name=_('Question Video'))
     
-    # Relationships
-    lesson = models.ForeignKey(
-        'content.Lesson', 
+    # Relationships - Updated to use product and topic
+    product = models.ForeignKey(
+        QuestionBankProduct, 
         on_delete=models.CASCADE, 
         related_name='questions',
-        verbose_name=_('Lesson'),
-        help_text=_('The lesson this question belongs to'),
+        verbose_name=_('Question Bank Product'),
+        help_text=_('The product this question belongs to'),
+        blank=True, null=True  # Make optional for migration
+    )
+    topic = models.ForeignKey(
+        QuestionBankTopic, 
+        on_delete=models.CASCADE, 
+        related_name='questions',
+        verbose_name=_('Topic'),
+        help_text=_('The topic this question belongs to'),
         blank=True, null=True
     )
+    
     
     # Metadata
     created_by = models.ForeignKey(
@@ -200,6 +452,10 @@ class QuestionBank(models.Model):
                     raise ValidationError(_('MCQ questions must have at least 2 options.'))
             except (json.JSONDecodeError, TypeError):
                 raise ValidationError(_('Invalid options format for MCQ question.'))
+        
+        # Ensure topic belongs to the same course
+        if self.topic and self.course and self.topic.chapter.course != self.course:
+            raise ValidationError(_('Topic must belong to the same course.'))
     
     @property
     def is_mcq(self):
@@ -216,14 +472,10 @@ class QuestionBank(models.Model):
         return []
     
     @property
-    def course(self):
-        """Get the course through the lesson"""
-        return self.lesson.module.course if self.lesson and self.lesson.module else None
+    def chapter(self):
+        """Get the chapter through the topic"""
+        return self.topic.chapter if self.topic else None
     
-    @property
-    def module(self):
-        """Get the module through the lesson"""
-        return self.lesson.module if self.lesson else None
 
 
 class AssessmentQuestions(models.Model):
@@ -410,6 +662,249 @@ class StudentAnswer(models.Model):
         self.save()
 
 
+# Flashcard Product Model
+class FlashcardProduct(models.Model):
+    """Product model for flashcards - links existing courses with pricing"""
+    
+    STATUS_CHOICES = [
+        ('draft', _('Draft')),
+        ('published', _('Published')),
+        ('archived', _('Archived')),
+    ]
+    
+    title = models.CharField(max_length=255, verbose_name=_('Product Title'))
+    description = models.TextField(blank=True, null=True, verbose_name=_('Description'))
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft', verbose_name=_('Status'))
+    
+    # Link to existing course
+    course = models.ForeignKey(
+        'courses.Course', 
+        on_delete=models.CASCADE, 
+        related_name='flashcard_products',
+        verbose_name=_('Course')
+    )
+    
+    # Pricing
+    price = models.DecimalField(
+        max_digits=10, decimal_places=2, 
+        default=0.00, verbose_name=_('Price')
+    )
+    is_free = models.BooleanField(default=False, verbose_name=_('Is Free'))
+    
+    # Product details
+    image = models.ImageField(upload_to='flashcard_products/', blank=True, null=True, verbose_name=_('Product Image'))
+    tags = models.JSONField(
+        default=list, blank=True,
+        verbose_name=_('Tags'),
+        help_text=_('JSON array of tags for categorization')
+    )
+    
+    # Metadata
+    created_by = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name='created_flashcard_products',
+        verbose_name=_('Created By')
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Created At'))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_('Updated At'))
+    
+    class Meta:
+        verbose_name = _('Flashcard Product')
+        verbose_name_plural = _('Flashcard Products')
+        ordering = ['-created_at']
+        unique_together = ['course', 'created_by']
+    
+    def __str__(self):
+        return f"{self.title} - {self.course.title}"
+    
+    @property
+    def total_enrollments(self):
+        """Get total number of students enrolled in this product"""
+        return self.enrollments.count()
+    
+    @property
+    def chapters_count(self):
+        """Get the number of chapters in this product"""
+        return self.chapters.count()
+    
+    @property
+    def flashcards_count(self):
+        """Get the total number of flashcards in this product"""
+        return sum(chapter.flashcards_count for chapter in self.chapters.all())
+
+
+# Flashcard Product Enrollment Model
+class FlashcardProductEnrollment(models.Model):
+    """Model for student enrollment in flashcard products"""
+    
+    PAYMENT_STATUS_CHOICES = [
+        ('pending', _('Pending')),
+        ('paid', _('Paid')),
+        ('failed', _('Failed')),
+        ('refunded', _('Refunded')),
+    ]
+    
+    PAYMENT_METHOD_CHOICES = [
+        ('credit_card', _('Credit Card')),
+        ('bank_transfer', _('Bank Transfer')),
+        ('paypal', _('PayPal')),
+        ('stripe', _('Stripe')),
+        ('free', _('Free')),
+    ]
+    
+    student = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name='flashcard_enrollments',
+        verbose_name=_('Student')
+    )
+    product = models.ForeignKey(
+        FlashcardProduct, 
+        on_delete=models.CASCADE, 
+        related_name='enrollments',
+        verbose_name=_('Flashcard Product')
+    )
+    enrolled_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Enrolled At'))
+    is_active = models.BooleanField(default=True, verbose_name=_('Is Active'))
+    
+    # Payment fields
+    amount_paid = models.DecimalField(
+        max_digits=10, decimal_places=2, 
+        default=0.00, verbose_name=_('Amount Paid')
+    )
+    payment_status = models.CharField(
+        max_length=20, choices=PAYMENT_STATUS_CHOICES, 
+        default='pending', verbose_name=_('Payment Status')
+    )
+    payment_method = models.CharField(
+        max_length=20, choices=PAYMENT_METHOD_CHOICES, 
+        default='free', verbose_name=_('Payment Method')
+    )
+    payment_date = models.DateTimeField(
+        blank=True, null=True, verbose_name=_('Payment Date')
+    )
+    transaction_id = models.CharField(
+        max_length=255, blank=True, null=True, 
+        verbose_name=_('Transaction ID')
+    )
+    payment_reference = models.CharField(
+        max_length=255, blank=True, null=True, 
+        verbose_name=_('Payment Reference')
+    )
+    
+    class Meta:
+        verbose_name = _('Flashcard Product Enrollment')
+        verbose_name_plural = _('Flashcard Product Enrollments')
+        unique_together = ['student', 'product']
+        ordering = ['-enrolled_at']
+    
+    def __str__(self):
+        return f"{self.student.get_full_name()} - {self.product.title}"
+    
+    def is_paid(self):
+        """Check if the enrollment is paid"""
+        return self.payment_status == 'paid'
+    
+    def is_free(self):
+        """Check if the enrollment is free"""
+        return self.payment_method == 'free' or self.amount_paid == 0
+    
+    def get_payment_display(self):
+        """Get formatted payment information"""
+        if self.is_free():
+            return "مجاني"
+        return f"{self.amount_paid} ريال - {self.get_payment_status_display()}"
+
+
+# Flashcard Chapter Model
+class FlashcardChapter(models.Model):
+    """Chapters for organizing flashcards within a flashcard product"""
+    
+    title = models.CharField(max_length=255, verbose_name=_('Chapter Title'))
+    description = models.TextField(blank=True, null=True, verbose_name=_('Description'))
+    order = models.PositiveIntegerField(default=0, verbose_name=_('Order'))
+    
+    # Relationship to product instead of course
+    product = models.ForeignKey(
+        FlashcardProduct, 
+        on_delete=models.CASCADE, 
+        related_name='chapters',
+        verbose_name=_('Flashcard Product'),
+        blank=True, null=True  # Make optional for migration
+    )
+    
+    # Metadata
+    created_by = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name='created_flashcard_chapters',
+        verbose_name=_('Created By')
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Created At'))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_('Updated At'))
+    
+    class Meta:
+        verbose_name = _('Flashcard Chapter')
+        verbose_name_plural = _('Flashcard Chapters')
+        ordering = ['product', 'order', 'title']
+        unique_together = ['product', 'order']
+    
+    def __str__(self):
+        return f"{self.product.title} - {self.title}"
+    
+    @property
+    def topics_count(self):
+        """Get the number of topics in this chapter"""
+        return self.topics.count()
+    
+    @property
+    def flashcards_count(self):
+        """Get the total number of flashcards in this chapter"""
+        return sum(topic.flashcards.count() for topic in self.topics.all())
+
+
+# Flashcard Topic Model
+class FlashcardTopic(models.Model):
+    """Topics for organizing flashcards within flashcard chapters"""
+    
+    title = models.CharField(max_length=255, verbose_name=_('Topic Title'))
+    description = models.TextField(blank=True, null=True, verbose_name=_('Description'))
+    order = models.PositiveIntegerField(default=0, verbose_name=_('Order'))
+    
+    # Relationship to chapter
+    chapter = models.ForeignKey(
+        FlashcardChapter, 
+        on_delete=models.CASCADE, 
+        related_name='topics',
+        verbose_name=_('Chapter')
+    )
+    
+    # Metadata
+    created_by = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name='created_flashcard_topics',
+        verbose_name=_('Created By')
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Created At'))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_('Updated At'))
+    
+    class Meta:
+        verbose_name = _('Flashcard Topic')
+        verbose_name_plural = _('Flashcard Topics')
+        ordering = ['chapter', 'order', 'title']
+        unique_together = ['chapter', 'order']
+    
+    def __str__(self):
+        return f"{self.chapter.title} - {self.title}"
+    
+    @property
+    def flashcards_count(self):
+        """Get the number of flashcards in this topic"""
+        return self.flashcards.count()
+
+
 class Flashcard(models.Model):
     """Specialized model for flashcards (optional)"""
     
@@ -422,14 +917,25 @@ class Flashcard(models.Model):
         related_name='flashcards',
         verbose_name=_('Related Question')
     )
-    lesson = models.ForeignKey(
-        'content.Lesson', 
+    
+    # Relationships - Updated to use product and topic
+    product = models.ForeignKey(
+        FlashcardProduct, 
         on_delete=models.CASCADE, 
         related_name='flashcards',
-        verbose_name=_('Lesson'),
-        help_text=_('The lesson this flashcard belongs to'),
+        verbose_name=_('Flashcard Product'),
+        help_text=_('The product this flashcard belongs to'),
+        blank=True, null=True  # Make optional for migration
+    )
+    topic = models.ForeignKey(
+        FlashcardTopic, 
+        on_delete=models.CASCADE, 
+        related_name='flashcards',
+        verbose_name=_('Topic'),
+        help_text=_('The topic this flashcard belongs to'),
         blank=True, null=True
     )
+    
     
     # Tags for categorization
     tags = models.JSONField(
@@ -460,15 +966,17 @@ class Flashcard(models.Model):
     def __str__(self):
         return f"{self.front_text[:30]}..."
     
-    @property
-    def course(self):
-        """Get the course through the lesson"""
-        return self.lesson.module.course if self.lesson and self.lesson.module else None
+    def clean(self):
+        super().clean()
+        # Ensure topic belongs to the same course
+        if self.topic and self.course and self.topic.chapter.course != self.course:
+            raise ValidationError(_('Topic must belong to the same course.'))
     
     @property
-    def module(self):
-        """Get the module through the lesson"""
-        return self.lesson.module if self.lesson else None
+    def chapter(self):
+        """Get the chapter through the topic"""
+        return self.topic.chapter if self.topic else None
+    
 
 
 class StudentFlashcardProgress(models.Model):

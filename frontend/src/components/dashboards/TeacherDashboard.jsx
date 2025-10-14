@@ -95,14 +95,16 @@ const TeacherDashboard = () => {
         progressData,
         activityData,
         announcementsData,
-        questionBankStats
+        questionBankStats,
+        flashcardsStats
       ] = await Promise.all([
         dashboardService.getTeacherStats(),
         dashboardService.getTeacherCourses(),
         dashboardService.getStudentProgress(),
         dashboardService.getRecentActivity(),
         dashboardService.getRecentAnnouncements(),
-        dashboardService.getQuestionBankStats()
+        dashboardService.getQuestionBankStats(),
+        dashboardService.getFlashcardsStats()
       ]);
 
       // {t('dashboardUpdatingRealData')}
@@ -114,7 +116,8 @@ const TeacherDashboard = () => {
         pendingAssignments: statsData.pendingAssignments || 0,
         upcomingMeetings: statsData.upcomingMeetings || 0,
         recentEnrollments: statsData.recentEnrollments || 0,
-        totalQuestions: questionBankStats?.total_questions || 0
+        totalQuestions: questionBankStats?.total_questions || 0,
+        totalFlashcards: flashcardsStats?.total_flashcards || 0
       });
 
       setCourses(coursesData || []);
