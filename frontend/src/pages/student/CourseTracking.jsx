@@ -2131,7 +2131,7 @@ const CourseTracking = () => {
           </Box>
           {/* Course Information */}
           {isSidebarExpanded && (
-            <Box sx={{ mb: 2.5 }}>
+            <Box sx={{}}>
               <Typography variant="body2" sx={{
                 color: 'rgba(255,255,255,0.7)',
                 fontSize: '0.7rem',
@@ -2155,7 +2155,7 @@ const CourseTracking = () => {
           )}
           {/* Progress Section */}
           {isSidebarExpanded && (
-            <Box sx={{ mb: 2.5 }}>
+            <Box sx={{}}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.25 }}>
                 <Typography variant="body2" sx={{
                   color: 'white',
