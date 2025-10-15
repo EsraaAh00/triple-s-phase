@@ -390,7 +390,7 @@ const VideoPlayer = ({ url, playing, onPlay, onPause, onProgress, onDuration, wi
             height: '100%',
             border: 'none',
             backgroundColor: '#000',
-            padding: '100px'
+            padding: '20px'
           }}
           allowFullScreen
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -800,9 +800,9 @@ const VideoPlayer = ({ url, playing, onPlay, onPause, onProgress, onDuration, wi
           width: '100%',
           height: '100%',
           backgroundColor: '#000',
-          objectFit: 'cover', // Ensures video covers the entire container
+          objectFit: 'contain', // Ensures video fits within container while maintaining aspect ratio
           objectPosition: 'center', // Centers the video within the container
-          padding: '100px',
+          padding: '20px',
           ...style
         }}
         controls
@@ -2446,7 +2446,7 @@ const CourseTracking = () => {
               left: 0,
               right: 0,
               zIndex: 10,
-              p: 3,
+              p: 2,
               background: 'linear-gradient(135deg, rgba(102, 51, 153, 0.95) 0%, rgba(51, 54, 121, 0.95) 50%, rgba(27, 27, 72, 0.95) 100%)',
               backdropFilter: 'blur(10px)',
               borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
@@ -2491,10 +2491,10 @@ const CourseTracking = () => {
             {currentLesson ? (
               <Box sx={{
                 position: 'absolute',
-                top: 80,
+                top: 60,
                 left: 0,
                 right: 0,
-                bottom: 80,
+                bottom: 60,
                 zIndex: 5
               }}>
                 <VideoPlayer
@@ -2514,10 +2514,10 @@ const CourseTracking = () => {
             ) : (
               <Box sx={{
                 position: 'absolute',
-                top: 80,
+                top: 60,
                 left: 0,
                 right: 0,
-                bottom: 80,
+                bottom: 60,
                 zIndex: 5,
                 display: 'flex',
                 alignItems: 'center',
@@ -2545,7 +2545,7 @@ const CourseTracking = () => {
             bottom: 0,
             left: 0,
             right: 0,
-            p: 3,
+            p: 2,
             background: 'linear-gradient(135deg, rgba(102, 51, 153, 0.95) 0%, rgba(51, 54, 121, 0.95) 50%, rgba(27, 27, 72, 0.95) 100%)',
             backdropFilter: 'blur(10px)',
             borderTop: '1px solid rgba(255, 255, 255, 0.1)',
