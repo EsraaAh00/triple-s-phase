@@ -164,7 +164,6 @@ const processFileUrl = (fileUrl) => {
     return null;
   }
 };
-
 // Helper function to get file icon based on extension
 const getFileIcon = (fileName, extension) => {
   const iconProps = { sx: { fontSize: 48, color: '#757575' } };
@@ -211,7 +210,6 @@ const getFileIcon = (fileName, extension) => {
       return <InsertDriveFile {...iconProps} />;
   }
 };
-
 // Simple video player component to replace ReactPlayer
 const VideoPlayer = ({ url, playing, onPlay, onPause, onProgress, onDuration, width, height, style, lessonData, previewResource }) => {
   const videoRef = React.useRef(null);
@@ -2171,19 +2169,6 @@ const CourseTracking = () => {
                     return moduleStats ? `${moduleStats.moduleTitle} - الدروس المكتملة` : 'الدروس المكتملة';
                   })()}
                 </Typography>
-                <IconButton size="small" sx={{
-                  color: 'white',
-                  p: 0.4,
-                  width: 18,
-                  height: 18,
-                  bgcolor: 'rgba(255,255,255,0.15)',
-                  borderRadius: '50%',
-                  '&:hover': {
-                    bgcolor: 'rgba(255,255,255,0.25)',
-                  }
-                }}>
-                  <Settings sx={{ fontSize: 10 }} />
-                </IconButton>
               </Box>
               {(() => {
                 // Get stats for selected module or overall course
@@ -2302,44 +2287,6 @@ const CourseTracking = () => {
               >
                 {selectedModuleId ? 'Show All Lessons' : 'Show Selected Module Only'}
               </Button>
-            </Box>
-          )}
-          {/* Search Bar */}
-          {isSidebarExpanded && (
-            <Box sx={{ mb: 2 }}>
-              <TextField
-                placeholder="Search..."
-                variant="outlined"
-                size="small"
-                fullWidth
-                InputProps={{
-                  startAdornment: <Search sx={{ color: 'rgba(255,255,255,0.6)', mr: 0.75, fontSize: 14 }} />,
-                  sx: {
-                    '& .MuiOutlinedInput-root': {
-                      bgcolor: 'rgba(255,255,255,0.1)',
-                      borderRadius: 1.25,
-                      '& fieldset': {
-                        borderColor: 'rgba(255,255,255,0.2)',
-                      },
-                      '&:hover fieldset': {
-                        borderColor: 'rgba(255,255,255,0.3)',
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: 'rgba(255,255,255,0.5)',
-                        borderWidth: 1,
-                      },
-                    },
-                    '& .MuiInputBase-input': {
-                      color: 'white',
-                      fontSize: '0.7rem',
-                      '&::placeholder': {
-                        color: 'rgba(255,255,255,0.6)',
-                        opacity: 1,
-                      },
-                    },
-                  }
-                }}
-              />
             </Box>
           )}
           {/* Scrollable Content */}
