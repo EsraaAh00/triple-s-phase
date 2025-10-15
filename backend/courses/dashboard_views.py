@@ -358,9 +358,9 @@ def student_dashboard_stats(request):
         # )
         submissions = []  # Temporary empty list
         avg_grade = 0
-        if submissions.exists():
+        if submissions:  # Fixed: check if list is not empty
             total_score = sum(submission.total_score or 0 for submission in submissions)
-            avg_grade = total_score / submissions.count()
+            avg_grade = total_score / len(submissions)  # Fixed: use len() instead of count()
         
         # النقاط الإجمالية - حساب حقيقي
         total_points = sum(submission.total_score or 0 for submission in submissions)

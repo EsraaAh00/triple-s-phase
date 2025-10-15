@@ -560,36 +560,34 @@ class CourseQuestionBankViewSet(ModelViewSet):
                     'error': 'ليس لديك صلاحية للوصول إلى هذا الكورس'
                 }, status=status.HTTP_403_FORBIDDEN)
             
-            # Get all questions for all lessons in this course
+            # Get all questions for this course (updated for new model structure)
+            # Note: Questions are now linked to products/topics, not directly to lessons
             questions = QuestionBank.objects.filter(
-                lesson__module__course=course,
-                lesson__is_active=True,
-                lesson__module__is_active=True
-            ).select_related('lesson', 'lesson__module').order_by('lesson__module__order', 'lesson__order', 'id')
+                product__course=course,
+                product__status='published'
+            ).select_related('product', 'topic').order_by('product__title', 'topic__title', 'id')
             
-            # Group questions by modules
-            modules_data = {}
+            # Group questions by products and topics (updated for new model structure)
+            products_data = {}
             for question in questions:
-                if question.lesson and question.lesson.module:
-                    module_id = question.lesson.module.id
-                    module_name = question.lesson.module.name
+                if question.product and question.topic:
+                    product_id = question.product.id
+                    product_title = question.product.title
                     
-                    if module_id not in modules_data:
-                        modules_data[module_id] = {
-                            'id': module_id,
-                            'name': module_name,
-                            'order': question.lesson.module.order,
-                            'lessons': {}
+                    if product_id not in products_data:
+                        products_data[product_id] = {
+                            'id': product_id,
+                            'title': product_title,
+                            'topics': {}
                         }
                     
-                    lesson_id = question.lesson.id
-                    lesson_title = question.lesson.title
+                    topic_id = question.topic.id
+                    topic_title = question.topic.title
                     
-                    if lesson_id not in modules_data[module_id]['lessons']:
-                        modules_data[module_id]['lessons'][lesson_id] = {
-                            'id': lesson_id,
-                            'title': lesson_title,
-                            'order': question.lesson.order,
+                    if topic_id not in products_data[product_id]['topics']:
+                        products_data[product_id]['topics'][topic_id] = {
+                            'id': topic_id,
+                            'title': topic_title,
                             'questions': []
                         }
                     
@@ -603,22 +601,22 @@ class CourseQuestionBankViewSet(ModelViewSet):
                         'explanation': question.explanation,
                         'tags': question.tags
                     }
-                    modules_data[module_id]['lessons'][lesson_id]['questions'].append(question_data)
+                    products_data[product_id]['topics'][topic_id]['questions'].append(question_data)
             
             # Convert to list format
-            modules_list = []
-            for module in sorted(modules_data.values(), key=lambda x: x['order']):
-                module['lessons'] = list(module['lessons'].values())
-                modules_list.append(module)
+            products_list = []
+            for product in sorted(products_data.values(), key=lambda x: x['title']):
+                product['topics'] = list(product['topics'].values())
+                products_list.append(product)
             
             return Response({
-                'modules': modules_list,
+                'products': products_list,
                 'course': {
                     'id': course.id,
                     'title': course.title,
                     'description': course.description
                 },
-                'total_questions': sum(len(lesson['questions']) for module in modules_list for lesson in module['lessons'])
+                'total_questions': sum(len(topic['questions']) for product in products_list for topic in product['topics'])
             })
             
         except Course.DoesNotExist:
@@ -660,43 +658,34 @@ class CourseFlashcardsViewSet(ModelViewSet):
                     'error': 'ليس لديك صلاحية للوصول إلى هذا الكورس'
                 }, status=status.HTTP_403_FORBIDDEN)
             
-            # Get all flashcards for all lessons in this course
+            # Get all flashcards for this course (updated for new model structure)
+            # Note: Flashcards are now linked to products/topics, not directly to lessons
             flashcards = Flashcard.objects.filter(
-                lesson__module__course=course,
-                lesson__is_active=True,
-                lesson__module__is_active=True
-            ).select_related(
-                'lesson', 
-                'lesson__module'
-            ).order_by(
-                'lesson__module__order', 
-                'lesson__order', 
-                'id'
-            )
+                product__course=course,
+                product__status='published'
+            ).select_related('product', 'topic').order_by('product__title', 'topic__title', 'id')
             
-            # Group flashcards by modules
-            modules_data = {}
+            # Group flashcards by products and topics (updated for new model structure)
+            products_data = {}
             for flashcard in flashcards:
-                if flashcard.lesson and flashcard.lesson.module:
-                    module_id = flashcard.lesson.module.id
-                    module_name = flashcard.lesson.module.name
+                if flashcard.product and flashcard.topic:
+                    product_id = flashcard.product.id
+                    product_title = flashcard.product.title
                     
-                    if module_id not in modules_data:
-                        modules_data[module_id] = {
-                            'id': module_id,
-                            'name': module_name,
-                            'order': flashcard.lesson.module.order,
-                            'lessons': {}
+                    if product_id not in products_data:
+                        products_data[product_id] = {
+                            'id': product_id,
+                            'title': product_title,
+                            'topics': {}
                         }
                     
-                    lesson_id = flashcard.lesson.id
-                    lesson_title = flashcard.lesson.title
+                    topic_id = flashcard.topic.id
+                    topic_title = flashcard.topic.title
                     
-                    if lesson_id not in modules_data[module_id]['lessons']:
-                        modules_data[module_id]['lessons'][lesson_id] = {
-                            'id': lesson_id,
-                            'title': lesson_title,
-                            'order': flashcard.lesson.order,
+                    if topic_id not in products_data[product_id]['topics']:
+                        products_data[product_id]['topics'][topic_id] = {
+                            'id': topic_id,
+                            'title': topic_title,
                             'flashcards': []
                         }
                     
@@ -706,24 +695,24 @@ class CourseFlashcardsViewSet(ModelViewSet):
                         'back': flashcard.back_text,
                         'front_image': flashcard.front_image.url if flashcard.front_image else None,
                         'back_image': flashcard.back_image.url if flashcard.back_image else None,
-                        'category': module_name
+                        'category': product_title
                     }
-                    modules_data[module_id]['lessons'][lesson_id]['flashcards'].append(flashcard_data)
+                    products_data[product_id]['topics'][topic_id]['flashcards'].append(flashcard_data)
             
             # Convert to list format
-            modules_list = []
-            for module in sorted(modules_data.values(), key=lambda x: x['order']):
-                module['lessons'] = list(module['lessons'].values())
-                modules_list.append(module)
+            products_list = []
+            for product in sorted(products_data.values(), key=lambda x: x['title']):
+                product['topics'] = list(product['topics'].values())
+                products_list.append(product)
             
             return Response({
-                'modules': modules_list,
+                'products': products_list,
                 'course': {
                     'id': course.id,
                     'title': course.title,
                     'description': course.description
                 },
-                'total_flashcards': sum(len(lesson['flashcards']) for module in modules_list for lesson in module['lessons'])
+                'total_flashcards': sum(len(topic['flashcards']) for product in products_list for topic in product['topics'])
             })
             
         except Course.DoesNotExist:
