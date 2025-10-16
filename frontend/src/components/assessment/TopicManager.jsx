@@ -35,7 +35,7 @@ import { useTranslation } from 'react-i18next';
 import assessmentAPI from '../../services/assessment.service';
 
 const TopicManager = ({ chapter, type, onTopicSelect, onNotification }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [topics, setTopics] = useState([]);
   const [loading, setLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -202,7 +202,12 @@ const TopicManager = ({ chapter, type, onTopicSelect, onNotification }) => {
   return (
     <Box>
       {/* Floating Add Button */}
-      <Box sx={{ position: 'fixed', top: 100, left: 32, zIndex: 1200 }}>
+      <Box sx={{ 
+        position: 'fixed', 
+        top: 100, 
+        [i18n.language === 'en' ? 'right' : 'left']: 32, 
+        zIndex: 1200 
+      }}>
         <IconButton
           onClick={handleAddTopic}
           sx={{

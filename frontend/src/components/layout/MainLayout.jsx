@@ -29,20 +29,29 @@ import {
   Article as ArticleIcon,
   Psychology as PsychologyIcon,
   ExpandMore as ExpandMoreIcon,
-  ExpandLess as ExpandLessIcon
+  ExpandLess as ExpandLessIcon,
+  Language as LanguageIcon,
+  Style as FlashcardsIcon,
+  Quiz as QBIcon,
+  Assessment as PerformanceIcon,
+  Pause as FreezeIcon,
+  Help as FAQsIcon,
+  RateReview as ReviewIcon,
+  ContactSupport as ContactUsIcon
 } from '@mui/icons-material';
 import { courseAPI } from '../../services/courseService';
+import { contentAPI } from '../../services/content.service';
 
 const drawerWidth = {
-  xs: 280,
-  sm: 300,
-  md: 320,
-  lg: 340,
-  xl: 360,
+  xs: 180,
+  sm: 200,
+  md: 220,
+  lg: 240,
+  xl: 260,
 };
 
 const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -64,7 +73,14 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
   const studentNavItems = [
     { text: t('navHome'), icon: <HomeIcon />, path: '/', exact: true },
     { text: t('navDashboard'), icon: <DashboardIcon />, path: '/student/dashboard' },
-    { text: t('navMyCourses'), icon: <ClassIcon />, path: '/student/my-courses', isDropdown: true },
+    // Courses will be dynamically added below
+    { text: 'Flashcards', icon: <FlashcardsIcon /> },
+    { text: 'Q.B', icon: <QBIcon /> },
+    { text: 'Performance', icon: <PerformanceIcon /> },
+    { text: 'Freeze', icon: <FreezeIcon /> },
+    { text: 'FAQs', icon: <FAQsIcon /> },
+    { text: 'Review', icon: <ReviewIcon /> },
+    { text: 'Contact us', icon: <ContactUsIcon /> },
     // { text: t('navMyMeetings'), icon: <VideoCallIcon />, path: '/student/meetings' },
     { text: t('navSettings'), icon: <SettingsIcon />, path: '/student/settings' },
   ];
@@ -79,8 +95,10 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
   
   const [myCourses, setMyCourses] = useState([]);
   const [coursesDropdownOpen, setCoursesDropdownOpen] = useState(false);
+  const [courseDropdowns, setCourseDropdowns] = useState({});
   const [loadingCourses, setLoadingCourses] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [currentLanguage, setCurrentLanguage] = useState(i18n.language || 'en');
 
   // Sample notifications data
   const notifications = [
@@ -134,14 +152,52 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
     handleMenuClose();
   };
 
+  const handleLanguageChange = () => {
+    const newLang = currentLanguage === 'en' ? 'ar' : 'en';
+    setCurrentLanguage(newLang);
+    i18n.changeLanguage(newLang);
+    // Update document direction for RTL support
+    document.documentElement.dir = newLang === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.lang = newLang;
+  };
+
   // Handle courses dropdown toggle
   const handleCoursesDropdownToggle = () => {
     console.log('Courses dropdown toggled:', !coursesDropdownOpen);
     setCoursesDropdownOpen(!coursesDropdownOpen);
   };
 
+  const handleCourseDropdownToggle = (courseId) => {
+    setCourseDropdowns(prev => ({
+      ...prev,
+      [courseId]: !prev[courseId]
+    }));
+  };
+
   // No filtering needed anymore - show all courses
   const filteredCourses = myCourses;
+
+  // Initialize language state and set document direction
+  useEffect(() => {
+    const currentLang = i18n.language || 'en';
+    setCurrentLanguage(currentLang);
+    document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.lang = currentLang;
+  }, [i18n.language]);
+
+  // Listen for language changes
+  useEffect(() => {
+    const handleLanguageChange = (lng) => {
+      setCurrentLanguage(lng);
+      document.documentElement.dir = lng === 'ar' ? 'rtl' : 'ltr';
+      document.documentElement.lang = lng;
+    };
+
+    i18n.on('languageChanged', handleLanguageChange);
+    return () => {
+      i18n.off('languageChanged', handleLanguageChange);
+    };
+  }, [i18n]);
 
   // Fetch my courses on component mount
   useEffect(() => {
@@ -153,10 +209,34 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
           const coursesData = await courseAPI.getMyCourses();
           console.log('My courses data:', coursesData);
           // The API returns an array of courses directly
-          const coursesArray = Array.isArray(coursesData) ? coursesData : [];
-          console.log('Courses array:', coursesArray);
-          setMyCourses(coursesArray);
-          setLoadingCourses(false);
+            const coursesArray = Array.isArray(coursesData) ? coursesData : [];
+            console.log('Courses array:', coursesArray);
+           
+            // Fetch modules for each course
+            const coursesWithModules = await Promise.all(
+              coursesArray.map(async (course) => {
+                try {
+                  const modulesResponse = await contentAPI.getCourseModulesWithLessons(course.id);
+                  console.log(`Modules response for course ${course.id}:`, modulesResponse);
+                  // Extract modules from response - could be direct array or nested under 'modules' property
+                  const modulesData = Array.isArray(modulesResponse) ? modulesResponse : (modulesResponse?.modules || []);
+                  console.log(`Extracted modules for course ${course.id}:`, modulesData);
+                  return {
+                    ...course,
+                    modules: modulesData
+                  };
+                } catch (error) {
+                  console.error(`Error fetching modules for course ${course.id}:`, error);
+                  return {
+                    ...course,
+                    modules: []
+                  };
+                }
+              })
+            );
+           
+            setMyCourses(coursesWithModules);
+            setLoadingCourses(false);
         }
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -195,7 +275,20 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
         return teacherNavItems;
       case 'student':
       default:
-        return studentNavItems;
+        // Insert course items after Dashboard for students
+        const baseItems = [...studentNavItems];
+        if (filteredCourses.length > 0) {
+          const courseItems = filteredCourses.map(course => ({
+            text: course.title,
+            icon: <ClassIcon />,
+            path: `/student/my-courses?courseId=${course.id}`,
+            isCourseDropdown: true,
+            courseId: course.id
+          }));
+          // Insert course items after Dashboard (index 1)
+          baseItems.splice(2, 0, ...courseItems);
+        }
+        return baseItems;
     }
   };
   
@@ -213,9 +306,11 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
     <Box sx={{
       height: '100%',
       background: '#FFFFFF',
-      borderRadius: { xs: '16px', md: '24px 0 0 24px' },
+      borderRadius: currentLanguage === 'ar' 
+        ? { xs: '16px', md: '24px 0 0 24px' }
+        : { xs: '16px', md: '0 24px 24px 0' },
       boxShadow: '0 8px 32px 0 rgba(31,38,135,0.15)',
-      p: { xs: 1.5, sm: 2, md: 2.5 },
+      p: { xs: 1, sm: 1.5, md: 2 },
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
@@ -243,10 +338,10 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
         display: 'flex', 
         flexDirection: 'column', 
         alignItems: 'center', 
-        mb: { xs: 2, sm: 3 },
+        mb: { xs: 1.5, sm: 2 },
         background: 'linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%)', 
         borderRadius: { xs: 2, sm: 3 }, 
-        p: { xs: 1.5, sm: 2 }, 
+        p: { xs: 1, sm: 1.5 }, 
         boxShadow: '0 4px 12px 0 rgba(0,0,0,0.08)',
         border: '1px solid rgba(0,0,0,0.06)',
         width: '100%',
@@ -256,20 +351,21 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
           src={userData.avatar} 
           alt={userData.name}
           sx={{
-            width: { xs: 70, sm: 80, md: 90 }, 
-            height: { xs: 70, sm: 80, md: 90 }, 
-            mb: { xs: 1, sm: 1.5 }, 
-            border: { xs: '3px solid #e3f2fd', md: '4px solid #e3f2fd' }, 
+            width: { xs: 50, sm: 60, md: 70 }, 
+            height: { xs: 50, sm: 60, md: 70 }, 
+            mb: { xs: 0.5, sm: 1 }, 
+            border: { xs: '2px solid #e3f2fd', md: '3px solid #e3f2fd' }, 
             boxShadow: '0 4px 12px 0 rgba(0,0,0,0.12)'
           }}
         />
         <Typography 
           fontWeight={700}
           sx={{
-            fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
+            fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem' },
             textAlign: 'center',
             lineHeight: { xs: 1.3, sm: 1.2 },
-            mb: { xs: 0.5, sm: 1 }
+            mb: { xs: 0.3, sm: 0.5 },
+            direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
           }}
         >
           {userData.name}
@@ -278,80 +374,75 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
           variant="caption" 
           color="text.secondary"
           sx={{
-            fontSize: { xs: '0.7rem', sm: '0.75rem' },
+            fontSize: { xs: '0.65rem', sm: '0.7rem' },
             textAlign: 'center',
             lineHeight: { xs: 1.4, sm: 1.3 },
-            px: { xs: 1, sm: 0 }
+            px: { xs: 1, sm: 0 },
+            direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
           }}
         >
           {userData.description}
         </Typography>
       </Box>
-      <Divider sx={{ width: '100%', mb: 2 }} />
+      <Divider sx={{ width: '100%', mb: 1.5 }} />
       {/* Navigation */}
       <List sx={{ width: '100%' }}>
         {navItems.map((item) => {
           const active = isActive(item.path, item.exact);
           
-          // Special handling for courses dropdown (student only)
-          if (item.isDropdown && userRole === 'student') {
+          // Special handling for course dropdowns (student only)
+          if (item.isCourseDropdown && userRole === 'student') {
+            const course = filteredCourses.find(c => c.id === item.courseId);
+            const courseDropdownOpen = courseDropdowns[item.courseId] || false;
+            console.log('Course dropdown for:', item.text, 'Course data:', course);
+            console.log('Course modules:', course?.modules);
+            
             return (
-              <Box key={item.text} sx={{ mb: 1 }}>
+              <Box key={item.text} sx={{ mb: 0 }}>
                 <ListItemButton
-                  onClick={handleCoursesDropdownToggle}
+                  onClick={() => handleCourseDropdownToggle(item.courseId)}
                   sx={{
-                    borderRadius: { xs: 1.5, sm: 2 },
+                    borderRadius: 1,
                     color: active ? '#1976d2' : '#616161',
-                    background: active ? 'linear-gradient(90deg, rgba(25,118,210,0.1) 0%, #ffffff 100%)' : 'none',
-                    boxShadow: active ? '0 4px 12px 0 rgba(25,118,210,0.15)' : 'none',
-                    py: { xs: 1, sm: 1.5 },
-                    px: { xs: 1, sm: 2 },
-                    border: active ? '1px solid rgba(25,118,210,0.2)' : '1px solid transparent',
+                    background: active ? 'rgba(25,118,210,0.1)' : 'none',
+                    boxShadow: 'none',
+                    py: { xs: 0.4, sm: 0.5 },
+                    px: { xs: 0.6, sm: 0.8 },
+                    border: 'none',
+                    minHeight: { xs: 28, sm: 32 },
                     '&:hover': {
-                      background: 'linear-gradient(90deg, rgba(25,118,210,0.08) 0%, #ffffff 100%)',
+                      background: 'rgba(25,118,210,0.08)',
                       color: '#1976d2',
-                      border: '1px solid rgba(25,118,210,0.15)'
+                      borderRadius: 1
                     }
                   }}
                 >
                   <ListItemIcon sx={{
-                    minWidth: { xs: 32, sm: 36 },
+                    minWidth: { xs: 24, sm: 28 },
                     color: active ? '#1976d2' : '#9e9e9e',
-                    fontSize: { xs: 20, sm: 24 }
+                    fontSize: { xs: 16, sm: 18 }
                   }}>{item.icon}</ListItemIcon>
                   <ListItemText 
                     primary={item.text} 
                     sx={{ 
-                      fontWeight: 600,
+                      fontWeight: 500,
                       '& .MuiListItemText-primary': {
-                        fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem' }
+                        fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.8rem' }
                       }
                     }} 
                   />
-                  <Badge 
-                    badgeContent={filteredCourses.length} 
-                    color="primary" 
-                    sx={{ 
-                      mr: { xs: 0.5, sm: 1 },
-                      '& .MuiBadge-badge': {
-                        background: 'linear-gradient(45deg, #1976d2, #42a5f5)',
-                        fontSize: { xs: '8px', sm: '10px' },
-                        fontWeight: 700,
-                        width: { xs: 16, sm: 18 },
-                        height: { xs: 16, sm: 18 }
-                      }
-                    }} 
-                  />
-                  {coursesDropdownOpen ? 
+                  {courseDropdownOpen ? 
                     <ExpandLessIcon sx={{ fontSize: { xs: '1rem', sm: '1.2rem' } }} /> : 
                     <ExpandMoreIcon sx={{ fontSize: { xs: '1rem', sm: '1.2rem' } }} />
                   }
                 </ListItemButton>
                 
-                {/* Courses Dropdown */}
-                <Collapse in={coursesDropdownOpen} timeout="auto" unmountOnExit>
+                {/* Course Modules Dropdown */}
+                <Collapse in={courseDropdownOpen} timeout="auto" unmountOnExit>
                   <List component="div" disablePadding sx={{ 
                     pr: { xs: 1, sm: 2 },
+                    pl: { xs: 1, sm: 1.5 },
+                    pt: { xs: 0.5, sm: 1 },
                     maxHeight: { xs: '200px', sm: '300px' },
                     overflowY: 'auto',
                     '&::-webkit-scrollbar': {
@@ -365,35 +456,24 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
                       borderRadius: '3px',
                     },
                   }}>
-                    {loadingCourses ? (
-                      <ListItemButton disabled sx={{ py: { xs: 0.5, sm: 1 } }}>
-                        <ListItemText 
-                          primary={t('commonLoading')} 
-                          sx={{ 
-                            fontSize: { xs: '12px', sm: '14px' }, 
-                            color: '#999' 
-                          }} 
-                        />
-                      </ListItemButton>
-                    ) : filteredCourses.length > 0 ? (
-                      filteredCourses.map((course) => (
+                    {course && course.modules && course.modules.length > 0 ? (
+                      course.modules.map((module) => (
                         <ListItemButton
-                          key={course.id}
+                          key={module.id}
                           onClick={() => {
-                            // Navigate to my-courses with course ID as query parameter
-                            navigate(`/student/my-courses?courseId=${course.id}`);
-                            // Close mobile drawer after navigation
+                            navigate(`/student/my-courses?courseId=${course.id}&moduleId=${module.id}`);
                             if (isMobile) {
                               setMobileOpen(false);
                             }
                           }}
                           sx={{
-                            borderRadius: '8px',
-                            mb: { xs: 0.3, sm: 0.5 },
-                            py: { xs: 0.5, sm: 1 },
-                            px: { xs: 1, sm: 1.5 },
+                            borderRadius: '4px',
+                            mb: { xs: 0.1, sm: 0.15 },
+                            py: { xs: 0.3, sm: 0.4 },
+                            px: { xs: 0.6, sm: 0.8 },
                             color: '#666',
-                            margin: '2px 0',
+                            margin: '1px 0',
+                            minHeight: { xs: 24, sm: 28 },
                             '&:hover': {
                               background: 'rgba(25, 118, 210, 0.1)',
                               color: '#1976d2'
@@ -406,12 +486,12 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
                           }}
                         >
                           <ListItemText 
-                            primary={course.title} 
+                            primary={module.title || module.name || `Module ${module.id}`} 
                             sx={{ 
                               '& .MuiListItemText-primary': {
-                                fontSize: { xs: '12px', sm: '13px', md: '14px' },
-                                fontWeight: 600,
-                                lineHeight: { xs: 1.3, sm: 1.4 },
+                                fontSize: { xs: '10px', sm: '11px', md: '12px' },
+                                fontWeight: 500,
+                                lineHeight: { xs: 1.2, sm: 1.3 },
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis',
                                 whiteSpace: 'nowrap'
@@ -423,7 +503,7 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
                     ) : (
                       <ListItemButton disabled sx={{ py: { xs: 0.5, sm: 1 } }}>
                         <ListItemText 
-                          primary={t('coursesNoCoursesAvailable')} 
+                          primary="No modules available" 
                           sx={{ 
                             fontSize: { xs: '12px', sm: '14px' }, 
                             color: '#999' 
@@ -446,11 +526,11 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
                 textDecoration: 'none',
                 color: 'inherit',
                 display: 'block',
-                marginBottom: '8px',
-                borderRadius: '8px',
-                background: active ? 'linear-gradient(90deg, rgba(25,118,210,0.1) 0%, #ffffff 100%)' : 'none',
-                boxShadow: active ? '0 4px 12px 0 rgba(25,118,210,0.15)' : 'none',
-                border: active ? '1px solid rgba(25,118,210,0.2)' : '1px solid transparent',
+                marginBottom: '0px',
+                borderRadius: '4px',
+                background: active ? 'rgba(25,118,210,0.1)' : 'none',
+                boxShadow: 'none',
+                border: 'none',
               }}
               onClick={() => {
                 // Close mobile drawer after navigation
@@ -461,27 +541,30 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
             >
               <ListItemButton
                 sx={{
-                  borderRadius: { xs: 1.5, sm: 2 },
+                  borderRadius: 1,
                   color: active ? '#1976d2' : '#616161',
-                  py: { xs: 1, sm: 1.5 },
-                  px: { xs: 1, sm: 2 },
+                  py: { xs: 0.4, sm: 0.5 },
+                  px: { xs: 0.6, sm: 0.8 },
+                  minHeight: { xs: 28, sm: 32 },
+                  mb: 0,
                   '&:hover': {
-                    background: 'linear-gradient(90deg, rgba(25,118,210,0.08) 0%, #ffffff 100%)',
-                    color: '#1976d2'
+                    background: 'rgba(25,118,210,0.08)',
+                    color: '#1976d2',
+                    borderRadius: 1
                   }
                 }}
               >
                 <ListItemIcon sx={{
-                  minWidth: { xs: 32, sm: 36 },
+                  minWidth: { xs: 24, sm: 28 },
                   color: active ? '#1976d2' : '#9e9e9e',
-                  fontSize: { xs: 20, sm: 24 }
+                  fontSize: { xs: 16, sm: 18 }
                 }}>{item.icon}</ListItemIcon>
                 <ListItemText 
                   primary={item.text} 
                   sx={{ 
-                    fontWeight: 600,
+                    fontWeight: 500,
                     '& .MuiListItemText-primary': {
-                      fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem' }
+                      fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.8rem' }
                     }
                   }} 
                 />
@@ -516,7 +599,7 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
       height: '100vh', 
       width: '100%',
       background: '#f6f7fb', 
-      direction: 'rtl', 
+      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr', 
       overflow: 'hidden',
       '& *': {
         '&::-webkit-scrollbar': {
@@ -554,7 +637,7 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
         {/* Desktop Drawer */}
         <Drawer
           variant="permanent"
-          anchor="right"
+          anchor={currentLanguage === 'ar' ? 'right' : 'left'}
           sx={{
             display: { xs: 'none', sm: 'none', md: 'block' },
             width: { md: drawerWidth.md, lg: drawerWidth.lg, xl: drawerWidth.xl },
@@ -577,7 +660,7 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
         {/* Mobile Drawer */}
         <Drawer
           variant="temporary"
-          anchor="right"
+          anchor={currentLanguage === 'ar' ? 'right' : 'left'}
           open={mobileOpen}
           onClose={() => setMobileOpen(false)}
           ModalProps={{
@@ -641,7 +724,6 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
           background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.95) 100%)', 
           backdropFilter: 'blur(20px)',
           boxShadow: '0 8px 32px rgba(14,81,129,0.08)', 
-          mb: 3, 
           borderRadius: 0,
           border: '1px solid rgba(255,255,255,0.2)',
           position: 'relative',
@@ -666,14 +748,14 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
             zIndex: 2,
             minHeight: { xs: 56, md: 64 }
           }}>
-            {/* Mobile Menu Button - Left Side */}
+            {/* Mobile Menu Button */}
             <IconButton
               color="inherit"
               aria-label="open drawer"
               onClick={() => setMobileOpen(true)}
-              edge="start"
+              edge={currentLanguage === 'ar' ? 'end' : 'start'}
               sx={{
-                mr: { xs: 1, sm: 2 },
+                [currentLanguage === 'ar' ? 'ml' : 'mr']: { xs: 1, sm: 2 },
                 display: { xs: 'block', sm: 'block', md: 'none' },
                 color: '#333679',
                 p: { xs: 1, sm: 1.5 },
@@ -687,14 +769,80 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
               <MenuIcon sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' } }} />
             </IconButton>
 
-            {/* Mobile Layout: Notifications and Profile on right */}
+            {/* Mobile Layout: Notifications and Profile */}
             <Box sx={{ 
               display: { xs: 'flex', sm: 'none' }, 
               alignItems: 'center', 
               gap: { xs: 0.5, sm: 1 },
-              ml: 'auto',
+              [currentLanguage === 'ar' ? 'ml' : 'mr']: 'auto',
               order: 2
             }}>
+              {/* Translation Button */}
+              <IconButton 
+                color="inherit" 
+                sx={{ 
+                  bgcolor: 'transparent', 
+                  p: { xs: 0.8, sm: 1, md: 1.5 },
+                  borderRadius: { xs: 2, sm: 3 },
+                  transition: 'all 0.3s ease',
+                  minWidth: { xs: 44, sm: 48, md: 52 },
+                  border: 'none',
+                  outline: 'none',
+                  boxShadow: 'none',
+                  '&:hover': {
+                    bgcolor: 'rgba(51, 54, 121, 0.1)',
+                    transform: 'scale(1.05)',
+                    boxShadow: 'none'
+                  },
+                  '&:focus': {
+                    outline: 'none',
+                    border: 'none',
+                    boxShadow: 'none'
+                  },
+                  '&:active': {
+                    outline: 'none',
+                    border: 'none',
+                    boxShadow: 'none'
+                  }
+                }}
+                onClick={handleLanguageChange}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Typography 
+                    sx={{ 
+                      color: currentLanguage === 'ar' ? '#333679' : '#999',
+                      fontSize: { xs: '10px', sm: '11px', md: '12px' },
+                      fontWeight: currentLanguage === 'ar' ? 700 : 500,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      transition: 'all 0.3s ease'
+                    }}
+                  >
+                    AR
+                  </Typography>
+                  <Typography 
+                    sx={{ 
+                      color: '#ccc',
+                      fontSize: { xs: '8px', sm: '9px', md: '10px' }
+                    }}
+                  >
+                    /
+                  </Typography>
+                  <Typography 
+                    sx={{ 
+                      color: currentLanguage === 'en' ? '#333679' : '#999',
+                      fontSize: { xs: '10px', sm: '11px', md: '12px' },
+                      fontWeight: currentLanguage === 'en' ? 700 : 500,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      transition: 'all 0.3s ease'
+                    }}
+                  >
+                    EN
+                  </Typography>
+                </Box>
+              </IconButton>
+
               {/* Notification Dropdown with Enhanced Design */}
               <Box ref={notifRef} sx={{ position: 'relative' }}>
                 <IconButton 
@@ -789,7 +937,7 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
                           fontWeight={700} 
                           sx={{ 
                             color: '#333679',
-                            fontSize: { xs: '1rem', sm: '1.1rem', md: '1.25rem' }
+                            fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' }
                           }}
                         >
                           {t('notificationsTitle')}
@@ -854,7 +1002,7 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
                               sx={{ 
                                 fontWeight: notification.read ? 500 : 700,
                                 color: notification.read ? '#666' : '#333',
-                                mb: { xs: 0.3, sm: 0.5 },
+                                mb: { xs: 0.2, sm: 0.3 },
                                 lineHeight: { xs: 1.3, sm: 1.4 },
                                 fontSize: { xs: '0.8rem', sm: '0.875rem' }
                               }}
@@ -931,16 +1079,16 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
                     src={userData.avatar}
                     alt={userData.name}
                     sx={{ 
-                      width: { xs: 32, sm: 36, md: 44 }, 
-                      height: { xs: 32, sm: 36, md: 44 }, 
-                      border: { xs: '2px solid white', md: '3px solid white' },
+                      width: { xs: 28, sm: 32, md: 36 }, 
+                      height: { xs: 28, sm: 32, md: 36 }, 
+                      border: { xs: '1px solid white', md: '2px solid white' },
                       cursor: 'pointer',
                       transition: 'all 0.3s ease',
                       boxShadow: '0 4px 15px rgba(14,81,129,0.2)',
                       '&:hover': {
-                        transform: 'scale(1.1)',
+                        transform: 'scale(1.05)',
                         boxShadow: '0 6px 25px rgba(14,81,129,0.4)',
-                        border: { xs: '2px solid #4DBFB3', md: '3px solid #4DBFB3' }
+                        border: { xs: '1px solid #4DBFB3', md: '2px solid #4DBFB3' }
                       }
                     }} 
                   />
@@ -952,10 +1100,9 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
                     sx={{
                       position: 'fixed',
                       top: 56,
-                      left: 8,
-                      right: 8,
-                      width: 'calc(100vw - 16px)',
-                      maxHeight: 'calc(100vh - 80px)',
+                      ...(currentLanguage === 'ar' ? { right: 12, left: 12 } : { left: 12, right: 12 }),
+                      width: 'calc(100vw - 24px)',
+                      maxHeight: 'calc(100vh - 100px)',
                       borderRadius: 3,
                       boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
                       zIndex: 9999,
@@ -987,8 +1134,8 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
                         src={userData.avatar}
                         alt={userData.name}
                         sx={{ 
-                          width: { xs: 60, sm: 66, md: 72 }, 
-                          height: { xs: 60, sm: 66, md: 72 }, 
+                          width: { xs: 50, sm: 56, md: 62 }, 
+                          height: { xs: 50, sm: 56, md: 62 }, 
                           mb: { xs: 1.5, sm: 2 },
                           mx: 'auto',
                           border: { xs: '2px solid #4DBFB3', md: '3px solid #4DBFB3' },
@@ -1000,8 +1147,8 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
                         fontWeight={700} 
                         sx={{ 
                           color: '#333679', 
-                          mb: { xs: 0.3, sm: 0.5 },
-                          fontSize: { xs: '1rem', sm: '1.1rem', md: '1.25rem' }
+                          mb: { xs: 0.2, sm: 0.3 },
+                          fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' }
                         }}
                       >
                         {userData.name}
@@ -1011,7 +1158,7 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
                         sx={{ 
                           color: '#4DBFB3', 
                           fontWeight: 600,
-                          mb: { xs: 0.3, sm: 0.5 },
+                          mb: { xs: 0.2, sm: 0.3 },
                           fontSize: { xs: '0.8rem', sm: '0.875rem' }
                         }}
                       >
@@ -1030,11 +1177,11 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
                     </Box>
                     
                     <List sx={{ p: { xs: 1, sm: 2 } }}>
-                      <ListItemButton sx={{ 
+                      {/* <ListItemButton sx={{ 
                         borderRadius: { xs: 1.5, sm: 2 },
-                        mb: { xs: 0.3, sm: 0.5 },
-                        py: { xs: 0.8, sm: 1 },
-                        px: { xs: 1, sm: 1.5 },
+                        mb: { xs: 0.2, sm: 0.3 },
+                        py: { xs: 0.5, sm: 0.6 },
+                        px: { xs: 0.8, sm: 1 },
                         transition: 'all 0.3s ease',
                         '&:hover': { 
                           bgcolor: 'rgba(77, 191, 179, 0.1)',
@@ -1062,9 +1209,9 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
                       
                       <ListItemButton sx={{ 
                         borderRadius: { xs: 1.5, sm: 2 },
-                        mb: { xs: 0.3, sm: 0.5 },
-                        py: { xs: 0.8, sm: 1 },
-                        px: { xs: 1, sm: 1.5 },
+                        mb: { xs: 0.2, sm: 0.3 },
+                        py: { xs: 0.5, sm: 0.6 },
+                        px: { xs: 0.8, sm: 1 },
                         transition: 'all 0.3s ease',
                         '&:hover': { 
                           bgcolor: 'rgba(77, 191, 179, 0.1)',
@@ -1088,7 +1235,7 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
                             }
                           }}
                         />
-                      </ListItemButton>
+                      </ListItemButton> */}
                       
                       <Divider sx={{ my: { xs: 0.8, sm: 1 }, borderColor: 'rgba(77, 191, 179, 0.2)' }} />
                       
@@ -1097,8 +1244,8 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
                         sx={{ 
                           borderRadius: { xs: 1.5, sm: 2 },
                           color: '#ff6b6b',
-                          py: { xs: 0.8, sm: 1 },
-                          px: { xs: 1, sm: 1.5 },
+                          py: { xs: 0.5, sm: 0.6 },
+                          px: { xs: 0.8, sm: 1 },
                           transition: 'all 0.3s ease',
                           '&:hover': { 
                             bgcolor: 'rgba(255, 107, 107, 0.1)',
@@ -1134,16 +1281,82 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
             </Box>
 
             
-            {/* Desktop: Notifications and Profile on left */}
+            {/* Desktop: Notifications and Profile */}
             <Box sx={{ 
               display: { xs: 'none', sm: 'flex' }, 
               alignItems: 'center', 
               gap: { xs: 0.5, sm: 1, md: 2, lg: 3 },
-              mr: 'auto',
+              [currentLanguage === 'ar' ? 'mr' : 'ml']: 'auto',
               order: 3
             }}>
+              {/* Translation Button */}
+              <IconButton 
+                color="inherit" 
+                sx={{ 
+                  bgcolor: 'transparent', 
+                  p: { xs: 0.8, sm: 1, md: 1.5 },
+                  borderRadius: { xs: 2, sm: 3 },
+                  transition: 'all 0.3s ease',
+                  minWidth: { xs: 44, sm: 48, md: 52 },
+                  border: 'none',
+                  outline: 'none',
+                  boxShadow: 'none',
+                  '&:hover': {
+                    bgcolor: 'rgba(51, 54, 121, 0.1)',
+                    transform: 'scale(1.05)',
+                    boxShadow: 'none'
+                  },
+                  '&:focus': {
+                    outline: 'none',
+                    border: 'none',
+                    boxShadow: 'none'
+                  },
+                  '&:active': {
+                    outline: 'none',
+                    border: 'none',
+                    boxShadow: 'none'
+                  }
+                }}
+                onClick={handleLanguageChange}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Typography 
+                    sx={{ 
+                      color: currentLanguage === 'ar' ? '#333679' : '#999',
+                      fontSize: { xs: '10px', sm: '11px', md: '12px' },
+                      fontWeight: currentLanguage === 'ar' ? 700 : 500,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      transition: 'all 0.3s ease'
+                    }}
+                  >
+                    AR
+                  </Typography>
+                  <Typography 
+                    sx={{ 
+                      color: '#ccc',
+                      fontSize: { xs: '8px', sm: '9px', md: '10px' }
+                    }}
+                  >
+                    /
+                  </Typography>
+                  <Typography 
+                    sx={{ 
+                      color: currentLanguage === 'en' ? '#333679' : '#999',
+                      fontSize: { xs: '10px', sm: '11px', md: '12px' },
+                      fontWeight: currentLanguage === 'en' ? 700 : 500,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      transition: 'all 0.3s ease'
+                    }}
+                  >
+                    EN
+                  </Typography>
+                </Box>
+              </IconButton>
+
               {/* Notification Dropdown with Enhanced Design */}
-              <Box ref={notifRef} sx={{ position: 'relative' }}>
+              {/* <Box ref={notifRef} sx={{ position: 'relative' }}>
                 <IconButton 
                   color="inherit" 
                   sx={{ 
@@ -1184,10 +1397,10 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
                       filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.1))'
                     }} />
                   </Badge>
-                </IconButton>
+                </IconButton> */}
                 
                 {/* Notification Dropdown Menu */}
-                {notifAnchorEl && (
+                {/* {notifAnchorEl && (
                   <Paper 
                     sx={{
                       position: 'absolute',
@@ -1235,7 +1448,7 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
                           fontWeight={700} 
                           sx={{ 
                             color: '#333679',
-                            fontSize: { xs: '1rem', sm: '1.1rem', md: '1.25rem' }
+                            fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' }
                           }}
                         >
                           {t('notificationsTitle')}
@@ -1300,7 +1513,7 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
                               sx={{ 
                               fontWeight: notification.read ? 500 : 700,
                               color: notification.read ? '#666' : '#333',
-                                mb: { xs: 0.3, sm: 0.5 },
+                                mb: { xs: 0.2, sm: 0.3 },
                                 lineHeight: { xs: 1.3, sm: 1.4 },
                                 fontSize: { xs: '0.8rem', sm: '0.875rem' }
                               }}
@@ -1350,7 +1563,7 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
                     </Box>
                   </Paper>
                 )}
-              </Box>
+              </Box> */}
 
               {/* Profile Dropdown */}
               <Box ref={profileRef} sx={{ position: 'relative' }}>
@@ -1377,16 +1590,16 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
                     src={userData.avatar}
                     alt={userData.name}
                     sx={{ 
-                      width: { xs: 32, sm: 36, md: 44 }, 
-                      height: { xs: 32, sm: 36, md: 44 }, 
-                      border: { xs: '2px solid white', md: '3px solid white' },
+                      width: { xs: 28, sm: 32, md: 36 }, 
+                      height: { xs: 28, sm: 32, md: 36 }, 
+                      border: { xs: '1px solid white', md: '2px solid white' },
                       cursor: 'pointer',
                       transition: 'all 0.3s ease',
                       boxShadow: '0 4px 15px rgba(14,81,129,0.2)',
                       '&:hover': {
-                        transform: 'scale(1.1)',
+                        transform: 'scale(1.05)',
                         boxShadow: '0 6px 25px rgba(14,81,129,0.4)',
-                        border: { xs: '2px solid #4DBFB3', md: '3px solid #4DBFB3' }
+                        border: { xs: '1px solid #4DBFB3', md: '2px solid #4DBFB3' }
                       }
                     }} 
                   />
@@ -1397,10 +1610,11 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
                   <Paper 
                     sx={{
                       position: 'absolute',
-                      top: '100%',
-                      left: 0,
-                      width: { xs: 280, sm: 320, md: 360 },
-                      maxHeight: { xs: 400, sm: 450, md: 500 },
+                      top: 'calc(100% + 8px)',
+                      ...(currentLanguage === 'ar' ? { right: 0 } : { left: 0 }),
+                      transform: currentLanguage === 'ar' ? 'translateX(100%)' : 'translateX(-100%)',
+                      width: { xs: 200, sm: 220, md: 240 },
+                      maxHeight: { xs: 350, sm: 380, md: 400 },
                       borderRadius: { xs: 2, sm: 3 },
                       boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
                       zIndex: 10000,
@@ -1432,8 +1646,8 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
                         src={userData.avatar}
                         alt={userData.name}
                         sx={{ 
-                          width: { xs: 60, sm: 66, md: 72 }, 
-                          height: { xs: 60, sm: 66, md: 72 }, 
+                          width: { xs: 50, sm: 56, md: 62 }, 
+                          height: { xs: 50, sm: 56, md: 62 }, 
                           mb: { xs: 1.5, sm: 2 },
                           mx: 'auto',
                           border: { xs: '2px solid #4DBFB3', md: '3px solid #4DBFB3' },
@@ -1445,8 +1659,8 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
                         fontWeight={700} 
                         sx={{ 
                           color: '#333679', 
-                          mb: { xs: 0.3, sm: 0.5 },
-                          fontSize: { xs: '1rem', sm: '1.1rem', md: '1.25rem' }
+                          mb: { xs: 0.2, sm: 0.3 },
+                          fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' }
                         }}
                       >
                         {userData.name}
@@ -1456,7 +1670,7 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
                         sx={{ 
                         color: '#4DBFB3', 
                         fontWeight: 600,
-                          mb: { xs: 0.3, sm: 0.5 },
+                          mb: { xs: 0.2, sm: 0.3 },
                           fontSize: { xs: '0.8rem', sm: '0.875rem' }
                         }}
                       >
@@ -1475,11 +1689,11 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
                     </Box>
                     
                     <List sx={{ p: { xs: 1, sm: 2 } }}>
-                      <ListItemButton sx={{ 
+                      {/* <ListItemButton sx={{ 
                         borderRadius: { xs: 1.5, sm: 2 },
-                        mb: { xs: 0.3, sm: 0.5 },
-                        py: { xs: 0.8, sm: 1 },
-                        px: { xs: 1, sm: 1.5 },
+                        mb: { xs: 0.2, sm: 0.3 },
+                        py: { xs: 0.5, sm: 0.6 },
+                        px: { xs: 0.8, sm: 1 },
                         transition: 'all 0.3s ease',
                         '&:hover': { 
                           bgcolor: 'rgba(77, 191, 179, 0.1)',
@@ -1507,9 +1721,9 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
                       
                       <ListItemButton sx={{ 
                         borderRadius: { xs: 1.5, sm: 2 },
-                        mb: { xs: 0.3, sm: 0.5 },
-                        py: { xs: 0.8, sm: 1 },
-                        px: { xs: 1, sm: 1.5 },
+                        mb: { xs: 0.2, sm: 0.3 },
+                        py: { xs: 0.5, sm: 0.6 },
+                        px: { xs: 0.8, sm: 1 },
                         transition: 'all 0.3s ease',
                         '&:hover': { 
                           bgcolor: 'rgba(77, 191, 179, 0.1)',
@@ -1533,7 +1747,7 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
                             }
                           }}
                         />
-                      </ListItemButton>
+                      </ListItemButton> */}
                       
                       <Divider sx={{ my: { xs: 0.8, sm: 1 }, borderColor: 'rgba(77, 191, 179, 0.2)' }} />
                       
@@ -1542,8 +1756,8 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
                         sx={{ 
                           borderRadius: { xs: 1.5, sm: 2 },
                           color: '#ff6b6b',
-                          py: { xs: 0.8, sm: 1 },
-                          px: { xs: 1, sm: 1.5 },
+                          py: { xs: 0.5, sm: 0.6 },
+                          px: { xs: 0.8, sm: 1 },
                           transition: 'all 0.3s ease',
                           '&:hover': { 
                             bgcolor: 'rgba(255, 107, 107, 0.1)',

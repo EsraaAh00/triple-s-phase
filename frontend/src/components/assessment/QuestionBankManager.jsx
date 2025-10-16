@@ -209,7 +209,7 @@ const HeaderContainer = styled(Box)(({ theme }) => ({
 }));
 
 const QuestionBankManager = ({ product = null, chapter = null, topic = null }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const theme = useTheme();
   const [tabValue, setTabValue] = useState(0);
   const [openDialog, setOpenDialog] = useState(false);
@@ -516,7 +516,12 @@ const QuestionBankManager = ({ product = null, chapter = null, topic = null }) =
 
       <Container sx={{ py: 3 }}>
         {/* Create Question Button - Fixed */}
-        <Box sx={{ position: 'fixed', top: 100, left: 32, zIndex: 1200 }}>
+        <Box sx={{ 
+          position: 'fixed', 
+          top: 100, 
+          [i18n.language === 'en' ? 'right' : 'left']: 32, 
+          zIndex: 1200 
+        }}>
           <IconButton
             onClick={() => handleOpenDialog()}
             sx={{

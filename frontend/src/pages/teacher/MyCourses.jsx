@@ -84,7 +84,7 @@ const scaleIn = keyframes`
 
 
 const MyCourses = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [courses, setCourses] = useState([]);
   const [allCourses, setAllCourses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -462,14 +462,19 @@ const MyCourses = () => {
     <Box sx={{ 
       minHeight: '100vh',
       bgcolor: '#f8f9fa',
-      direction: 'rtl'
+      direction: i18n.language === 'en' ? 'ltr' : 'rtl'
     }}>
       <Container maxWidth="xl" sx={{ py: 3 }}>
         {/* Header */}
         <Header />
         
         {/* Create Course Button - Fixed */}
-        <Box sx={{ position: 'fixed', top: 100, left: 32, zIndex: 1200 }}>
+        <Box sx={{ 
+          position: 'fixed', 
+          top: 100, 
+          [i18n.language === 'en' ? 'right' : 'left']: 32, 
+          zIndex: 1200 
+        }}>
           <IconButton
             onClick={handleCreateCourse}
                   sx={{ 
@@ -1011,9 +1016,9 @@ const MyCourses = () => {
                 `${from}-${to} ${t('commonOf')} ${count !== -1 ? count : `${t('commonMoreThan')} ${to}`}`
               }
               sx={{ 
-                direction: 'rtl',
+                direction: i18n.language === 'en' ? 'ltr' : 'rtl',
                 '& .MuiTablePagination-toolbar': {
-                  direction: 'rtl'
+                  direction: i18n.language === 'en' ? 'ltr' : 'rtl'
                 }
               }}
             />

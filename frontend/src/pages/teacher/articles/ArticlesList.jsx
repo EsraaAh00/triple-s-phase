@@ -277,7 +277,7 @@ const HeaderContainer = styled(Box)(({ theme }) => ({
 const ArticlesList = () => {
   const theme = useTheme();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -880,7 +880,12 @@ const ArticlesList = () => {
 
       <Container sx={{ py: 3 }}>
         {/* Create Article Button - Fixed */}
-        <Box sx={{ position: 'fixed', top: 100, left: 32, zIndex: 1200 }}>
+        <Box sx={{ 
+          position: 'fixed', 
+          top: 100, 
+          [i18n.language === 'en' ? 'right' : 'left']: 32, 
+          zIndex: 1200 
+        }}>
           <IconButton
             onClick={() => navigate('/teacher/articles/create')}
             sx={{

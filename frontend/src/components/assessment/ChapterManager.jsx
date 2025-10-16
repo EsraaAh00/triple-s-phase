@@ -34,7 +34,7 @@ import { useTranslation } from 'react-i18next';
 import assessmentAPI from '../../services/assessment.service';
 
 const ChapterManager = ({ product, type, onChapterSelect, onNotification }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [chapters, setChapters] = useState([]);
   const [loading, setLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -193,7 +193,12 @@ const ChapterManager = ({ product, type, onChapterSelect, onNotification }) => {
   return (
     <Box>
       {/* Floating Add Button */}
-      <Box sx={{ position: 'fixed', top: 100, left: 32, zIndex: 1200 }}>
+      <Box sx={{ 
+        position: 'fixed', 
+        top: 100, 
+        [i18n.language === 'en' ? 'right' : 'left']: 32, 
+        zIndex: 1200 
+      }}>
         <IconButton
           onClick={handleAddChapter}
           sx={{

@@ -124,7 +124,7 @@ const Units = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { courseId } = useParams();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [units, setUnits] = useState([]);
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -140,7 +140,7 @@ const Units = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(100); // Increase default to show more units
 
-  // تحميل بيانات الكورس
+  // Loading course data
   const fetchCourse = async () => {
     try {
       const courseData = await courseAPI.getCourse(courseId);
@@ -151,7 +151,7 @@ const Units = () => {
     }
   };
 
-  // يتم الجلب من API بدلاً من البيانات الوهمية
+  // Fetching from API instead of dummy data
 
   useEffect(() => {
     const fetchUnits = async () => {
@@ -212,7 +212,7 @@ const Units = () => {
         console.error('Error details:', error.response?.data);
         setSnackbar({
           open: true,
-          message: 'حدث خطأ في تحميل الوحدات',
+          message: t('unitsErrorLoadingUnits'),
           severity: 'error'
         });
       } finally {
@@ -291,7 +291,7 @@ const Units = () => {
         if (!token || !user) {
           setSnackbar({
             open: true,
-            message: 'يجب تسجيل الدخول أولاً',
+            message: t('unitsMustLoginFirst'),
             severity: 'error'
           });
           setOpenDeleteDialog(false);
@@ -314,7 +314,7 @@ const Units = () => {
           if (!['teacher', 'instructor', 'admin'].includes(userRole.toLowerCase())) {
             setSnackbar({
               open: true,
-              message: 'ليس لديك صلاحية لحذف الوحدات',
+              message: t('unitsNoPermissionToDelete'),
               severity: 'error'
             });
             setOpenDeleteDialog(false);
@@ -327,7 +327,7 @@ const Units = () => {
           if (['teacher', 'instructor'].includes(userRole.toLowerCase()) && course && course.instructor_id !== userData.id) {
             setSnackbar({
               open: true,
-              message: 'يمكنك حذف وحدات الكورسات التي تملكها فقط',
+              message: t('unitsCanOnlyDeleteOwnUnits'),
               severity: 'error'
             });
             setOpenDeleteDialog(false);
@@ -339,7 +339,7 @@ const Units = () => {
           console.error('Error parsing user data:', error);
           setSnackbar({
             open: true,
-            message: 'خطأ في بيانات المستخدم',
+            message: t('unitsUserDataError'),
             severity: 'error'
           });
           setOpenDeleteDialog(false);
@@ -352,7 +352,7 @@ const Units = () => {
         if (selectedUnit.submodules_count > 0) {
           setSnackbar({
             open: true,
-            message: 'لا يمكن حذف الوحدة لأنها تحتوي على وحدات فرعية',
+            message: t('unitsCannotDeleteWithSubunits'),
             severity: 'error'
           });
           setOpenDeleteDialog(false);
@@ -370,7 +370,7 @@ const Units = () => {
         setUnits(prev => prev.filter(unit => unit.id !== selectedUnit.id));
         setSnackbar({
           open: true,
-          message: 'تم حذف الوحدة بنجاح',
+          message: t('unitsUnitDeletedSuccessfully'),
           severity: 'success'
         });
       } catch (error) {
@@ -379,16 +379,16 @@ const Units = () => {
         console.error('Error status:', error.response?.status);
         console.error('Error data:', error.response?.data);
         
-        let errorMessage = 'حدث خطأ أثناء حذف الوحدة';
+        let errorMessage = t('unitsErrorDeletingUnit');
         
         if (error.response?.status === 401) {
-          errorMessage = 'يجب تسجيل الدخول أولاً';
+          errorMessage = t('unitsMustLoginFirst');
         } else if (error.response?.status === 403) {
-          errorMessage = 'ليس لديك صلاحية لحذف هذه الوحدة';
+          errorMessage = t('unitsNoPermissionToDeleteThisUnit');
         } else if (error.response?.status === 404) {
-          errorMessage = 'الوحدة غير موجودة';
+          errorMessage = t('unitsUnitNotFound');
         } else if (error.response?.status === 400) {
-          errorMessage = error.response.data?.error || 'لا يمكن حذف هذه الوحدة';
+          errorMessage = error.response.data?.error || t('unitsCannotDeleteThisUnit');
         } else if (error.message) {
           errorMessage = error.message;
         }
@@ -405,7 +405,7 @@ const Units = () => {
       console.log('No selectedUnit found, cannot delete');
       setSnackbar({
         open: true,
-        message: 'لم يتم تحديد وحدة للحذف',
+        message: t('unitsNoUnitSelectedForDeletion'),
         severity: 'error'
       });
     }
@@ -433,13 +433,13 @@ const Units = () => {
   const getStatusText = (status) => {
     switch (status) {
       case 'published':
-        return 'منشور';
+        return t('unitsPublished');
       case 'draft':
-        return 'مسودة';
+        return t('unitsDraft');
       case 'archived':
-        return 'مؤرشف';
+        return t('unitsArchived');
       default:
-        return 'غير معروف';
+        return t('unitsUnknown');
     }
   };
 
@@ -486,7 +486,7 @@ const Units = () => {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth="lg" sx={{ py: 4, direction: i18n.language === 'en' ? 'ltr' : 'rtl' }}>
       {/* Header */}
       <Box sx={{
         mb: 4,
@@ -534,10 +534,10 @@ const Units = () => {
           </IconButton>
           <Box>
                 <Typography variant="h4" component="h1" sx={{ fontWeight: 700, color: 'white' }}>
-              وحدات الدورة
+              {t('unitsCourseUnits')}
             </Typography>
                 <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.9)', fontSize: '1.1rem' }}>
-              إدارة وحدات الدورة التدريبية
+              {t('unitsManageCourseUnits')}
             </Typography>
           </Box>
         </Box>
@@ -566,7 +566,7 @@ const Units = () => {
                   transition: 'all 0.3s ease',
                 }}
           >
-            إضافة وحدة جديدة
+            {t('unitsAddNewUnit')}
               </Button>
           {selectedUnit && (
                 <Button
@@ -593,7 +593,7 @@ const Units = () => {
                     transition: 'all 0.3s ease',
                   }}
             >
-              الدروس
+              {t('unitsLessons')}
                 </Button>
           )}
             </Box>
@@ -606,7 +606,7 @@ const Units = () => {
         <Box sx={{ display: 'flex', gap: 2, mb: 3, flexDirection: { xs: 'column', md: 'row' } }}>
           <TextField
             fullWidth
-            placeholder="البحث في الوحدات..."
+            placeholder={t('unitsSearchUnits')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             InputProps={{
@@ -616,43 +616,43 @@ const Units = () => {
           />
           
           <FormControl sx={{ minWidth: 150 }}>
-            <InputLabel>الحالة</InputLabel>
+            <InputLabel>{t('unitsStatus')}</InputLabel>
             <Select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              label="الحالة"
+              label={t('unitsStatus')}
             >
-              <MenuItem value="all">الكل</MenuItem>
-              <MenuItem value="published">منشور</MenuItem>
-              <MenuItem value="draft">مسودة</MenuItem>
-              <MenuItem value="archived">مؤرشف</MenuItem>
+              <MenuItem value="all">{t('unitsAll')}</MenuItem>
+              <MenuItem value="published">{t('unitsPublished')}</MenuItem>
+              <MenuItem value="draft">{t('unitsDraft')}</MenuItem>
+              <MenuItem value="archived">{t('unitsArchived')}</MenuItem>
             </Select>
           </FormControl>
           
           <FormControl sx={{ minWidth: 150 }}>
-            <InputLabel>نوع الوحدة</InputLabel>
+            <InputLabel>{t('unitsUnitType')}</InputLabel>
             <Select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              label="نوع الوحدة"
+              label={t('unitsUnitType')}
             >
-              <MenuItem value="all">الكل</MenuItem>
-              <MenuItem value="main">وحدات رئيسية</MenuItem>
-              <MenuItem value="sub">وحدات فرعية</MenuItem>
+              <MenuItem value="all">{t('unitsAll')}</MenuItem>
+              <MenuItem value="main">{t('unitsMainUnits')}</MenuItem>
+              <MenuItem value="sub">{t('unitsSubUnits')}</MenuItem>
             </Select>
           </FormControl>
           
           <FormControl sx={{ minWidth: 150 }}>
-            <InputLabel>ترتيب حسب</InputLabel>
+            <InputLabel>{t('unitsSortBy')}</InputLabel>
             <Select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              label="ترتيب حسب"
+              label={t('unitsSortBy')}
             >
-              <MenuItem value="order">الترتيب</MenuItem>
-              <MenuItem value="title">العنوان</MenuItem>
-              <MenuItem value="duration">المدة</MenuItem>
-              <MenuItem value="created">تاريخ الإنشاء</MenuItem>
+              <MenuItem value="order">{t('unitsOrder')}</MenuItem>
+              <MenuItem value="title">{t('unitsTitle')}</MenuItem>
+              <MenuItem value="duration">{t('unitsDuration')}</MenuItem>
+              <MenuItem value="created">{t('unitsCreationDate')}</MenuItem>
             </Select>
           </FormControl>
         </Box>
@@ -665,12 +665,12 @@ const Units = () => {
         ) : sortedUnits.length === 0 ? (
           <Box sx={{ textAlign: 'center', py: 4 }}>
             <Typography variant="h6" color="textSecondary" gutterBottom>
-              لا توجد وحدات
+              {t('unitsNoUnits')}
             </Typography>
             <Typography variant="body2" color="textSecondary">
               {searchTerm || filterStatus !== 'all' 
-                ? 'جرب تغيير معايير البحث' 
-                : 'ابدأ بإضافة وحدة جديدة للدورة'
+                ? t('unitsTryChangingSearchCriteria') 
+                : t('unitsStartAddingNewUnit')
               }
             </Typography>
           </Box>
@@ -714,7 +714,7 @@ const Units = () => {
                       left: 0,
                       zIndex: 1,
                       backgroundColor: theme.palette.primary.main
-                    }}>الوحدة</TableCell>
+                    }}>{t('unitsUnit')}</TableCell>
                     <TableCell sx={{ 
                       color: 'white', 
                       fontWeight: 600, 
@@ -723,7 +723,7 @@ const Units = () => {
                       textAlign: 'center', 
                       minWidth: '200px',
                       maxWidth: '300px'
-                    }}>الوصف</TableCell>
+                    }}>{t('unitsDescription')}</TableCell>
                     <TableCell sx={{ 
                       color: 'white', 
                       fontWeight: 600, 
@@ -732,7 +732,7 @@ const Units = () => {
                       textAlign: 'center', 
                       width: '140px', 
                       minWidth: '140px'
-                    }}>الوحدة الرئيسية</TableCell>
+                    }}>{t('unitsMainUnit')}</TableCell>
                     <TableCell sx={{ 
                       color: 'white', 
                       fontWeight: 600, 
@@ -741,7 +741,7 @@ const Units = () => {
                       textAlign: 'center', 
                       width: '100px', 
                       minWidth: '100px'
-                    }}>المدة</TableCell>
+                    }}>{t('unitsDuration')}</TableCell>
                     <TableCell sx={{ 
                       color: 'white', 
                       fontWeight: 600, 
@@ -750,7 +750,7 @@ const Units = () => {
                       textAlign: 'center', 
                       width: '120px', 
                       minWidth: '120px'
-                    }}>عدد الدروس</TableCell>
+                    }}>{t('unitsLessonsCount')}</TableCell>
                     <TableCell sx={{ 
                       color: 'white', 
                       fontWeight: 600, 
@@ -759,7 +759,7 @@ const Units = () => {
                       textAlign: 'center', 
                       width: '140px', 
                       minWidth: '140px'
-                    }}>الحالة</TableCell>
+                    }}>{t('unitsStatus')}</TableCell>
                     <TableCell sx={{ 
                       color: 'white', 
                       fontWeight: 600, 
@@ -772,7 +772,7 @@ const Units = () => {
                       right: 0,
                       zIndex: 1,
                       backgroundColor: theme.palette.primary.main
-                    }}>الإجراءات</TableCell>
+                    }}>{t('unitsActions')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -805,7 +805,7 @@ const Units = () => {
                               {unit.title}
                             </Typography>
                             <Typography variant="caption" color="textSecondary" sx={{ fontSize: '0.75rem' }}>
-                              الترتيب: {unit.order}
+                              {t('unitsOrder')}: {unit.order}
                             </Typography>
                           </Box>
                         </Box>
@@ -826,14 +826,14 @@ const Units = () => {
                             lineHeight: 1.4
                           }}
                         >
-                          {unit.description || 'لا يوجد وصف'}
+                          {unit.description || t('unitsNoDescription')}
                         </Typography>
                       </TableCell>
                       <TableCell sx={{ py: 2, px: 1, textAlign: 'center', width: '140px', minWidth: '140px' }}>
                         {unit.is_submodule ? (
                           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
                             <Chip
-                              label={unit.submodule_name || 'وحدة فرعية'}
+                              label={unit.submodule_name || t('unitsSubUnit')}
                               color="secondary"
                               size="small"
                               variant="outlined"
@@ -849,7 +849,7 @@ const Units = () => {
                           </Box>
                         ) : (
                           <Typography variant="body2" color="textSecondary" sx={{ fontSize: '0.8rem' }}>
-                            وحدة رئيسية
+                            {t('unitsMainUnit')}
                           </Typography>
                         )}
                       </TableCell>
@@ -857,7 +857,7 @@ const Units = () => {
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
                           <AccessTimeIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
                           <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.8rem' }}>
-                            {unit.duration} د
+                            {unit.duration} {t('unitsMinutes')}
                           </Typography>
                         </Box>
                       </TableCell>
@@ -880,7 +880,7 @@ const Units = () => {
                           />
                           {unit.isPreview && (
                             <Chip
-                              label="معاينة"
+                              label={t('unitsPreview')}
                               color="primary"
                               size="small"
                               variant="outlined"
@@ -901,7 +901,7 @@ const Units = () => {
                         backgroundColor: 'inherit'
                       }}>
                         <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
-                          <Tooltip title="عرض الوحدة">
+                          <Tooltip title={t('unitsViewUnit')}>
                             <IconButton
                               size="small"
                               onClick={() => handleViewUnit(unit)}
@@ -918,7 +918,7 @@ const Units = () => {
                               <VisibilityIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
-                          <Tooltip title="الدروس">
+                          <Tooltip title={t('unitsLessons')}>
                             <IconButton
                               size="small"
                               onClick={() => handleOpenLessons(unit)}
@@ -935,7 +935,7 @@ const Units = () => {
                               <LibraryBooksIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
-                          <Tooltip title="تعديل">
+                          <Tooltip title={t('unitsEdit')}>
                             <IconButton
                               size="small"
                               onClick={() => handleEditUnit(unit)}
@@ -952,7 +952,7 @@ const Units = () => {
                               <EditIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
-                          <Tooltip title="المزيد">
+                          <Tooltip title={t('unitsMore')}>
                             <IconButton
                               size="small"
                               onClick={(e) => handleMenuOpen(e, unit)}
@@ -983,8 +983,8 @@ const Units = () => {
               onPageChange={handleChangePage}
               rowsPerPage={rowsPerPage}
               onRowsPerPageChange={handleChangeRowsPerPage}
-              labelRowsPerPage="صفوف في الصفحة:"
-              labelDisplayedRows={({ from, to, count }) => `${from}-${to} من ${count}`}
+              labelRowsPerPage={t('unitsRowsPerPage')}
+              labelDisplayedRows={({ from, to, count }) => `${from}-${to} ${t('unitsOf')} ${count}`}
             />
           </>
         )}
@@ -1012,7 +1012,7 @@ const Units = () => {
           <ListItemIcon>
             <VisibilityIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>عرض الوحدة</ListItemText>
+          <ListItemText>{t('unitsViewUnit')}</ListItemText>
         </MenuItem>
         <MenuItem onClick={() => {
           console.log('Lessons menu item clicked');
@@ -1021,7 +1021,7 @@ const Units = () => {
           <ListItemIcon>
             <LibraryBooksIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>الدروس</ListItemText>
+          <ListItemText>{t('unitsLessons')}</ListItemText>
         </MenuItem>
         <MenuItem onClick={() => {
           console.log('Edit menu item clicked');
@@ -1030,7 +1030,7 @@ const Units = () => {
           <ListItemIcon>
             <EditIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>تعديل الوحدة</ListItemText>
+          <ListItemText>{t('unitsEditUnit')}</ListItemText>
         </MenuItem>
         <Divider />
         <MenuItem onClick={() => {
@@ -1040,7 +1040,7 @@ const Units = () => {
           <ListItemIcon>
             <DeleteIcon fontSize="small" color="error" />
           </ListItemIcon>
-          <ListItemText>حذف الوحدة</ListItemText>
+          <ListItemText>{t('unitsDeleteUnit')}</ListItemText>
         </MenuItem>
       </Menu>
 
@@ -1056,10 +1056,10 @@ const Units = () => {
           sx: { borderRadius: '12px' },
         }}
       >
-        <DialogTitle>تأكيد الحذف</DialogTitle>
+        <DialogTitle>{t('unitsConfirmDelete')}</DialogTitle>
         <DialogContent>
           <Typography>
-            هل أنت متأكد من حذف الوحدة "{selectedUnit?.title}"؟ هذا الإجراء لا يمكن التراجع عنه.
+            {t('unitsDeleteConfirmationMessage', { title: selectedUnit?.title })}
           </Typography>
           <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
             Unit ID: {selectedUnit?.id}
@@ -1070,7 +1070,7 @@ const Units = () => {
             setOpenDeleteDialog(false);
             setSelectedUnit(null);
           }} disabled={loading}>
-            إلغاء
+            {t('unitsCancel')}
           </Button>
           <Button 
             onClick={() => {
@@ -1082,7 +1082,7 @@ const Units = () => {
             disabled={loading}
             startIcon={loading ? <CircularProgress size={16} /> : null}
           >
-            {loading ? 'جاري الحذف...' : 'حذف'}
+            {loading ? t('unitsDeleting') : t('unitsDelete')}
           </Button>
         </DialogActions>
       </Dialog>

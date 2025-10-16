@@ -168,6 +168,10 @@ const ProfileCard = styled(Card)(({ theme }) => ({
   borderColor: alpha('#333679', 0.08),
   transition: 'all 0.3s ease',
   background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(229, 151, 139, 0.02) 100%)',
+  width: '100%',
+  maxWidth: '100%',
+  boxSizing: 'border-box',
+  overflow: 'hidden',
   '&:hover': {
     transform: 'translateY(-4px)',
     boxShadow: '0 12px 40px rgba(14, 81, 129, 0.15)',
@@ -207,7 +211,7 @@ const Profile = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { user, getUserRole, updateUser } = useAuth();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const fileInputRef = useRef(null);
   
   const [tabValue, setTabValue] = useState(0);
@@ -634,38 +638,43 @@ const Profile = () => {
   }
 
   return (
-    <Container maxWidth="xl" sx={{ 
-      py: { xs: 3, sm: 4, md: 6 }, 
-      px: { xs: 2, sm: 3, md: 4 },
-      direction: 'rtl',
+    <Box sx={{ 
+      direction: i18n.language === 'en' ? 'ltr' : 'rtl',
       width: '100%',
-      maxWidth: '100vw',
-      overflowX: 'hidden'
+      minHeight: '100vh',
+      margin: 0,
+      padding: 0,
+      boxSizing: 'border-box'
     }}>
 
-      <Grid container spacing={{ xs: 2, sm: 3, md: 4 }}>
+                <Box sx={{ 
+                  width: '100%',
+                  maxWidth: '100%',
+                  padding: { xs: 1, sm: 2, md: 3 },
+                  boxSizing: 'border-box',
+                  overflow: 'hidden'
+                }}>
         {/* Single Block - All Profile Information */}
-        <Grid item xs={12}>
-          <Slide direction="up" in timeout={1000}>
-            <ProfileCard>
-              <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
+        <Slide direction="up" in timeout={1000}>
+          <ProfileCard>
+              <CardContent sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
                 <Box sx={{ 
                   display: 'flex', 
                   justifyContent: 'space-between', 
                   alignItems: { xs: 'flex-start', sm: 'center' }, 
-                  mb: { xs: 3, sm: 4 },
-                  pb: 2,
+                  mb: { xs: 2, sm: 3 },
+                  pb: 1,
                   borderBottom: '2px solid',
                   borderColor: alpha('#333679', 0.1),
                   flexDirection: { xs: 'column', sm: 'row' },
-                  gap: { xs: 2, sm: 0 }
+                  gap: { xs: 1, sm: 0 }
                 }}>
                   <Typography 
-                    variant="h5" 
+                    variant="h6" 
                     fontWeight="bold" 
                     color="#333679"
                     sx={{
-                      fontSize: { xs: '1.3rem', sm: '1.5rem', md: '1.75rem' },
+                      fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
                       textAlign: { xs: 'center', sm: 'left' }
                     }}
                   >
@@ -673,6 +682,7 @@ const Profile = () => {
                   </Typography>
                   <Button 
                     variant={editMode ? "contained" : "outlined"} 
+                    size="small"
                     sx={{
                       backgroundColor: editMode ? '#333679' : 'transparent',
                       color: editMode ? 'white' : '#333679',
@@ -680,12 +690,15 @@ const Profile = () => {
                       '&:hover': {
                         backgroundColor: editMode ? '#0a3d5f' : alpha('#333679', 0.1),
                       },
-                      px: { xs: 2, sm: 3 },
-                      py: { xs: 1, sm: 1.5 },
+                      px: { xs: 1.5, sm: 2 },
+                      py: { xs: 0.5, sm: 1 },
                       borderRadius: 2,
                       fontWeight: 'bold',
-                      fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem' },
-                      minWidth: { xs: '100%', sm: 'auto' }
+                      fontSize: { xs: '0.7rem', sm: '0.8rem', md: '0.9rem' },
+                      minWidth: { xs: '100%', sm: 'auto' },
+                      '& .MuiButton-startIcon': {
+                        marginLeft: { xs: 0.5, sm: 1 }
+                      }
                     }}
                     startIcon={editMode ? <Save /> : <Edit />}
                     onClick={editMode ? handleSaveProfile : handleEditToggle}
@@ -695,636 +708,137 @@ const Profile = () => {
                   </Button>
                 </Box>
 
-                <Grid container spacing={{ xs: 3, sm: 4 }}>
-                  {/* Left Side - Profile Picture and Password */}
-                  <Grid item xs={12} md={4}>
-                    {/* Profile Picture Section */}
-                    <Box sx={{ 
-                      textAlign: 'center', 
-                      mb: { xs: 3, sm: 4 },
-                      p: { xs: 2, sm: 3 },
-                      borderRadius: 3,
-                      background: `linear-gradient(135deg, ${alpha('#333679', 0.02)} 0%, ${alpha('#4DBFB3', 0.02)} 100%)`,
-                      border: '1px solid',
-                      borderColor: alpha('#333679', 0.08)
-                    }}>
-                      <Box sx={{ position: 'relative', display: 'inline-block' }}>
-                        <Avatar 
-                          src={profileData.avatar} 
-                          alt={`${profileData.firstName} ${profileData.lastName}`}
-                          sx={{ 
-                            width: { xs: 100, sm: 120, md: 140 }, 
-                            height: { xs: 100, sm: 120, md: 140 },
-                            border: '4px solid',
-                            borderColor: '#333679',
-                            mb: { xs: 2, sm: 3 },
-                            boxShadow: '0 8px 25px rgba(14, 81, 129, 0.2)'
-                          }}
-                        />
-                        {editMode && (
-                          <IconButton 
-                            color="error"
-                            sx={{
-                              position: 'absolute',
-                              top: { xs: -6, sm: -8 },
-                              right: { xs: -6, sm: -8 },
-                              backgroundColor: 'error.main',
-                              color: 'white',
-                              width: { xs: 24, sm: 32 },
-                              height: { xs: 24, sm: 32 },
-                              '&:hover': {
-                                backgroundColor: 'error.dark',
-                              },
-                            }}
-                            onClick={() => setProfileData(prev => ({ ...prev, avatar: profileImage }))}
-                          >
-                            <Close fontSize="small" />
-                          </IconButton>
-                        )}
-                      </Box>
-                      {editMode && (
-                        <Button
-                          variant="outlined"
-                          startIcon={<PhotoCamera sx={{ fontSize: { xs: '1rem', sm: '1.2rem' } }} />}
-                          onClick={() => fileInputRef.current?.click()}
-                          fullWidth
-                          sx={{ 
-                            mb: 2,
-                            borderColor: '#333679',
-                            color: '#333679',
-                            fontSize: { xs: '0.8rem', sm: '0.9rem' },
-                            py: { xs: 1, sm: 1.5 },
-                            '&:hover': {
-                              borderColor: '#0a3d5f',
-                              backgroundColor: alpha('#333679', 0.05),
-                            }
-                          }}
-                        >
-                          {t('profileUploadImage')}
-                        </Button>
-                      )}
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        style={{ display: 'none' }}
-                        onChange={handleProfilePictureUpload}
+                <Box sx={{ 
+                  display: 'flex !important', 
+                  flexDirection: { xs: 'column', md: 'row' },
+                  gap: { xs: 2, sm: 3 },
+                  width: '100%',
+                  flex: 1
+                }}>
+                  {/* Left Side - Profile Picture Section (3/4 width) */}
+                  <Box sx={{ 
+                    flex: { xs: '1', md: '3' },
+                    textAlign: 'center', 
+                    p: { xs: 2, sm: 3 },
+                    borderRadius: 3,
+                    background: `linear-gradient(135deg, ${alpha('#333679', 0.02)} 0%, ${alpha('#4DBFB3', 0.02)} 100%)`,
+                    border: '1px solid',
+                    borderColor: alpha('#333679', 0.08),
+                    minHeight: { xs: 'auto', md: '400px' }
+                  }}>
+                    <Typography 
+                      variant="subtitle1" 
+                      fontWeight="bold" 
+                      gutterBottom 
+                      sx={{ 
+                        mb: { xs: 2, sm: 3 }, 
+                        color: '#333679',
+                        fontSize: { xs: '1rem', sm: '1.1rem' }
+                      }}
+                    >
+                      {t('profileProfilePicture')}
+                    </Typography>
+                    <Box sx={{ position: 'relative', display: 'inline-block' }}>
+                      <Avatar 
+                        src={profileData.avatar} 
+                        alt={`${profileData.firstName} ${profileData.lastName}`}
+                        sx={{ 
+                          width: { xs: 120, sm: 150, md: 180 }, 
+                          height: { xs: 120, sm: 150, md: 180 },
+                          border: '4px solid',
+                          borderColor: '#333679',
+                          mb: { xs: 2, sm: 3 },
+                          boxShadow: '0 8px 25px rgba(14, 81, 129, 0.2)'
+                        }}
                       />
+                      {editMode && (
+                        <IconButton 
+                          color="error"
+                          sx={{
+                            position: 'absolute',
+                            top: { xs: -6, sm: -8 },
+                            right: { xs: -6, sm: -8 },
+                            backgroundColor: 'error.main',
+                            color: 'white',
+                            width: { xs: 24, sm: 32 },
+                            height: { xs: 24, sm: 32 },
+                            '&:hover': {
+                              backgroundColor: 'error.dark',
+                            },
+                          }}
+                          onClick={() => setProfileData(prev => ({ ...prev, avatar: profileImage }))}
+                        >
+                          <Close fontSize="small" />
+                        </IconButton>
+                      )}
                     </Box>
-                    
-                    {/* Password Change Section */}
-                    <Box sx={{
-                      p: { xs: 2, sm: 3 },
-                      borderRadius: 3,
-                      background: `linear-gradient(135deg, ${alpha('#333679', 0.02)} 0%, ${alpha('#4DBFB3', 0.02)} 100%)`,
-                      border: '1px solid',
-                      borderColor: alpha('#333679', 0.08)
-                    }}>
-                      <Typography 
-                        variant="subtitle1" 
-                        fontWeight="bold" 
-                        gutterBottom 
+                    {editMode && (
+                      <Button
+                        variant="outlined"
+                        startIcon={<PhotoCamera sx={{ fontSize: { xs: '1rem', sm: '1.2rem' } }} />}
+                        onClick={() => fileInputRef.current?.click()}
+                        fullWidth
                         sx={{ 
-                          mb: { xs: 2, sm: 3 }, 
+                          mb: 2,
+                          borderColor: '#333679',
                           color: '#333679',
-                          fontSize: { xs: '1rem', sm: '1.1rem' }
+                          fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                          py: { xs: 1, sm: 1.5 },
+                          '&:hover': {
+                            borderColor: '#0a3d5f',
+                            backgroundColor: alpha('#333679', 0.05),
+                          },
+                          '& .MuiButton-startIcon': {
+                            marginLeft: { xs: 0.5, sm: 1 }
+                          }
                         }}
                       >
-                        {t('profileChangePassword')}
-                      </Typography>
-                      <Grid container spacing={2}>
-                        <Grid item xs={12} sm={6}>
-                          <TextField
-                            fullWidth
-                            label={t('profileCurrentPassword')}
-                            type={showPassword ? 'text' : 'password'}
-                            variant="outlined"
-                            size="small"
-                            value={passwordData.current_password}
-                            onChange={(e) => setPasswordData(prev => ({
-                              ...prev,
-                              current_password: e.target.value
-                            }))}
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                '& fieldset': {
-                                  borderColor: alpha('#333679', 0.2),
-                                },
-                                '&:hover fieldset': {
-                                  borderColor: alpha('#333679', 0.4),
-                                },
-                                '&.Mui-focused fieldset': {
-                                  borderColor: '#333679',
-                                },
-                              },
-                              '& .MuiInputLabel-root': {
-                                fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                              },
-                              '& .MuiInputBase-input': {
-                                fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                              }
-                            }}
-                            InputProps={{
-                              endAdornment: (
-                                <InputAdornment position="end">
-                                  <IconButton 
-                                    size="small" 
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    edge="end"
-                                    sx={{ color: '#333679' }}
-                                  >
-                                    {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
-                                  </IconButton>
-                                </InputAdornment>
-                              ),
-                            }}
-                          />
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <TextField
-                            fullWidth
-                            label={t('profileNewPassword')}
-                            type={showPassword ? 'text' : 'password'}
-                            variant="outlined"
-                            size="small"
-                            value={passwordData.new_password}
-                            onChange={(e) => setPasswordData(prev => ({
-                              ...prev,
-                              new_password: e.target.value
-                            }))}
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                '& fieldset': {
-                                  borderColor: alpha('#333679', 0.2),
-                                },
-                                '&:hover fieldset': {
-                                  borderColor: alpha('#333679', 0.4),
-                                },
-                                '&.Mui-focused fieldset': {
-                                  borderColor: '#333679',
-                                },
-                              },
-                              '& .MuiInputLabel-root': {
-                                fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                              },
-                              '& .MuiInputBase-input': {
-                                fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                              }
-                            }}
-                          />
-                        </Grid>
-                        <Grid item xs={12}>
-                          <Button
-                            variant="contained"
-                            fullWidth
-                            startIcon={loading ? <CircularProgress size={20} /> : <Lock />}
-                            onClick={handlePasswordChange}
-                            disabled={loading}
-                            sx={{
-                              backgroundColor: '#333679',
-                              '&:hover': {
-                                backgroundColor: '#0a3d5f',
-                              },
-                              py: { xs: 1.2, sm: 1.5 },
-                              borderRadius: 2,
-                              fontWeight: 'bold',
-                              fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                            }}
-                          >
-                            {t('profileChangePassword')}
-                          </Button>
-                        </Grid>
-                      </Grid>
-                    </Box>
-                  </Grid>
-
-                  {/* Right Side - Profile Information */}
-                  <Grid item xs={12} md={8}>
-                    {/* Profile Information Section */}
-                    <Box sx={{
-                      p: { xs: 2, sm: 3 },
-                      borderRadius: 3,
-                      background: `linear-gradient(135deg, ${alpha('#333679', 0.02)} 0%, ${alpha('#4DBFB3', 0.02)} 100%)`,
-                      border: '1px solid',
-                      borderColor: alpha('#333679', 0.08),
-                      mb: { xs: 3, sm: 4 }
-                    }}>
-                      <Typography 
-                        variant="subtitle1" 
-                        fontWeight="bold" 
-                        gutterBottom 
-                        sx={{ 
-                          mb: { xs: 2, sm: 3 }, 
-                          color: '#333679',
-                          fontSize: { xs: '1rem', sm: '1.1rem' }
-                        }}
-                      >
-                        {t('profilePersonalInformation')}
-                      </Typography>
-                      <Grid container spacing={{ xs: 2, sm: 3 }}>
-                        <Grid item xs={12} sm={6}>
-                          <TextField
-                            fullWidth
-                            label={t('profileUsername')}
-                            name="username"
-                            value={user?.username || ''}
-                            variant="outlined"
-                            size="small"
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                '& fieldset': {
-                                  borderColor: alpha('#333679', 0.2),
-                                },
-                                '&:hover fieldset': {
-                                  borderColor: alpha('#333679', 0.4),
-                                },
-                                '&.Mui-focused fieldset': {
-                                  borderColor: '#333679',
-                                },
-                              },
-                              '& .MuiInputLabel-root': {
-                                fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                              },
-                              '& .MuiInputBase-input': {
-                                fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                              }
-                            }}
-                            InputProps={{
-                              readOnly: !editMode,
-                            }}
-                          />
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <TextField
-                            fullWidth
-                            label={t('profileFirstName')}
-                            name="firstName"
-                            value={profileData.firstName}
-                            onChange={handleProfileChange}
-                            variant="outlined"
-                            size="small"
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                '& fieldset': {
-                                  borderColor: alpha('#333679', 0.2),
-                                },
-                                '&:hover fieldset': {
-                                  borderColor: alpha('#333679', 0.4),
-                                },
-                                '&.Mui-focused fieldset': {
-                                  borderColor: '#333679',
-                                },
-                              },
-                              '& .MuiInputLabel-root': {
-                                fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                              },
-                              '& .MuiInputBase-input': {
-                                fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                              }
-                            }}
-                            InputProps={{
-                              readOnly: !editMode,
-                            }}
-                          />
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <TextField
-                            fullWidth
-                            label={t('profileNickname')}
-                            name="nickname"
-                            value={profileData.nickname || ''}
-                            onChange={handleProfileChange}
-                            variant="outlined"
-                            size="small"
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                '& fieldset': {
-                                  borderColor: alpha('#333679', 0.2),
-                                },
-                                '&:hover fieldset': {
-                                  borderColor: alpha('#333679', 0.4),
-                                },
-                                '&.Mui-focused fieldset': {
-                                  borderColor: '#333679',
-                                },
-                              },
-                              '& .MuiInputLabel-root': {
-                                fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                              },
-                              '& .MuiInputBase-input': {
-                                fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                              }
-                            }}
-                            InputProps={{
-                              readOnly: !editMode,
-                            }}
-                          />
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <TextField
-                            fullWidth
-                            label={t('profileRole')}
-                            name="role"
-                            value={getUserRole() === 'instructor' ? t('commonTeacher') : t('commonStudent')}
-                            variant="outlined"
-                            size="small"
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                '& fieldset': {
-                                  borderColor: alpha('#333679', 0.2),
-                                },
-                                '&:hover fieldset': {
-                                  borderColor: alpha('#333679', 0.4),
-                                },
-                                '&.Mui-focused fieldset': {
-                                  borderColor: '#333679',
-                                },
-                              },
-                              '& .MuiInputLabel-root': {
-                                fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                              },
-                              '& .MuiInputBase-input': {
-                                fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                              }
-                            }}
-                            InputProps={{
-                              readOnly: true,
-                            }}
-                          />
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <TextField
-                            fullWidth
-                            label={t('profileLastName')}
-                            name="lastName"
-                            value={profileData.lastName}
-                            onChange={handleProfileChange}
-                            variant="outlined"
-                            size="small"
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                '& fieldset': {
-                                  borderColor: alpha('#333679', 0.2),
-                                },
-                                '&:hover fieldset': {
-                                  borderColor: alpha('#333679', 0.4),
-                                },
-                                '&.Mui-focused fieldset': {
-                                  borderColor: '#333679',
-                                },
-                              },
-                              '& .MuiInputLabel-root': {
-                                fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                              },
-                              '& .MuiInputBase-input': {
-                                fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                              }
-                            }}
-                            InputProps={{
-                              readOnly: !editMode,
-                            }}
-                          />
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <TextField
-                            fullWidth
-                            label={t('profileDisplayName')}
-                            name="displayName"
-                            value={profileData.displayName || `${profileData.firstName} ${profileData.lastName}`}
-                            onChange={handleProfileChange}
-                            variant="outlined"
-                            size="small"
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                '& fieldset': {
-                                  borderColor: alpha('#333679', 0.2),
-                                },
-                                '&:hover fieldset': {
-                                  borderColor: alpha('#333679', 0.4),
-                                },
-                                '&.Mui-focused fieldset': {
-                                  borderColor: '#333679',
-                                },
-                              },
-                              '& .MuiInputLabel-root': {
-                                fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                              },
-                              '& .MuiInputBase-input': {
-                                fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                              }
-                            }}
-                            InputProps={{
-                              readOnly: !editMode,
-                            }}
-                          />
-                        </Grid>
-                      </Grid>
-                    </Box>
-                          
-                    {/* Contact Info Section */}
-                    <Box sx={{
-                      p: 3,
-                      borderRadius: 3,
-                      background: `linear-gradient(135deg, ${alpha('#333679', 0.02)} 0%, ${alpha('#4DBFB3', 0.02)} 100%)`,
-                      border: '1px solid',
-                      borderColor: alpha('#333679', 0.08),
-                      mb: 4
-                    }}>
-                      <Typography variant="subtitle1" fontWeight="bold" gutterBottom sx={{ mb: 3, color: '#333679' }}>
-                        {t('profileContactInfo')}
-                      </Typography>
-                      <Grid container spacing={3}>
-                        <Grid item xs={12}>
-                          <TextField
-                            fullWidth
-                            label={t('profileEmailRequired')}
-                            name="email"
-                            type="email"
-                            value={profileData.email}
-                            onChange={handleProfileChange}
-                            variant="outlined"
-                            size="small"
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                '& fieldset': {
-                                  borderColor: alpha('#333679', 0.2),
-                                },
-                                '&:hover fieldset': {
-                                  borderColor: alpha('#333679', 0.4),
-                                },
-                                '&.Mui-focused fieldset': {
-                                  borderColor: '#333679',
-                                },
-                              },
-                              '& .MuiInputLabel-root': {
-                                fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                              },
-                              '& .MuiInputBase-input': {
-                                fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                              }
-                            }}
-                            InputProps={{
-                              readOnly: !editMode,
-                            }}
-                          />
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <TextField
-                            fullWidth
-                            label={t('profileWhatsapp')}
-                            name="whatsapp"
-                            value={profileData.whatsapp || ''}
-                            onChange={handleProfileChange}
-                            variant="outlined"
-                            size="small"
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                '& fieldset': {
-                                  borderColor: alpha('#333679', 0.2),
-                                },
-                                '&:hover fieldset': {
-                                  borderColor: alpha('#333679', 0.4),
-                                },
-                                '&.Mui-focused fieldset': {
-                                  borderColor: '#333679',
-                                },
-                              },
-                              '& .MuiInputLabel-root': {
-                                fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                              },
-                              '& .MuiInputBase-input': {
-                                fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                              }
-                            }}
-                            InputProps={{
-                              readOnly: !editMode,
-                            }}
-                          />
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <TextField
-                            fullWidth
-                            label={t('profileWebsite')}
-                            name="website"
-                            value={profileData.website}
-                            onChange={handleProfileChange}
-                            variant="outlined"
-                            size="small"
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                '& fieldset': {
-                                  borderColor: alpha('#333679', 0.2),
-                                },
-                                '&:hover fieldset': {
-                                  borderColor: alpha('#333679', 0.4),
-                                },
-                                '&.Mui-focused fieldset': {
-                                  borderColor: '#333679',
-                                },
-                              },
-                              '& .MuiInputLabel-root': {
-                                fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                              },
-                              '& .MuiInputBase-input': {
-                                fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                              }
-                            }}
-                            InputProps={{
-                              readOnly: !editMode,
-                            }}
-                          />
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <TextField
-                            fullWidth
-                            label={t('profileTelegram')}
-                            name="telegram"
-                            value={profileData.telegram || ''}
-                            onChange={handleProfileChange}
-                            variant="outlined"
-                            size="small"
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                '& fieldset': {
-                                  borderColor: alpha('#333679', 0.2),
-                                },
-                                '&:hover fieldset': {
-                                  borderColor: alpha('#333679', 0.4),
-                                },
-                                '&.Mui-focused fieldset': {
-                                  borderColor: '#333679',
-                                },
-                              },
-                              '& .MuiInputLabel-root': {
-                                fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                              },
-                              '& .MuiInputBase-input': {
-                                fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                              }
-                            }}
-                            InputProps={{
-                              readOnly: !editMode,
-                            }}
-                          />
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <TextField
-                            fullWidth
-                            label={t('profilePhone')}
-                            name="phone"
-                            value={profileData.phone}
-                            onChange={handleProfileChange}
-                            variant="outlined"
-                            size="small"
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                '& fieldset': {
-                                  borderColor: alpha('#333679', 0.2),
-                                },
-                                '&:hover fieldset': {
-                                  borderColor: alpha('#333679', 0.4),
-                                },
-                                '&.Mui-focused fieldset': {
-                                  borderColor: '#333679',
-                                },
-                              },
-                              '& .MuiInputLabel-root': {
-                                fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                              },
-                              '& .MuiInputBase-input': {
-                                fontSize: { xs: '0.8rem', sm: '0.9rem' }
-                              }
-                            }}
-                            InputProps={{
-                              readOnly: !editMode,
-                            }}
-                          />
-                        </Grid>
-                      </Grid>
-                    </Box>
-
-                    {/* About User Section */}
-                    <Box sx={{
-                      p: 3,
-                      borderRadius: 3,
-                      background: `linear-gradient(135deg, ${alpha('#333679', 0.02)} 0%, ${alpha('#4DBFB3', 0.02)} 100%)`,
-                      border: '1px solid',
-                      borderColor: alpha('#333679', 0.08)
-                    }}>
-                      <Typography variant="subtitle1" fontWeight="bold" gutterBottom sx={{ mb: 3, color: '#333679' }}>
-                        {t('profileAboutUser')}
-                      </Typography>
+                        {t('profileUploadImage')}
+                      </Button>
+                    )}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      onChange={handleProfilePictureUpload}
+                    />
+                  </Box>
+                  
+                  {/* Right Side - Password Change Section (1/4 width) */}
+                  <Box sx={{
+                    flex: { xs: '1', md: '1' },
+                    p: { xs: 2, sm: 3 },
+                    borderRadius: 3,
+                    background: `linear-gradient(135deg, ${alpha('#333679', 0.02)} 0%, ${alpha('#4DBFB3', 0.02)} 100%)`,
+                    border: '1px solid',
+                    borderColor: alpha('#333679', 0.08),
+                    minHeight: { xs: 'auto', md: '400px' }
+                  }}>
+                    <Typography 
+                      variant="subtitle1" 
+                      fontWeight="bold" 
+                      gutterBottom 
+                      sx={{ 
+                        mb: { xs: 2, sm: 3 }, 
+                        color: '#333679',
+                        fontSize: { xs: '0.9rem', sm: '1rem' }
+                      }}
+                    >
+                      {t('profileChangePassword')}
+                    </Typography>
+                    <Stack spacing={1.5}>
                       <TextField
                         fullWidth
-                        label={t('profileBioInfo')}
-                        name="bio"
-                        value={profileData.bio}
-                        onChange={handleProfileChange}
-                        multiline
-                        rows={6}
+                        label={t('profileCurrentPassword')}
+                        type={showPassword ? 'text' : 'password'}
                         variant="outlined"
                         size="small"
-                        placeholder={t('profileBioPlaceholder')}
+                        value={passwordData.current_password}
+                        onChange={(e) => setPasswordData(prev => ({
+                          ...prev,
+                          current_password: e.target.value
+                        }))}
                         sx={{
                           '& .MuiOutlinedInput-root': {
                             '& fieldset': {
@@ -1337,40 +851,506 @@ const Profile = () => {
                               borderColor: '#333679',
                             },
                           },
+                          '& .MuiInputLabel-root': {
+                            fontSize: { xs: '0.7rem', sm: '0.8rem' }
+                          },
+                          '& .MuiInputBase-input': {
+                            fontSize: { xs: '0.7rem', sm: '0.8rem' }
+                          }
+                        }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <IconButton 
+                                size="small" 
+                                onClick={() => setShowPassword(!showPassword)}
+                                edge="start"
+                                sx={{ color: '#333679' }}
+                              >
+                                {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                              </IconButton>
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                      <TextField
+                        fullWidth
+                        label={t('profileNewPassword')}
+                        type={showPassword ? 'text' : 'password'}
+                        variant="outlined"
+                        size="small"
+                        value={passwordData.new_password}
+                        onChange={(e) => setPasswordData(prev => ({
+                          ...prev,
+                          new_password: e.target.value
+                        }))}
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            '& fieldset': {
+                              borderColor: alpha('#333679', 0.2),
+                            },
+                            '&:hover fieldset': {
+                              borderColor: alpha('#333679', 0.4),
+                            },
+                            '&.Mui-focused fieldset': {
+                              borderColor: '#333679',
+                            },
+                          },
+                          '& .MuiInputLabel-root': {
+                            fontSize: { xs: '0.7rem', sm: '0.8rem' }
+                          },
+                          '& .MuiInputBase-input': {
+                            fontSize: { xs: '0.7rem', sm: '0.8rem' }
+                          }
+                        }}
+                      />
+                      <TextField
+                        fullWidth
+                        label={t('profileConfirmPassword')}
+                        type={showPassword ? 'text' : 'password'}
+                        variant="outlined"
+                        size="small"
+                        value={passwordData.confirm_password}
+                        onChange={(e) => setPasswordData(prev => ({
+                          ...prev,
+                          confirm_password: e.target.value
+                        }))}
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            '& fieldset': {
+                              borderColor: alpha('#333679', 0.2),
+                            },
+                            '&:hover fieldset': {
+                              borderColor: alpha('#333679', 0.4),
+                            },
+                            '&.Mui-focused fieldset': {
+                              borderColor: '#333679',
+                            },
+                          },
+                          '& .MuiInputLabel-root': {
+                            fontSize: { xs: '0.7rem', sm: '0.8rem' }
+                          },
+                          '& .MuiInputBase-input': {
+                            fontSize: { xs: '0.7rem', sm: '0.8rem' }
+                          }
+                        }}
+                      />
+                      <Button
+                        variant="contained"
+                        fullWidth
+                        startIcon={loading ? <CircularProgress size={16} /> : <Lock />}
+                        onClick={handlePasswordChange}
+                        disabled={loading}
+                        sx={{
+                          backgroundColor: '#333679',
+                          '&:hover': {
+                            backgroundColor: '#0a3d5f',
+                          },
+                          py: { xs: 1, sm: 1.2 },
+                          borderRadius: 2,
+                          fontWeight: 'bold',
+                          fontSize: { xs: '0.7rem', sm: '0.8rem' },
+                          '& .MuiButton-startIcon': {
+                            marginLeft: { xs: 0.5, sm: 1 }
+                          }
+                        }}
+                      >
+                        {t('profileChangePassword')}
+                      </Button>
+                    </Stack>
+                  </Box>
+                </Box>
+
+                 {/* Profile Information Section - Same Width as First Section */}
+                 <Box sx={{ 
+                   display: 'flex', 
+                   flexDirection: 'column',
+                   gap: { xs: 2, sm: 3 },
+                   width: '100%',
+                   mt: 3
+                 }}>
+                   {/* Profile Information Section */}
+                   <Box sx={{
+                     p: { xs: 2, sm: 3 },
+                     borderRadius: 3,
+                     background: `linear-gradient(135deg, ${alpha('#333679', 0.02)} 0%, ${alpha('#4DBFB3', 0.02)} 100%)`,
+                     border: '1px solid',
+                     borderColor: alpha('#333679', 0.08)
+                   }}>
+                      <Typography 
+                        variant="subtitle1" 
+                        fontWeight="bold" 
+                        gutterBottom 
+                        sx={{ 
+                          mb: { xs: 2, sm: 3 }, 
+                          color: '#333679',
+                          fontSize: { xs: '1rem', sm: '1.1rem' }
+                        }}
+                      >
+                        {t('profilePersonalInformation')}
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: { xs: 2, md: 1.5 }, flexWrap: 'nowrap' }}>
+                        <TextField
+                          fullWidth
+                          label={t('profileUsername')}
+                          name="username"
+                          value={user?.username || ''}
+                          variant="outlined"
+                          size="small"
+                          sx={{
+                            flex: 1,
+                            minWidth: { xs: '100%', md: '180px' },
+                            '& .MuiOutlinedInput-root': {
+                              height: '36px',
+                              width: '100%',
+                              '& fieldset': {
+                                borderColor: alpha('#333679', 0.2),
+                              },
+                              '&:hover fieldset': {
+                                borderColor: alpha('#333679', 0.4),
+                              },
+                              '&.Mui-focused fieldset': {
+                                borderColor: '#333679',
+                              },
+                            },
+                            '& .MuiInputLabel-root': {
+                              fontSize: { xs: '0.7rem', sm: '0.8rem' }
+                            },
+                            '& .MuiInputBase-input': {
+                              fontSize: { xs: '0.7rem', sm: '0.8rem' },
+                              padding: '8px 12px'
+                            }
+                          }}
+                          InputProps={{
+                            readOnly: !editMode,
+                          }}
+                        />
+                        <TextField
+                          fullWidth
+                          label={t('profileFirstName')}
+                          name="firstName"
+                          value={profileData.firstName}
+                          onChange={handleProfileChange}
+                          variant="outlined"
+                          size="small"
+                          sx={{
+                            flex: 1,
+                            minWidth: { xs: '100%', md: '180px' },
+                            '& .MuiOutlinedInput-root': {
+                              height: '36px',
+                              width: '100%',
+                              '& fieldset': {
+                                borderColor: alpha('#333679', 0.2),
+                              },
+                              '&:hover fieldset': {
+                                borderColor: alpha('#333679', 0.4),
+                              },
+                              '&.Mui-focused fieldset': {
+                                borderColor: '#333679',
+                              },
+                            },
+                            '& .MuiInputLabel-root': {
+                              fontSize: { xs: '0.7rem', sm: '0.8rem' }
+                            },
+                            '& .MuiInputBase-input': {
+                              fontSize: { xs: '0.7rem', sm: '0.8rem' },
+                              padding: '8px 12px'
+                            }
+                          }}
+                          InputProps={{
+                            readOnly: !editMode,
+                          }}
+                        />
+                        <TextField
+                          fullWidth
+                          label={t('profileRole')}
+                          name="role"
+                          value={getUserRole() === 'instructor' ? t('commonTeacher') : t('commonStudent')}
+                          variant="outlined"
+                          size="small"
+                          sx={{
+                            flex: 1,
+                            minWidth: { xs: '100%', md: '180px' },
+                            '& .MuiOutlinedInput-root': {
+                              height: '36px',
+                              width: '100%',
+                              '& fieldset': {
+                                borderColor: alpha('#333679', 0.2),
+                              },
+                              '&:hover fieldset': {
+                                borderColor: alpha('#333679', 0.4),
+                              },
+                              '&.Mui-focused fieldset': {
+                                borderColor: '#333679',
+                              },
+                            },
+                            '& .MuiInputLabel-root': {
+                              fontSize: { xs: '0.7rem', sm: '0.8rem' }
+                            },
+                            '& .MuiInputBase-input': {
+                              fontSize: { xs: '0.7rem', sm: '0.8rem' },
+                              padding: '8px 12px'
+                            }
+                          }}
+                          InputProps={{
+                            readOnly: true,
+                          }}
+                        />
+                        <TextField
+                          fullWidth
+                          label={t('profileLastName')}
+                          name="lastName"
+                          value={profileData.lastName}
+                          onChange={handleProfileChange}
+                          variant="outlined"
+                          size="small"
+                          sx={{
+                            flex: 1,
+                            minWidth: { xs: '100%', md: '180px' },
+                            '& .MuiOutlinedInput-root': {
+                              height: '36px',
+                              width: '100%',
+                              '& fieldset': {
+                                borderColor: alpha('#333679', 0.2),
+                              },
+                              '&:hover fieldset': {
+                                borderColor: alpha('#333679', 0.4),
+                              },
+                              '&.Mui-focused fieldset': {
+                                borderColor: '#333679',
+                              },
+                            },
+                            '& .MuiInputLabel-root': {
+                              fontSize: { xs: '0.7rem', sm: '0.8rem' }
+                            },
+                            '& .MuiInputBase-input': {
+                              fontSize: { xs: '0.7rem', sm: '0.8rem' },
+                              padding: '8px 12px'
+                            }
+                          }}
+                          InputProps={{
+                            readOnly: !editMode,
+                          }}
+                        />
+                      </Box>
+                   </Box>
+                           
+                   {/* Contact Info Section */}
+                   <Box sx={{
+                     p: { xs: 2, sm: 3 },
+                     borderRadius: 3,
+                     background: `linear-gradient(135deg, ${alpha('#333679', 0.02)} 0%, ${alpha('#4DBFB3', 0.02)} 100%)`,
+                     border: '1px solid',
+                     borderColor: alpha('#333679', 0.08)
+                   }}>
+                      <Typography variant="subtitle1" fontWeight="bold" gutterBottom sx={{ mb: 3, color: '#333679' }}>
+                        {t('profileContactInfo')}
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: { xs: 2, md: 1.5 }, flexWrap: 'nowrap' }}>
+                        <TextField
+                          fullWidth
+                          label={t('profileEmailRequired')}
+                          name="email"
+                          type="email"
+                          value={profileData.email}
+                          onChange={handleProfileChange}
+                          variant="outlined"
+                          size="small"
+                          sx={{
+                            flex: 1,
+                            minWidth: { xs: '100%', md: '180px' },
+                            '& .MuiOutlinedInput-root': {
+                              height: '36px',
+                              width: '100%',
+                              '& fieldset': {
+                                borderColor: alpha('#333679', 0.2),
+                              },
+                              '&:hover fieldset': {
+                                borderColor: alpha('#333679', 0.4),
+                              },
+                              '&.Mui-focused fieldset': {
+                                borderColor: '#333679',
+                              },
+                            },
+                            '& .MuiInputLabel-root': {
+                              fontSize: { xs: '0.7rem', sm: '0.8rem' }
+                            },
+                            '& .MuiInputBase-input': {
+                              fontSize: { xs: '0.7rem', sm: '0.8rem' },
+                              padding: '8px 12px'
+                            }
+                          }}
+                          InputProps={{
+                            readOnly: !editMode,
+                          }}
+                        />
+                        <TextField
+                          fullWidth
+                          label={t('profileWhatsapp')}
+                          name="whatsapp"
+                          value={profileData.whatsapp || ''}
+                          onChange={handleProfileChange}
+                          variant="outlined"
+                          size="small"
+                          sx={{
+                            flex: 1,
+                            minWidth: { xs: '100%', md: '180px' },
+                            '& .MuiOutlinedInput-root': {
+                              height: '36px',
+                              width: '100%',
+                              '& fieldset': {
+                                borderColor: alpha('#333679', 0.2),
+                              },
+                              '&:hover fieldset': {
+                                borderColor: alpha('#333679', 0.4),
+                              },
+                              '&.Mui-focused fieldset': {
+                                borderColor: '#333679',
+                              },
+                            },
+                            '& .MuiInputLabel-root': {
+                              fontSize: { xs: '0.7rem', sm: '0.8rem' }
+                            },
+                            '& .MuiInputBase-input': {
+                              fontSize: { xs: '0.7rem', sm: '0.8rem' },
+                              padding: '8px 12px'
+                            }
+                          }}
+                          InputProps={{
+                            readOnly: !editMode,
+                          }}
+                        />
+                        <TextField
+                          fullWidth
+                          label={t('profileWebsite')}
+                          name="website"
+                          value={profileData.website}
+                          onChange={handleProfileChange}
+                          variant="outlined"
+                          size="small"
+                          sx={{
+                            flex: 1,
+                            minWidth: { xs: '100%', md: '180px' },
+                            '& .MuiOutlinedInput-root': {
+                              height: '36px',
+                              width: '100%',
+                              '& fieldset': {
+                                borderColor: alpha('#333679', 0.2),
+                              },
+                              '&:hover fieldset': {
+                                borderColor: alpha('#333679', 0.4),
+                              },
+                              '&.Mui-focused fieldset': {
+                                borderColor: '#333679',
+                              },
+                            },
+                            '& .MuiInputLabel-root': {
+                              fontSize: { xs: '0.7rem', sm: '0.8rem' }
+                            },
+                            '& .MuiInputBase-input': {
+                              fontSize: { xs: '0.7rem', sm: '0.8rem' },
+                              padding: '8px 12px'
+                            }
+                          }}
+                          InputProps={{
+                            readOnly: !editMode,
+                          }}
+                        />
+                        <TextField
+                          fullWidth
+                          label={t('profilePhone')}
+                          name="phone"
+                          value={profileData.phone}
+                          onChange={handleProfileChange}
+                          variant="outlined"
+                          size="small"
+                          sx={{
+                            flex: 1,
+                            minWidth: { xs: '100%', md: '180px' },
+                            '& .MuiOutlinedInput-root': {
+                              height: '36px',
+                              width: '100%',
+                              '& fieldset': {
+                                borderColor: alpha('#333679', 0.2),
+                              },
+                              '&:hover fieldset': {
+                                borderColor: alpha('#333679', 0.4),
+                              },
+                              '&.Mui-focused fieldset': {
+                                borderColor: '#333679',
+                              },
+                            },
+                            '& .MuiInputLabel-root': {
+                              fontSize: { xs: '0.7rem', sm: '0.8rem' }
+                            },
+                            '& .MuiInputBase-input': {
+                              fontSize: { xs: '0.7rem', sm: '0.8rem' },
+                              padding: '8px 12px'
+                            }
+                          }}
+                          InputProps={{
+                            readOnly: !editMode,
+                          }}
+                        />
+                      </Box>
+                   </Box>
+ 
+                   {/* About User Section */}
+                   <Box sx={{
+                     p: { xs: 2, sm: 3 },
+                     borderRadius: 3,
+                     background: `linear-gradient(135deg, ${alpha('#333679', 0.02)} 0%, ${alpha('#4DBFB3', 0.02)} 100%)`,
+                     border: '1px solid',
+                     borderColor: alpha('#333679', 0.08)
+                   }}>
+                      <Typography variant="subtitle1" fontWeight="bold" gutterBottom sx={{ mb: 3, color: '#333679' }}>
+                        {t('profileAboutUser')}
+                      </Typography>
+                      <TextField
+                        fullWidth
+                        label={t('profileBioInfo')}
+                        name="bio"
+                        value={profileData.bio}
+                        onChange={handleProfileChange}
+                        multiline
+                        rows={4}
+                        variant="outlined"
+                        size="small"
+                        placeholder={t('profileBioPlaceholder')}
+                        sx={{
+                          flex: 1,
+                          minWidth: { xs: '100%', md: '200px' },
+                          '& .MuiOutlinedInput-root': {
+                            width: '100%',
+                            '& fieldset': {
+                              borderColor: alpha('#333679', 0.2),
+                            },
+                            '&:hover fieldset': {
+                              borderColor: alpha('#333679', 0.4),
+                            },
+                            '&.Mui-focused fieldset': {
+                              borderColor: '#333679',
+                            },
+                          },
+                          '& .MuiInputLabel-root': {
+                            fontSize: { xs: '0.7rem', sm: '0.8rem' }
+                          },
+                          '& .MuiInputBase-input': {
+                            fontSize: { xs: '0.7rem', sm: '0.8rem' },
+                            padding: '8px 12px'
+                          }
                         }}
                         InputProps={{
                           readOnly: !editMode,
                         }}
                       />
-                    </Box>
-                  </Grid>
-                </Grid>
+                   </Box>
+                 </Box>
             </CardContent>
-            </ProfileCard>
-          </Slide>
-        </Grid>
-      </Grid>
+          </ProfileCard>
+        </Slide>
+      </Box>
 
-      {/* Floating Action Button */}
-      <Fab
-        aria-label="edit"
-        sx={{ 
-          position: 'fixed', 
-          bottom: 24, 
-          right: 24,
-          backgroundColor: '#333679',
-          color: 'white',
-          '&:hover': {
-            backgroundColor: '#0a3d5f',
-            transform: 'scale(1.1)',
-          },
-          boxShadow: '0 8px 25px rgba(14, 81, 129, 0.3)',
-          transition: 'all 0.3s ease'
-        }}
-        onClick={handleEditToggle}
-      >
-        <Edit />
-      </Fab>
 
       <Snackbar
         open={snackbar.open}
@@ -1381,12 +1361,12 @@ const Profile = () => {
         <Alert 
           onClose={handleSnackbarClose} 
           severity={snackbar.severity}
-          sx={{ direction: 'rtl' }}
+          sx={{ direction: i18n.language === 'en' ? 'ltr' : 'rtl' }}
         >
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </Container>
+    </Box>
   );
 };
 

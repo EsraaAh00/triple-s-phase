@@ -39,7 +39,6 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
     maxWidth: '800px',
     width: '90%',
     maxHeight: '90vh',
-    direction: 'rtl',
   },
 }));
 
@@ -57,7 +56,7 @@ const StyledDialogTitle = styled(DialogTitle)(({ theme }) => ({
 }));
 
 const LessonDetail = ({ open, onClose, courseId, unitId, lessonId }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [lesson, setLesson] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -87,10 +86,10 @@ const LessonDetail = ({ open, onClose, courseId, unitId, lessonId }) => {
           setResources([]);
         }
       } else {
-        setError('لم يتم العثور على الدرس المطلوب');
+        setError(t('lessonsLessonNotFound'));
       }
       } catch (e) {
-        setError('تعذر تحميل الدرس');
+        setError(t('lessonsFailedToLoadLesson'));
     } finally {
       setLoading(false);
     }
@@ -104,7 +103,7 @@ const LessonDetail = ({ open, onClose, courseId, unitId, lessonId }) => {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'غير محدد';
+    if (!dateString) return t('lessonsNotSpecified');
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -151,10 +150,11 @@ const LessonDetail = ({ open, onClose, courseId, unitId, lessonId }) => {
       onClose={handleClose}
       maxWidth="md"
       fullWidth
+      sx={{ direction: i18n.language === 'en' ? 'ltr' : 'rtl' }}
     >
       <StyledDialogTitle>
         <Typography variant="h6">
-          تفاصيل الدرس
+          {t('lessonsLessonDetails')}
         </Typography>
         <IconButton
           onClick={handleClose}
@@ -201,14 +201,14 @@ const LessonDetail = ({ open, onClose, courseId, unitId, lessonId }) => {
                   size="small"
                 />
                 <Chip 
-                  label={`${lesson.duration_minutes || 0} دقيقة`}
+                  label={`${lesson.duration_minutes || 0} ${t('lessonsMinutes')}`}
                   color="secondary"
                   variant="outlined"
                   size="small"
                 />
                 {lesson.is_free && (
                   <Chip 
-                    label="معاينة"
+                    label={t('lessonsPreview')}
                     color="success"
                     variant="outlined"
                     size="small"
@@ -222,7 +222,7 @@ const LessonDetail = ({ open, onClose, courseId, unitId, lessonId }) => {
             {/* Lesson Content */}
             <Box sx={{ mb: 3 }}>
               <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: 'primary.main' }}>
-                محتوى الدرس
+                {t('lessonsLessonContent')}
               </Typography>
               <Box sx={{ 
                 p: 3, 
@@ -240,7 +240,7 @@ const LessonDetail = ({ open, onClose, courseId, unitId, lessonId }) => {
                     textAlign: 'right'
                   }}
                 >
-                  {lesson.content || 'لا يوجد محتوى للدرس'}
+                  {lesson.content || t('lessonsNoContentAvailable')}
                 </Typography>
       </Box>
             </Box>
@@ -255,17 +255,17 @@ const LessonDetail = ({ open, onClose, courseId, unitId, lessonId }) => {
                mb: 3
              }}>
                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: 'primary.main' }}>
-                 معلومات الدرس
+                 {t('lessonsLessonInformation')}
                </Typography>
                
                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                   <Typography variant="body2" color="textSecondary">معرف الدرس:</Typography>
+                   <Typography variant="body2" color="textSecondary">{t('lessonsLessonId')}:</Typography>
                    <Typography variant="body1" fontWeight={600}>{lesson.id}</Typography>
                  </Box>
                  
                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                   <Typography variant="body2" color="textSecondary">نوع الدرس:</Typography>
+                   <Typography variant="body2" color="textSecondary">{t('lessonsLessonType')}:</Typography>
                    <Chip 
                      label={lesson.lesson_type || 'article'} 
                      size="small"
@@ -274,15 +274,15 @@ const LessonDetail = ({ open, onClose, courseId, unitId, lessonId }) => {
                  </Box>
                  
                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                   <Typography variant="body2" color="textSecondary">المدة:</Typography>
+                   <Typography variant="body2" color="textSecondary">{t('lessonsDuration')}:</Typography>
                    <Typography variant="body1" fontWeight={600}>
-                     {lesson.duration_minutes || 0} دقيقة
+                     {lesson.duration_minutes || 0} {t('lessonsMinutes')}
                    </Typography>
                  </Box>
                  
                  {lesson.created_at && (
                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                     <Typography variant="body2" color="textSecondary">تاريخ الإنشاء:</Typography>
+                     <Typography variant="body2" color="textSecondary">{t('lessonsCreationDate')}:</Typography>
                      <Typography variant="body1" fontWeight={600}>
                        {formatDate(lesson.created_at)}
                      </Typography>
@@ -291,7 +291,7 @@ const LessonDetail = ({ open, onClose, courseId, unitId, lessonId }) => {
                  
                  {lesson.updated_at && (
                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                     <Typography variant="body2" color="textSecondary">آخر تحديث:</Typography>
+                     <Typography variant="body2" color="textSecondary">{t('lessonsLastUpdated')}:</Typography>
                      <Typography variant="body1" fontWeight={600}>
                        {formatDate(lesson.updated_at)}
                      </Typography>
@@ -310,7 +310,7 @@ const LessonDetail = ({ open, onClose, courseId, unitId, lessonId }) => {
                  borderColor: 'divider'
                }}>
                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: 'primary.main' }}>
-                   الملفات المرفقة ({(resources.length > 0 ? resources : lesson.resources || []).length})
+                   {t('lessonsAttachedFiles')} ({(resources.length > 0 ? resources : lesson.resources || []).length})
             </Typography>
                  
                  <List sx={{ bgcolor: 'white', borderRadius: 1 }}>
@@ -329,7 +329,7 @@ const LessonDetail = ({ open, onClose, courseId, unitId, lessonId }) => {
                          {getFileIcon(resource.name || resource.filename || 'file')}
                        </ListItemIcon>
                        <ListItemText
-                         primary={resource.name || resource.filename || 'ملف مرفق'}
+                         primary={resource.name || resource.filename || t('lessonsAttachedFile')}
                          secondary={resource.description || resource.size ? `${resource.size} bytes` : ''}
                          sx={{ 
                            '& .MuiListItemText-primary': {
@@ -368,7 +368,7 @@ const LessonDetail = ({ open, onClose, courseId, unitId, lessonId }) => {
       <DialogActions sx={{ p: 2, justifyContent: 'center' }}>
         <Box sx={{ display: 'flex', gap: 2 }}>
           <Typography variant="body2" color="textSecondary">
-            معرف الدرس: {lessonId}
+            {t('lessonsLessonId')}: {lessonId}
           </Typography>
         </Box>
       </DialogActions>

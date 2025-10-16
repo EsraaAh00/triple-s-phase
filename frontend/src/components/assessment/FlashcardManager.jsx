@@ -170,7 +170,7 @@ const HeaderContainer = styled(Box)(({ theme }) => ({
 }));
 
 const FlashcardManager = ({ product = null, topic = null }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const theme = useTheme();
   const [openDialog, setOpenDialog] = useState(false);
   const [editingFlashcard, setEditingFlashcard] = useState(null);
@@ -299,20 +299,20 @@ const FlashcardManager = ({ product = null, topic = null }) => {
   const flashcardsWithQuestions = flashcards.filter(f => f.related_question).length;
 
   const LoadingSkeleton = () => (
-    <Grid container spacing={{ xs: 2, sm: 3, md: 3, lg: 3 }}>
-      {[...Array(8)].map((_, index) => (
+    <Grid container spacing={{ xs: 1.5, sm: 2, md: 2, lg: 2 }}>
+      {[...Array(12)].map((_, index) => (
         <Grid 
           item 
-          xs={12} 
-          sm={6} 
-          md={4} 
-          lg={3} 
-          xl={2.4}
+          xs={6} 
+          sm={4} 
+          md={3} 
+          lg={2.4} 
+          xl={2}
           key={index}
         >
           <Skeleton 
             variant="rectangular" 
-            height={{ xs: 250, sm: 280, md: 300, lg: 320 }} 
+            height={{ xs: 180, sm: 200, md: 220, lg: 240 }} 
             sx={{ 
               borderRadius: 2,
               width: '100%'
@@ -399,29 +399,29 @@ const FlashcardManager = ({ product = null, topic = null }) => {
         </Box>
         
         <Container sx={{ py: 4 }}>
-          <Grid container spacing={{ xs: 2, sm: 3, md: 3, lg: 3 }}>
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
+          <Grid container spacing={{ xs: 1.5, sm: 2, md: 2, lg: 2 }}>
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((item) => (
               <Grid 
                 item 
-                xs={12} 
-                sm={6} 
-                md={4} 
-                lg={3} 
-                xl={2.4}
+                xs={6} 
+                sm={4} 
+                md={3} 
+                lg={2.4} 
+                xl={2}
                 key={item}
               >
                 <Skeleton 
                   variant="rectangular" 
-                  height={{ xs: 250, sm: 280, md: 300, lg: 320 }} 
+                  height={{ xs: 180, sm: 200, md: 220, lg: 240 }} 
                   sx={{ 
-                    borderRadius: 3, 
-                    mb: 2,
+                    borderRadius: 2, 
+                    mb: 1,
                     width: '100%'
                   }} 
                 />
-                <Skeleton variant="text" height={24} sx={{ mb: 1 }} />
-                <Skeleton variant="text" height={20} width="60%" sx={{ mb: 1 }} />
-                <Skeleton variant="text" height={20} width="40%" />
+                <Skeleton variant="text" height={18} sx={{ mb: 0.5 }} />
+                <Skeleton variant="text" height={16} width="60%" sx={{ mb: 0.5 }} />
+                <Skeleton variant="text" height={16} width="40%" />
               </Grid>
             ))}
           </Grid>
@@ -435,7 +435,12 @@ const FlashcardManager = ({ product = null, topic = null }) => {
 
       <Container sx={{ py: 3 }}>
         {/* Create Flashcard Button - Fixed */}
-        <Box sx={{ position: 'fixed', top: 100, left: 32, zIndex: 1200 }}>
+        <Box sx={{ 
+          position: 'fixed', 
+          top: 100, 
+          [i18n.language === 'en' ? 'right' : 'left']: 32, 
+          zIndex: 1200 
+        }}>
           <IconButton
             onClick={() => handleOpenDialog()}
              sx={{
@@ -471,16 +476,16 @@ const FlashcardManager = ({ product = null, topic = null }) => {
           ) : (
             <>
               {/* Flashcards Grid - Responsive */}
-              <Grid container spacing={{ xs: 2, sm: 3, md: 3, lg: 3 }}>
+              <Grid container spacing={{ xs: 1.5, sm: 2, md: 2, lg: 2 }}>
                 <AnimatePresence>
                   {flashcards.map((flashcard) => (
                     <Grid 
                       item 
-                      xs={12} 
-                      sm={6} 
-                      md={4} 
-                      lg={3} 
-                      xl={2.4}
+                      xs={6} 
+                      sm={4} 
+                      md={3} 
+                      lg={2.4} 
+                      xl={2}
                       key={flashcard.id}
                       sx={{
                         display: 'flex',
@@ -530,20 +535,21 @@ const FlashcardManager = ({ product = null, topic = null }) => {
       />
 
       {/* Notification Snackbar */}
-      <Alert
-        open={notification.open}
-        onClose={handleCloseNotification}
-        severity={notification.severity}
-        sx={{
-          position: 'fixed',
-          top: 20,
-          right: 20,
-          zIndex: 9999,
-          minWidth: 300
-        }}
-      >
-        {notification.message}
-      </Alert>
+      {notification.open && (
+        <Alert
+          onClose={handleCloseNotification}
+          severity={notification.severity}
+          sx={{
+            position: 'fixed',
+            top: 20,
+            right: 20,
+            zIndex: 9999,
+            minWidth: 300
+          }}
+        >
+          {notification.message}
+        </Alert>
+      )}
     </Box>
   );
 };

@@ -138,7 +138,7 @@ const CreateUnit = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { courseId } = useParams();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   
   const LESSON_TYPES = [
     { value: 'video', label: t('lessonsVideo'), icon: <VideoLibraryIcon /> },
@@ -181,7 +181,7 @@ const CreateUnit = () => {
 
   const [modules, setModules] = useState([]);
 
-  // لا يوجد خطوات بعد الآن
+  // No steps anymore
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -237,7 +237,7 @@ const CreateUnit = () => {
         setUnitData(prev => ({ ...prev, order: maxOrder + 1 }));
       } catch (e) {
         console.error('Error loading modules:', e);
-        setLoadError('تعذر تحميل ترتيب الوحدة التالي');
+        setLoadError(t('unitsFailedToLoadNextOrder'));
         // Set default order to 1 if loading fails
         setUnitData(prev => ({ ...prev, order: 1 }));
       }
@@ -318,7 +318,7 @@ const CreateUnit = () => {
       // Show success message
       setSnackbar({
         open: true,
-        message: 'تم حفظ الوحدة بنجاح! سيتم توجيهك إلى صفحة الوحدات...',
+        message: t('unitsUnitSavedSuccessfully'),
         severity: 'success'
       });
       
@@ -328,7 +328,7 @@ const CreateUnit = () => {
       }, 2000);
     } catch (error) {
       console.error('Error creating module:', error);
-      let serverMsg = 'تعذر حفظ الوحدة. برجاء التحقق من الحقول.';
+      let serverMsg = t('unitsFailedToSaveUnit');
       try {
         if (typeof error?.response?.data === 'string') serverMsg = error.response.data;
         else if (error?.response?.data?.detail) serverMsg = error.response.data.detail;
@@ -342,12 +342,12 @@ const CreateUnit = () => {
 
   // Render a top-level error if exists
 
-  // لا يوجد رجوع بعد إزالة الsteps
+  // No back after removing steps
 
-  // النموذج: قسم واحد بدون مراجعة نهائية
+  // Form: single section without final review
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth="lg" sx={{ py: 4, direction: i18n.language === 'en' ? 'ltr' : 'rtl' }}>
       {submitError && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {submitError}
@@ -368,19 +368,19 @@ const CreateUnit = () => {
           <ArrowBackIcon />
         </IconButton>
         <Typography variant="h4" component="h1" sx={{ fontWeight: 700, color: theme.palette.primary.main }}>
-          إضافة وحدة جديدة
+          {t('unitsAddNewUnit')}
         </Typography>
       </Box>
       
       <StyledPaper elevation={0}>
         <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
-            معلومات الوحدة الأساسية
+            {t('unitsBasicUnitInformation')}
           </Typography>
 
           <StyledTextField
             fullWidth
-            label="عنوان الوحدة"
+            label={t('unitsUnitTitle')}
             name="title"
             value={unitData.title}
             onChange={handleChange}
@@ -391,7 +391,7 @@ const CreateUnit = () => {
 
           <StyledTextField
             fullWidth
-            label="وصف الوحدة"
+            label={t('unitsUnitDescription')}
             name="description"
             value={unitData.description}
             onChange={handleChange}
@@ -401,15 +401,15 @@ const CreateUnit = () => {
           />
 
           <FormControl fullWidth>
-            <InputLabel>الوحدة الرئيسية (اختياري)</InputLabel>
+            <InputLabel>{t('unitsMainUnitOptional')}</InputLabel>
             <Select
               name="submodule"
               value={unitData.submodule}
               onChange={handleChange}
-              label="الوحدة الرئيسية (اختياري)"
+              label={t('unitsMainUnitOptional')}
             >
               <MenuItem value="">
-                <em>لا توجد - وحدة رئيسية</em>
+                <em>{t('unitsNoneMainUnit')}</em>
               </MenuItem>
               {modules.map((module) => (
                 <MenuItem key={module.id} value={module.id}>
@@ -418,20 +418,20 @@ const CreateUnit = () => {
               ))}
             </Select>
             <FormHelperText>
-              اختر الوحدة الرئيسية إذا كانت هذه وحدة فرعية
+              {t('unitsSelectMainUnitIfSubUnit')}
             </FormHelperText>
           </FormControl>
 
           <StyledTextField
             fullWidth
-            label="مدة الوحدة (بالدقائق)"
+            label={t('unitsUnitDurationMinutes')}
             name="duration"
             type="number"
             value={unitData.duration}
             onChange={handleChange}
             variant="outlined"
             size="medium"
-            InputProps={{ endAdornment: <InputAdornment position="end">دقيقة</InputAdornment> }}
+            InputProps={{ endAdornment: <InputAdornment position="end">{t('unitsMinutes')}</InputAdornment> }}
           />
 
           <Box>
@@ -442,7 +442,7 @@ const CreateUnit = () => {
               value={unitData.bunny_video_id}
               onChange={(value) => setUnitData(prev => ({ ...prev, bunny_video_id: value }))}
               label="Bunny Video ID"
-              placeholder="أدخل Bunny Video ID"
+              placeholder={t('lessonsBunnyVideoIDPlaceholder')}
               onVideoSelect={handleBunnyVideoSelect}
               showPreview={true}
             />
@@ -450,11 +450,11 @@ const CreateUnit = () => {
             {/* Fallback: Upload Video File */}
             <Box sx={{ mt: 2 }}>
               <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-                {t('lessonsUploadLocalVideo')}
+                {t('unitsUploadLocalVideo')}
               </Typography>
               {!unitData.videoFile ? (
                 <Button component="label" variant="outlined" startIcon={<CloudUploadIcon />} disabled={submitting}>
-                  {t('lessonsUploadVideo')}
+                  {t('unitsUploadVideo')}
                   <input hidden type="file" accept="video/*" onChange={(e) => handleFileSelect('video', e.target.files && e.target.files.length ? e.target.files[0] : null)} />
                 </Button>
               ) : (
@@ -462,7 +462,7 @@ const CreateUnit = () => {
                   <video src={URL.createObjectURL(unitData.videoFile)} controls style={{ width: '100%', maxHeight: 360, borderRadius: 8, border: `1px solid ${theme.palette.divider}` }} />
                   <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
                     <Chip label={unitData.videoFile.name} size="small" />
-                    <Button color="error" onClick={() => handleFileSelect('video', null)}>{t('commonRemove')}</Button>
+                    <Button color="error" onClick={() => handleFileSelect('video', null)}>{t('unitsRemove')}</Button>
                   </Box>
                 </Box>
               )}
@@ -470,10 +470,10 @@ const CreateUnit = () => {
           </Box>
           
           <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>ملف PDF</Typography>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>{t('unitsPDFFile')}</Typography>
             {!unitData.pdfFile ? (
               <Button component="label" variant="outlined" startIcon={<CloudUploadIcon />}>
-                رفع ملف PDF
+                {t('unitsUploadPDFFile')}
                 <input hidden type="file" accept="application/pdf" onChange={(e) => handleFileSelect('pdf', e.target.files && e.target.files.length ? e.target.files[0] : null)} />
               </Button>
             ) : (
@@ -483,8 +483,8 @@ const CreateUnit = () => {
                 </Box>
                 <Box sx={{ mt: 1, display: 'flex', gap: 1, alignItems: 'center' }}>
                   <Chip label={unitData.pdfFile.name} size="small" />
-                  <Button component="a" href={URL.createObjectURL(unitData.pdfFile)} target="_blank" rel="noopener noreferrer">فتح في تبويب</Button>
-                  <Button color="error" onClick={() => handleFileSelect('pdf', null)}>مسح الملف</Button>
+                  <Button component="a" href={URL.createObjectURL(unitData.pdfFile)} target="_blank" rel="noopener noreferrer">{t('unitsOpenInTab')}</Button>
+                  <Button color="error" onClick={() => handleFileSelect('pdf', null)}>{t('unitsDeleteFile')}</Button>
                 </Box>
               </Box>
             )}
@@ -492,12 +492,12 @@ const CreateUnit = () => {
         
           <FormControlLabel
             control={<Checkbox checked={unitData.isPreview} onChange={handleChange} name="isPreview" color="primary" />}
-            label="متاحة كمعاينة"
+            label={t('unitsAvailableAsPreview')}
           />
 
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', pt: 1 }}>
             <StyledButton variant="contained" color="primary" type="submit" disabled={submitting}>
-              حفظ الوحدة
+              {t('unitsSaveUnit')}
             </StyledButton>
           </Box>
         </Box>
@@ -521,7 +521,7 @@ const CreateUnit = () => {
               onClick={() => navigate(`/teacher/courses/${courseId}/units`)}
               sx={{ fontWeight: 600 }}
             >
-              عرض الوحدات
+              {t('unitsViewUnits')}
             </Button>
           }
         >

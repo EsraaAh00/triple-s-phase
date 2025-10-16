@@ -38,7 +38,7 @@ const Wrapper = styled(Paper)(({ theme }) => ({
 const LessonForm = ({ isEdit = false }) => {
   const navigate = useNavigate();
   const { courseId, unitId, lessonId } = useParams();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   
   const LESSON_TYPES = [
     { value: 'video', label: t('lessonsVideo') },
@@ -92,10 +92,10 @@ const LessonForm = ({ isEdit = false }) => {
             content: item.content || '',
           });
         } else {
-          setError('تعذر العثور على الدرس');
+          setError(t('lessonsLessonNotFound'));
         }
       } catch (e) {
-        setError('تعذر تحميل بيانات الدرس');
+        setError(t('lessonsFailedToLoadLesson'));
       } finally {
         setLoading(false);
       }
@@ -113,7 +113,7 @@ const LessonForm = ({ isEdit = false }) => {
         const arr = Array.isArray(data) ? data : (data?.results || data?.data || []);
         setResources(arr);
       } catch (e) {
-        setResError('تعذر تحميل الموارد المرفقة');
+        setResError(t('lessonsFailedToLoadResources'));
       } finally {
         setResLoading(false);
       }
@@ -126,7 +126,7 @@ const LessonForm = ({ isEdit = false }) => {
       await contentAPI.deleteLessonResource(resourceId);
       setResources((prev) => prev.filter((r) => r.id !== resourceId));
     } catch (e) {
-      setResError('تعذر حذف المورد');
+      setResError(t('lessonsFailedToDeleteResource'));
     }
   };
 
@@ -184,7 +184,7 @@ const LessonForm = ({ isEdit = false }) => {
       }
       navigate(`/teacher/courses/${courseId}/units/${unitId}/lessons`);
     } catch (err) {
-      const msg = err?.response?.data?.detail || err?.response?.data?.error || 'تعذر حفظ الدرس. تحقق من الحقول.';
+      const msg = err?.response?.data?.detail || err?.response?.data?.error || t('lessonsFailedToSaveLesson');
       setError(msg);
     } finally {
       setSaving(false);
@@ -192,12 +192,12 @@ const LessonForm = ({ isEdit = false }) => {
   };
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
+    <Container maxWidth="md" sx={{ py: 4, direction: i18n.language === 'en' ? 'ltr' : 'rtl' }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
         <IconButton onClick={() => navigate(-1)}>
           <ArrowBackIcon />
         </IconButton>
-        <Typography variant="h5" fontWeight={700}>{isEdit ? 'تعديل الدرس' : 'إضافة درس'}</Typography>
+        <Typography variant="h5" fontWeight={700}>{isEdit ? t('lessonsEditLesson') : t('lessonsAddLesson')}</Typography>
       </Box>
 
       <Wrapper component="form" onSubmit={handleSubmit}>
@@ -205,16 +205,16 @@ const LessonForm = ({ isEdit = false }) => {
 
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
           <TextField
-            label="عنوان الدرس"
+            label={t('lessonsLessonTitle')}
             value={form.title}
             onChange={(e) => handleChange('title', e.target.value)}
             required
           />
 
           <FormControl>
-            <InputLabel>نوع الدرس</InputLabel>
+            <InputLabel>{t('lessonsLessonType')}</InputLabel>
             <Select
-              label="نوع الدرس"
+              label={t('lessonsLessonType')}
               value={form.lesson_type}
               onChange={(e) => handleChange('lesson_type', e.target.value)}
             >
@@ -225,7 +225,7 @@ const LessonForm = ({ isEdit = false }) => {
           </FormControl>
 
           <TextField
-            label="المدة (بالدقائق)"
+            label={t('lessonsDurationMinutes')}
             type="number"
             inputProps={{ min: 0 }}
             value={form.duration_minutes}
@@ -235,25 +235,25 @@ const LessonForm = ({ isEdit = false }) => {
           {/* Bunny CDN Video Section */}
           <Box sx={{ gridColumn: '1 / -1', mt: 2 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: 'primary.main' }}>
-              Bunny CDN Video
+              {t('lessonsBunnyCDNVideo')}
             </Typography>
             
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <TextField
-                label="Bunny video ID"
+                label={t('lessonsBunnyVideoID')}
                 value={form.bunny_video_id}
                 onChange={(e) => handleChange('bunny_video_id', e.target.value)}
-                placeholder="أدخل Bunny CDN video ID"
-                helperText="Bunny CDN video ID for external video hosting"
+                placeholder={t('lessonsBunnyVideoIDPlaceholder')}
+                helperText={t('lessonsBunnyVideoIDHelper')}
                 fullWidth
               />
               
               <TextField
-                label="Bunny video URL"
+                label={t('lessonsBunnyVideoURL')}
                 value={form.bunny_video_url}
                 onChange={(e) => handleChange('bunny_video_url', e.target.value)}
                 placeholder="https://vz-c239d8b2-f7d.b-cdn.net/..."
-                helperText="Direct URL to the video on Bunny CDN"
+                helperText={t('lessonsBunnyVideoURLHelper')}
                 fullWidth
               />
             </Box>
@@ -261,13 +261,13 @@ const LessonForm = ({ isEdit = false }) => {
             {/* Bunny CDN Video Selector */}
             <Box sx={{ mt: 2 }}>
               <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-                أو استخدم Bunny Video Selector
+                {t('lessonsOrUseBunnySelector')}
               </Typography>
               <BunnyVideoSelector
                 value={form.bunny_video_id}
                 onChange={(value) => handleChange('bunny_video_id', value)}
-                label="Bunny Video ID"
-                placeholder="أدخل Bunny Video ID"
+                label={t('lessonsBunnyVideoID')}
+                placeholder={t('lessonsBunnyVideoIDPlaceholder')}
                 onVideoSelect={handleBunnyVideoSelect}
                 showPreview={true}
               />
@@ -277,14 +277,14 @@ const LessonForm = ({ isEdit = false }) => {
           {/* Fallback: External Video URL */}
           <Box sx={{ gridColumn: '1 / -1', mt: 2 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: 'secondary.main' }}>
-              External Video URL (Fallback)
+              {t('lessonsExternalVideoURL')}
             </Typography>
             <TextField
-              label="رابط الفيديو الخارجي (اختياري)"
+              label={t('lessonsExternalVideoURLLabel')}
               value={form.video_url}
               onChange={(e) => handleChange('video_url', e.target.value)}
               placeholder="https://www.youtube.com/watch?v=..."
-              helperText="رابط فيديو خارجي كبديل (YouTube, Vimeo, etc.)"
+              helperText={t('lessonsExternalVideoURLHelper')}
               fullWidth
             />
           </Box>
@@ -292,12 +292,12 @@ const LessonForm = ({ isEdit = false }) => {
 
         <FormControlLabel
           control={<Checkbox checked={form.is_free} onChange={(e) => handleChange('is_free', e.target.checked)} />}
-          label="متاح كمعاينة"
+          label={t('lessonsAvailableAsPreview')}
           sx={{ mt: 2 }}
         />
 
         <TextField
-          label="المحتوى"
+          label={t('lessonsContent')}
           value={form.content}
           onChange={(e) => handleChange('content', e.target.value)}
           fullWidth
@@ -308,12 +308,12 @@ const LessonForm = ({ isEdit = false }) => {
 
         {/* Resources */}
         <Divider sx={{ my: 3 }} />
-        <Typography variant="h6" sx={{ mb: 1 }}>الموارد المرفقة (اختياري)</Typography>
+        <Typography variant="h6" sx={{ mb: 1 }}>{t('lessonsAttachedResources')}</Typography>
         {isEdit && (
           <Box sx={{ mb: 2 }}>
             {resError && <Alert severity="error" sx={{ mb: 1 }}>{resError}</Alert>}
             {resLoading ? (
-              <Typography variant="body2" color="text.secondary">جاري تحميل الموارد...</Typography>
+              <Typography variant="body2" color="text.secondary">{t('lessonsLoadingResources')}</Typography>
             ) : (
               resources.length > 0 ? (
                 <List dense>
@@ -335,7 +335,7 @@ const LessonForm = ({ isEdit = false }) => {
                         </IconButton>
                       )}
                       <ListItemSecondaryAction>
-                        {/* يمكن لاحقاً إضافة تحرير المورد */}
+                        {/* Can later add resource editing */}
                         <IconButton edge="end" color="error" onClick={() => handleDeleteResource(res.id)}>
                           <DeleteIcon />
                         </IconButton>
@@ -344,28 +344,28 @@ const LessonForm = ({ isEdit = false }) => {
                   ))}
                 </List>
               ) : (
-                <Typography variant="body2" color="text.secondary">لا توجد موارد مرفقة.</Typography>
+                <Typography variant="body2" color="text.secondary">{t('lessonsNoResourcesAttached')}</Typography>
               )
             )}
           </Box>
         )}
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
           <FormControl>
-            <InputLabel>طريقة الإضافة</InputLabel>
+            <InputLabel>{t('lessonsAddMethod')}</InputLabel>
             <Select
-              label="طريقة الإضافة"
+              label={t('lessonsAddMethod')}
               value={resourceMode}
               onChange={(e) => setResourceMode(e.target.value)}
             >
-              <MenuItem value="none">بدون</MenuItem>
-              <MenuItem value="file">رفع ملف</MenuItem>
-              <MenuItem value="url">رابط خارجي</MenuItem>
+              <MenuItem value="none">{t('lessonsNone')}</MenuItem>
+              <MenuItem value="file">{t('lessonsUploadFile')}</MenuItem>
+              <MenuItem value="url">{t('lessonsExternalLink')}</MenuItem>
             </Select>
           </FormControl>
 
           {resourceMode !== 'none' && (
             <TextField
-              label="عنوان المورد"
+              label={t('lessonsResourceTitle')}
               value={resource.title}
               onChange={(e) => setResource((p) => ({ ...p, title: e.target.value }))}
               required
@@ -376,23 +376,23 @@ const LessonForm = ({ isEdit = false }) => {
         {resourceMode === 'file' && (
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2, mt: 2 }}>
             <FormControl>
-              <InputLabel>نوع المورد</InputLabel>
+              <InputLabel>{t('lessonsResourceType')}</InputLabel>
               <Select
-                label="نوع المورد"
+                label={t('lessonsResourceType')}
                 value={resource.resource_type}
                 onChange={(e) => setResource((p) => ({ ...p, resource_type: e.target.value }))}
               >
-                <MenuItem value="document">مستند</MenuItem>
-                <MenuItem value="presentation">عرض تقديمي</MenuItem>
-                <MenuItem value="spreadsheet">جدول بيانات</MenuItem>
-                <MenuItem value="image">صورة</MenuItem>
-                <MenuItem value="audio">صوت</MenuItem>
-                <MenuItem value="video">فيديو</MenuItem>
-                <MenuItem value="other">أخرى</MenuItem>
+                <MenuItem value="document">{t('lessonsDocument')}</MenuItem>
+                <MenuItem value="presentation">{t('lessonsPresentation')}</MenuItem>
+                <MenuItem value="spreadsheet">{t('lessonsSpreadsheet')}</MenuItem>
+                <MenuItem value="image">{t('lessonsImage')}</MenuItem>
+                <MenuItem value="audio">{t('lessonsAudio')}</MenuItem>
+                <MenuItem value="video">{t('lessonsVideo')}</MenuItem>
+                <MenuItem value="other">{t('lessonsOther')}</MenuItem>
               </Select>
             </FormControl>
             <Button component="label" variant="outlined">
-              اختر ملف
+              {t('lessonsChooseFile')}
               <input
                 hidden
                 type="file"
@@ -411,7 +411,7 @@ const LessonForm = ({ isEdit = false }) => {
         {resourceMode === 'url' && (
           <Box sx={{ mt: 2 }}>
             <TextField
-              label="رابط المورد"
+              label={t('lessonsResourceLink')}
               fullWidth
               value={resource.url}
               onChange={(e) => setResource((p) => ({ ...p, url: e.target.value }))}
@@ -422,9 +422,9 @@ const LessonForm = ({ isEdit = false }) => {
 
 
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1.5, mt: 3 }}>
-          <Button variant="outlined" onClick={() => navigate(-1)} disabled={saving}>إلغاء</Button>
+          <Button variant="outlined" onClick={() => navigate(-1)} disabled={saving}>{t('lessonsCancel')}</Button>
           <Button type="submit" variant="contained" startIcon={<SaveIcon />} disabled={saving}>
-            حفظ
+            {t('lessonsSave')}
           </Button>
         </Box>
       </Wrapper>

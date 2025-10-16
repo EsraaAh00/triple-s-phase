@@ -105,7 +105,7 @@ const FlashcardCard = ({
         <Card 
           sx={{ 
             height: '100%',
-            minHeight: { xs: 280, sm: 300, md: 320, lg: 340 },
+            minHeight: { xs: 150, sm: 170, md: 190, lg: 210 },
             borderRadius: 3,
             boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
             transition: 'all 0.3s ease',
@@ -118,7 +118,7 @@ const FlashcardCard = ({
             }
           }}
         >
-          <CardContent sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
+          <CardContent sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
             {/* Header */}
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -160,7 +160,7 @@ const FlashcardCard = ({
                 flex: 1,
                 perspective: '1000px',
                 cursor: 'pointer',
-                minHeight: { xs: 180, sm: 200, md: 220, lg: 240 }
+                minHeight: { xs: 120, sm: 140, md: 160, lg: 180 }
               }}
               onClick={() => setIsFlipped(!isFlipped)}
             >
@@ -168,7 +168,7 @@ const FlashcardCard = ({
                 sx={{
                   position: 'relative',
                   width: '100%',
-                  height: { xs: 180, sm: 200, md: 220, lg: 240 },
+                  height: { xs: 120, sm: 140, md: 160, lg: 180 },
                   transition: 'transform 0.6s',
                   transformStyle: 'preserve-3d',
                   transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
@@ -196,7 +196,7 @@ const FlashcardCard = ({
                       الوجه الأمامي
                     </Typography>
                     {flashcard.front_image && (
-                      <Box sx={{ mb: 1, maxWidth: '80%', maxHeight: { xs: 60, sm: 70, md: 80 } }}>
+                      <Box sx={{ mb: 1, maxWidth: '80%', maxHeight: { xs: 40, sm: 50, md: 60 } }}>
                         <img 
                           src={flashcard.front_image} 
                           alt="Front" 
@@ -212,9 +212,9 @@ const FlashcardCard = ({
                     <Typography 
                       variant="body2" 
                       sx={{ 
-                        fontSize: { xs: '0.8rem', sm: '0.85rem', md: '0.9rem' },
-                        lineHeight: 1.4,
-                        maxHeight: { xs: 50, sm: 55, md: 60 },
+                        fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.8rem' },
+                        lineHeight: 1.3,
+                        maxHeight: { xs: 35, sm: 40, md: 45 },
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         display: '-webkit-box',
@@ -250,7 +250,7 @@ const FlashcardCard = ({
                       الوجه الخلفي
                     </Typography>
                     {flashcard.back_image && (
-                      <Box sx={{ mb: 1, maxWidth: '80%', maxHeight: { xs: 60, sm: 70, md: 80 } }}>
+                      <Box sx={{ mb: 1, maxWidth: '80%', maxHeight: { xs: 40, sm: 50, md: 60 } }}>
                         <img 
                           src={flashcard.back_image} 
                           alt="Back" 
@@ -266,9 +266,9 @@ const FlashcardCard = ({
                     <Typography 
                       variant="body2" 
                       sx={{ 
-                        fontSize: { xs: '0.8rem', sm: '0.85rem', md: '0.9rem' },
-                        lineHeight: 1.4,
-                        maxHeight: { xs: 50, sm: 55, md: 60 },
+                        fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.8rem' },
+                        lineHeight: 1.3,
+                        maxHeight: { xs: 35, sm: 40, md: 45 },
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         display: '-webkit-box',

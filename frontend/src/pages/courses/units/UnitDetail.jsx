@@ -79,7 +79,7 @@ const UnitDetail = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { courseId, unitId } = useParams();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   
   const LESSON_TYPES = [
     { value: 'video', label: t('lessonsVideo'), icon: <VideoIcon />, color: 'primary' },
@@ -91,7 +91,7 @@ const UnitDetail = () => {
   const [selectedLessonId, setSelectedLessonId] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
-  // الجلب من API سيتم مباشرةً
+  // Fetching from API will be done directly
 
   useEffect(() => {
     const fetchUnit = async () => {
@@ -216,7 +216,7 @@ const UnitDetail = () => {
 
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth="lg" sx={{ py: 4, direction: i18n.language === 'en' ? 'ltr' : 'rtl' }}>
       {/* Header */}
       <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -249,7 +249,7 @@ const UnitDetail = () => {
           onClick={handleEditUnit}
           sx={{ borderRadius: '12px' }}
         >
-          تعديل الوحدة
+          {t('unitsEditUnit')}
         </Button>
       </Box>
 
@@ -272,14 +272,14 @@ const UnitDetail = () => {
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
               <Chip
-                label={unit.status === 'published' ? 'منشور' : 'مسودة'}
+                label={unit.status === 'published' ? t('unitsPublished') : t('unitsDraft')}
                 color={unit.status === 'published' ? 'success' : 'warning'}
                 size="small"
                 variant="outlined"
               />
               {unit.isPreview && (
                 <Chip
-                  label="معاينة"
+                  label={t('unitsPreview')}
                   color="primary"
                   size="small"
                   variant="outlined"
@@ -287,14 +287,14 @@ const UnitDetail = () => {
               )}
               {unit.is_submodule ? (
                 <Chip
-                  label={`وحدة فرعية: ${unit.submodule_name || 'غير محدد'}`}
+                  label={`${t('unitsSubUnit')}: ${unit.submodule_name || t('commonNotSpecified')}`}
                   color="secondary"
                   size="small"
                   variant="outlined"
                 />
               ) : (
                 <Chip
-                  label="وحدة رئيسية"
+                  label={t('unitsMainUnit')}
                   color="info"
                   size="small"
                   variant="outlined"
@@ -305,13 +305,13 @@ const UnitDetail = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <AccessTimeIcon sx={{ fontSize: '1rem', color: 'text.secondary' }} />
                 <Typography variant="body2" color="textSecondary">
-                  {unit.duration} دقيقة
+                  {unit.duration} {t('unitsMinutes')}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <ArticleIcon sx={{ fontSize: '1rem', color: 'text.secondary' }} />
                 <Typography variant="body2" color="textSecondary">
-                  {unit.lessons.length} درس
+                  {unit.lessons.length} {t('unitsLesson')}
                 </Typography>
               </Box>
               {!unit.is_submodule && unit.submodules_count > 0 && (
@@ -320,7 +320,7 @@ const UnitDetail = () => {
                     <ArticleIcon sx={{ fontSize: '1rem', color: 'text.secondary' }} />
                   </Badge>
                   <Typography variant="body2" color="textSecondary">
-                    {unit.submodules_count} وحدة فرعية
+                    {unit.submodules_count} {t('unitsSubmodules')}
                   </Typography>
                 </Box>
               )}
@@ -346,7 +346,7 @@ const UnitDetail = () => {
                boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
              }}>
                <Typography variant="h6" sx={{ fontWeight: 700, mb: 3, color: theme.palette.primary.main, textAlign: 'center' }}>
-                 تفاصيل الوحدة
+                 {t('unitsUnitDetails')}
             </Typography>
         <Grid container spacing={2}>
                  <Grid item xs={12} sm={6} md={3}>
@@ -362,7 +362,7 @@ const UnitDetail = () => {
                      }
                    }}>
                      <Typography variant="body2" color="textSecondary" sx={{ mb: 0.5, fontSize: '0.8rem' }}>
-                       تاريخ الإنشاء
+                       {t('unitsCreationDate')}
                       </Typography>
                      <Typography variant="body1" fontWeight={600} color="primary.main">
                        {formatDate(unit.createdAt)}
@@ -382,7 +382,7 @@ const UnitDetail = () => {
                      }
                    }}>
                      <Typography variant="body2" color="textSecondary" sx={{ mb: 0.5, fontSize: '0.8rem' }}>
-                       آخر تحديث
+                       {t('unitsLastUpdated')}
                         </Typography>
                      <Typography variant="body1" fontWeight={600} color="primary.main">
                        {formatDate(unit.updatedAt)}
@@ -402,10 +402,10 @@ const UnitDetail = () => {
                      }
                    }}>
                      <Typography variant="body2" color="textSecondary" sx={{ mb: 0.5, fontSize: '0.8rem' }}>
-                       ترتيب الوحدة
+                       {t('unitsUnitOrder')}
                           </Typography>
                      <Typography variant="body1" fontWeight={600} color="primary.main">
-                       {unit.order || 'غير محدد'}
+                       {unit.order || t('commonNotSpecified')}
                           </Typography>
                         </Box>
                  </Grid>
@@ -422,10 +422,10 @@ const UnitDetail = () => {
                      }
                    }}>
                      <Typography variant="body2" color="textSecondary" sx={{ mb: 0.5, fontSize: '0.8rem' }}>
-                       إجمالي الدروس
+                       {t('unitsTotalLessons')}
                           </Typography>
                      <Typography variant="body1" fontWeight={600} color="primary.main">
-                       {unit.lessons.length} درس
+                       {unit.lessons.length} {t('unitsLesson')}
                           </Typography>
                         </Box>
                  </Grid>
@@ -441,7 +441,7 @@ const UnitDetail = () => {
                boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
              }}>
                <Typography variant="h6" sx={{ fontWeight: 700, mb: 3, color: theme.palette.primary.main, textAlign: 'center' }}>
-                 إحصائيات الوحدة
+                 {t('unitsUnitStatistics')}
                </Typography>
                <Grid container spacing={2}>
                  <Grid item xs={12} sm={6} md={3}>
@@ -457,10 +457,10 @@ const UnitDetail = () => {
                      }
                    }}>
                      <Typography variant="body2" color="textSecondary" sx={{ mb: 0.5, fontSize: '0.8rem' }}>
-                       إجمالي المدة
+                       {t('unitsTotalDuration')}
                         </Typography>
                      <Typography variant="body1" fontWeight={600} color="primary.main">
-                       {unit.duration} دقيقة
+                       {unit.duration} {t('unitsMinutes')}
                   </Typography>
                       </Box>
                  </Grid>
@@ -477,10 +477,10 @@ const UnitDetail = () => {
                      }
                    }}>
                      <Typography variant="body2" color="textSecondary" sx={{ mb: 0.5, fontSize: '0.8rem' }}>
-                       الدروس المكتملة
+                       {t('unitsCompletedLessons')}
                                         </Typography>
                      <Typography variant="body1" fontWeight={600} color="success.main">
-                       {unit.lessons.filter(l => l.completed).length} من {unit.lessons.length}
+                       {unit.lessons.filter(l => l.completed).length} {t('commonOf')} {unit.lessons.length}
                                         </Typography>
                    </Box>
                  </Grid>
@@ -497,10 +497,10 @@ const UnitDetail = () => {
                      }
                    }}>
                      <Typography variant="body2" color="textSecondary" sx={{ mb: 0.5, fontSize: '0.8rem' }}>
-                       دروس المعاينة
+                       {t('unitsPreviewLessons')}
                       </Typography>
                      <Typography variant="body1" fontWeight={600} color="warning.main">
-                       {unit.lessons.filter(l => l.isPreview).length} درس
+                       {unit.lessons.filter(l => l.isPreview).length} {t('unitsLesson')}
                      </Typography>
                                       </Box>
                  </Grid>
@@ -517,10 +517,10 @@ const UnitDetail = () => {
                      }
                    }}>
                      <Typography variant="body2" color="textSecondary" sx={{ mb: 0.5, fontSize: '0.8rem' }}>
-                       الحالة
+                       {t('unitsStatus')}
                      </Typography>
                      <Chip 
-                       label={unit.status === 'published' ? 'منشور' : 'مسودة'} 
+                       label={unit.status === 'published' ? t('unitsPublished') : t('unitsDraft')} 
                        color={unit.status === 'published' ? 'success' : 'warning'}
                        size="small"
                        sx={{ fontWeight: 600 }}
@@ -537,17 +537,17 @@ const UnitDetail = () => {
       <StyledPaper elevation={0} sx={{ mt: 3 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
           <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
-          دروس الوحدة ({unit.lessons.length})
+          {t('unitsUnitLessons')} ({unit.lessons.length})
                   </Typography>
           <Box sx={{ display: 'flex', gap: 1 }}>
             <Chip 
-              label={`${unit.lessons.filter(l => l.completed).length} مكتمل`} 
+              label={`${unit.lessons.filter(l => l.completed).length} ${t('unitsCompleted')}`} 
               color="success" 
               size="small" 
               variant="outlined"
             />
             <Chip 
-              label={`${unit.lessons.filter(l => l.isPreview).length} معاينة`} 
+              label={`${unit.lessons.filter(l => l.isPreview).length} ${t('unitsPreview')}`} 
               color="primary" 
               size="small" 
               variant="outlined"
@@ -562,20 +562,20 @@ const UnitDetail = () => {
                 <TableCell sx={{ fontWeight: 700, color: theme.palette.primary.main }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <ArticleIcon sx={{ fontSize: 20 }} />
-                    الدرس
+                    {t('unitsLesson')}
                 </Box>
                 </TableCell>
                 <TableCell sx={{ fontWeight: 700, color: theme.palette.primary.main, textAlign: 'center' }}>
-                  النوع
+                  {t('unitsType')}
                 </TableCell>
                 <TableCell sx={{ fontWeight: 700, color: theme.palette.primary.main, textAlign: 'center' }}>
-                  المدة
+                  {t('unitsDuration')}
                 </TableCell>
                 <TableCell sx={{ fontWeight: 700, color: theme.palette.primary.main, textAlign: 'center' }}>
-                  الحالة
+                  {t('unitsStatus')}
                 </TableCell>
                 <TableCell sx={{ fontWeight: 700, color: theme.palette.primary.main, textAlign: 'center' }}>
-                  الإجراءات
+                  {t('unitsActions')}
                 </TableCell>
               </TableRow>
             </TableHead>
@@ -618,7 +618,7 @@ const UnitDetail = () => {
                                       overflow: 'hidden',
                             maxWidth: 300
                           }}>
-                            {lesson.content || 'لا يوجد وصف للدرس'}
+                            {lesson.content || t('unitsNoLessonDescription')}
                                   </Typography>
                         </Box>
                       </Box>
@@ -636,7 +636,7 @@ const UnitDetail = () => {
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
                         <AccessTimeIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
                         <Typography variant="body2" fontWeight={500}>
-                          {lesson.duration} دقيقة
+                          {lesson.duration} {t('unitsMinutes')}
                                   </Typography>
                       </Box>
                     </TableCell>
@@ -656,7 +656,7 @@ const UnitDetail = () => {
                     </TableCell>
                     <TableCell align="center">
                       <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
-                        <Tooltip title="فتح الدرس">
+                        <Tooltip title={t('unitsOpenLesson')}>
                                 <IconButton
                             size="small"
                             color="primary"
@@ -675,7 +675,7 @@ const UnitDetail = () => {
                             <PlayIcon />
                   </IconButton>
                         </Tooltip>
-                        <Tooltip title="عرض التفاصيل">
+                        <Tooltip title={t('unitsViewDetails')}>
                   <IconButton
                             size="small"
                             color="secondary"
@@ -695,7 +695,7 @@ const UnitDetail = () => {
                   </IconButton>
                         </Tooltip>
                         {lesson.resources.length > 0 && (
-                          <Tooltip title={`${lesson.resources.length} مرفق`}>
+                          <Tooltip title={`${lesson.resources.length} ${t('unitsAttachment')}`}>
                             <Badge badgeContent={lesson.resources.length} color="primary">
                   <IconButton
                                 size="small"

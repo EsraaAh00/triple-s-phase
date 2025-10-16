@@ -66,7 +66,7 @@ const LessonCard = styled(Paper)(({ theme }) => ({
 const Lessons = () => {
   const navigate = useNavigate();
   const { courseId, unitId } = useParams();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [module, setModule] = useState(null);
   const [error, setError] = useState(null);
@@ -111,9 +111,9 @@ const Lessons = () => {
         ...prev,
         lessons: (prev?.lessons || []).filter((l) => l.id !== targetLesson.id),
       }));
-      setSnackbar({ open: true, message: 'تم حذف الدرس بنجاح', severity: 'success' });
+      setSnackbar({ open: true, message: t('lessonsDeleteSuccess'), severity: 'success' });
     } catch (e) {
-      setSnackbar({ open: true, message: 'تعذر حذف الدرس', severity: 'error' });
+      setSnackbar({ open: true, message: t('lessonsDeleteError'), severity: 'error' });
     } finally {
       setDeleting(false);
       setConfirmOpen(false);
@@ -150,7 +150,7 @@ const Lessons = () => {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth="lg" sx={{ py: 4, direction: i18n.language === 'en' ? 'ltr' : 'rtl' }}>
       <Box sx={{
         mb: 4,
         p: 3,
@@ -197,10 +197,10 @@ const Lessons = () => {
           </IconButton>
           <Box>
                 <Typography variant="h4" component="h1" sx={{ fontWeight: 700, color: 'white' }}>
-                  دروس الوحدة
+                  {t('lessonsUnitLessons')}
                 </Typography>
                 <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.9)', fontSize: '1.1rem' }}>
-                  {module?.name || module?.title || 'إدارة دروس الوحدة'}
+                  {module?.name || module?.title || t('lessonsManageUnitLessons')}
             </Typography>
           </Box>
         </Box>
@@ -251,10 +251,10 @@ const Lessons = () => {
                 <Table>
                   <TableHead>
                     <TableRow sx={{ backgroundColor: 'primary.main' }}>
-                      <TableCell sx={{ color: 'white', fontWeight: 600, py: 2, px: 3, textAlign: 'center' }}>الدرس</TableCell>
-                      <TableCell sx={{ color: 'white', fontWeight: 600, py: 2, px: 3, textAlign: 'center' }}>النوع</TableCell>
-                      <TableCell sx={{ color: 'white', fontWeight: 600, py: 2, px: 3, textAlign: 'center' }}>المدة</TableCell>
-                      <TableCell sx={{ color: 'white', fontWeight: 600, py: 2, px: 3, textAlign: 'center' }}>الإجراءات</TableCell>
+                      <TableCell sx={{ color: 'white', fontWeight: 600, py: 2, px: 3, textAlign: 'center' }}>{t('lessonsLesson')}</TableCell>
+                      <TableCell sx={{ color: 'white', fontWeight: 600, py: 2, px: 3, textAlign: 'center' }}>{t('lessonsType')}</TableCell>
+                      <TableCell sx={{ color: 'white', fontWeight: 600, py: 2, px: 3, textAlign: 'center' }}>{t('lessonsDuration')}</TableCell>
+                      <TableCell sx={{ color: 'white', fontWeight: 600, py: 2, px: 3, textAlign: 'center' }}>{t('lessonsActions')}</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -282,7 +282,7 @@ const Lessons = () => {
                                 {lesson.title}
                               </Typography>
                               <Typography variant="caption" color="textSecondary" sx={{ fontSize: '0.75rem' }}>
-                                معرف الدرس: {lesson.id}
+                                {t('lessonsLessonId')}: {lesson.id}
                               </Typography>
                             </Box>
                           </Box>
@@ -300,13 +300,13 @@ const Lessons = () => {
                           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
                             <AccessTimeIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
                             <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                              {lesson.duration_minutes || 0} دقيقة
+                              {lesson.duration_minutes || 0} {t('lessonsMinutes')}
                             </Typography>
                           </Box>
                         </TableCell>
                         <TableCell sx={{ py: 2, px: 3, textAlign: 'center' }}>
                           <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
-                            <Tooltip title="عرض">
+                            <Tooltip title={t('lessonsView')}>
                               <IconButton 
                                 size="small" 
                                 onClick={() => handleViewLesson(lesson.id)}
@@ -323,7 +323,7 @@ const Lessons = () => {
                                 <VisibilityIcon fontSize="small" />
                               </IconButton>
                             </Tooltip>
-                            <Tooltip title="تعديل">
+                            <Tooltip title={t('lessonsEdit')}>
                               <IconButton 
                                 size="small" 
                                 onClick={() => navigate(`/teacher/courses/${courseId}/units/${unitId}/lessons/${lesson.id}/edit`)}
@@ -340,7 +340,7 @@ const Lessons = () => {
                                 <EditIcon fontSize="small" />
                               </IconButton>
                             </Tooltip>
-                            <Tooltip title="حذف">
+                            <Tooltip title={t('lessonsDelete')}>
                               <IconButton 
                                 size="small" 
                                 color="error" 
@@ -372,25 +372,25 @@ const Lessons = () => {
                 onPageChange={handleChangePage}
                 rowsPerPage={rowsPerPage}
                 onRowsPerPageChange={handleChangeRowsPerPage}
-                labelRowsPerPage="صفوف في الصفحة:"
-                labelDisplayedRows={({ from, to, count }) => `${from}-${to} من ${count}`}
+                labelRowsPerPage={t('lessonsRowsPerPage')}
+                labelDisplayedRows={({ from, to, count }) => `${from}-${to} ${t('lessonsOf')} ${count}`}
               />
             </>
           ) : (
-            <Typography variant="body1" color="text.secondary">لا توجد دروس في هذه الوحدة حتى الآن.</Typography>
+            <Typography variant="body1" color="text.secondary">{t('lessonsNoLessonsYet')}</Typography>
           )
         )}
       </StyledPaper>
 
       <Dialog open={confirmOpen} onClose={() => !deleting && setConfirmOpen(false)}>
-        <DialogTitle>تأكيد الحذف</DialogTitle>
+        <DialogTitle>{t('lessonsConfirmDelete')}</DialogTitle>
         <DialogContent>
-          هل أنت متأكد من حذف الدرس: {targetLesson?.title}؟ هذا الإجراء لا يمكن التراجع عنه.
+          {t('lessonsDeleteConfirmationMessage', { title: targetLesson?.title })}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setConfirmOpen(false)} disabled={deleting}>إلغاء</Button>
+          <Button onClick={() => setConfirmOpen(false)} disabled={deleting}>{t('lessonsCancel')}</Button>
           <Button color="error" onClick={handleDelete} disabled={deleting}>
-            {deleting ? 'جاري الحذف...' : 'حذف'}
+            {deleting ? t('lessonsDeleting') : t('lessonsDelete')}
           </Button>
         </DialogActions>
       </Dialog>

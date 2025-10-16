@@ -96,13 +96,13 @@ const StyledButton = styled(Button)(({ theme }) => ({
   },
 }));
 
-// لا توجد إدارة للدروس هنا
+// No lesson management here
 
 const EditUnit = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { courseId, unitId } = useParams();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
@@ -151,7 +151,7 @@ const EditUnit = () => {
         }));
       } catch (error) {
         console.error('Error fetching data:', error);
-        setSnackbar({ open: true, message: t('commonDataLoadingError'), severity: 'error' });
+        setSnackbar({ open: true, message: t('unitsDataLoadingError'), severity: 'error' });
       } finally {
         setLoading(false);
       }
@@ -221,7 +221,7 @@ const EditUnit = () => {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth="lg" sx={{ py: 4, direction: i18n.language === 'en' ? 'ltr' : 'rtl' }}>
       <Box sx={{ mb: 4, display: 'flex', alignItems: 'center' }}>
         <IconButton 
           onClick={() => navigate(-1)} 
@@ -273,10 +273,10 @@ const EditUnit = () => {
               name="submodule"
               value={unitData.submodule}
               onChange={handleChange}
-              label="الوحدة الرئيسية (اختياري)"
+              label={t('unitsMainUnitOptional')}
             >
               <MenuItem value="">
-                <em>لا توجد - وحدة رئيسية</em>
+                <em>{t('unitsNoneMainUnit')}</em>
               </MenuItem>
               {modules.map((module) => (
                 <MenuItem key={module.id} value={module.id}>
@@ -285,20 +285,20 @@ const EditUnit = () => {
               ))}
             </Select>
             <FormHelperText>
-              اختر الوحدة الرئيسية إذا كانت هذه وحدة فرعية
+              {t('unitsSelectMainUnitIfSubUnit')}
             </FormHelperText>
           </FormControl>
 
           <StyledTextField
             fullWidth
-            label="مدة الوحدة (بالدقائق)"
+            label={t('unitsUnitDurationMinutes')}
             name="duration"
             type="number"
             value={unitData.duration}
             onChange={handleChange}
             variant="outlined"
             size="medium"
-            InputProps={{ endAdornment: <InputAdornment position="end">دقيقة</InputAdornment> }}
+            InputProps={{ endAdornment: <InputAdornment position="end">{t('unitsMinutes')}</InputAdornment> }}
           />
 
           {/* VIDEO */}
@@ -310,7 +310,7 @@ const EditUnit = () => {
               value={unitData.bunny_video_id}
               onChange={(value) => setUnitData(prev => ({ ...prev, bunny_video_id: value }))}
               label="Bunny Video ID"
-              placeholder="أدخل Bunny Video ID"
+              placeholder={t('lessonsBunnyVideoIDPlaceholder')}
               onVideoSelect={handleBunnyVideoSelect}
               showPreview={true}
             />
@@ -318,7 +318,7 @@ const EditUnit = () => {
             {/* Fallback: Upload Video File */}
             <Box sx={{ mt: 2 }}>
               <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-                {t('lessonsUploadLocalVideo')}
+                {t('unitsUploadLocalVideo')}
               </Typography>
               {unitData.videoFile ? (
                 <Box>
@@ -332,14 +332,14 @@ const EditUnit = () => {
                   <video src={unitData.videoUrl} controls style={{ width: '100%', maxHeight: 360, borderRadius: 8, border: `1px solid ${theme.palette.divider}` }} />
                   <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
                     <Button component="label" variant="outlined" startIcon={<CloudUploadIcon />} disabled={saving}>
-                      {t('lessonsReplaceVideo')}
+                      {t('unitsReplaceVideo')}
                       <input hidden type="file" accept="video/*" onChange={(e) => handleFileSelect('video', e.target.files && e.target.files.length ? e.target.files[0] : null)} />
                     </Button>
                   </Box>
                 </Box>
               ) : (
                 <Button component="label" variant="outlined" startIcon={<CloudUploadIcon />} disabled={saving}>
-                  {t('lessonsUploadVideo')}
+                  {t('unitsUploadVideo')}
                   <input hidden type="file" accept="video/*" onChange={(e) => handleFileSelect('video', e.target.files && e.target.files.length ? e.target.files[0] : null)} />
                 </Button>
               )}
@@ -348,15 +348,15 @@ const EditUnit = () => {
           
           {/* PDF */}
           <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>ملف PDF</Typography>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>{t('unitsPDFFile')}</Typography>
             {unitData.pdfFile ? (
               <Box>
                 <Box sx={{ position: 'relative', border: `1px solid ${theme.palette.divider}`, borderRadius: 1, overflow: 'hidden' }}>
                   <iframe title="pdf-preview" src={URL.createObjectURL(unitData.pdfFile)} style={{ width: '100%', height: 480, border: 0 }} />
                 </Box>
                 <Box sx={{ mt: 1, display: 'flex', gap: 1, alignItems: 'center' }}>
-                  <Button component="a" href={URL.createObjectURL(unitData.pdfFile)} target="_blank" rel="noopener noreferrer">فتح في تبويب</Button>
-                  <Button color="error" onClick={() => handleFileSelect('pdf', null)}>مسح الملف</Button>
+                  <Button component="a" href={URL.createObjectURL(unitData.pdfFile)} target="_blank" rel="noopener noreferrer">{t('unitsOpenInTab')}</Button>
+                  <Button color="error" onClick={() => handleFileSelect('pdf', null)}>{t('unitsDeleteFile')}</Button>
                 </Box>
                 </Box>
             ) : unitData.pdfUrl ? (
@@ -365,16 +365,16 @@ const EditUnit = () => {
                   <iframe title="pdf-preview" src={unitData.pdfUrl} style={{ width: '100%', height: 480, border: 0 }} />
               </Box>
                 <Box sx={{ mt: 1, display: 'flex', gap: 1, alignItems: 'center' }}>
-                  <Button component="a" href={unitData.pdfUrl} target="_blank" rel="noopener noreferrer">فتح في تبويب</Button>
+                  <Button component="a" href={unitData.pdfUrl} target="_blank" rel="noopener noreferrer">{t('unitsOpenInTab')}</Button>
                   <Button component="label" variant="outlined" startIcon={<CloudUploadIcon />} disabled={saving}>
-                    استبدال الملف
+                    {t('unitsReplaceFile')}
                     <input hidden type="file" accept="application/pdf" onChange={(e) => handleFileSelect('pdf', e.target.files && e.target.files.length ? e.target.files[0] : null)} />
                   </Button>
           </Box>
               </Box>
             ) : (
               <Button component="label" variant="outlined" startIcon={<CloudUploadIcon />}>
-                رفع ملف PDF
+                {t('unitsUploadPDFFile')}
                 <input hidden type="file" accept="application/pdf" onChange={(e) => handleFileSelect('pdf', e.target.files && e.target.files.length ? e.target.files[0] : null)} />
               </Button>
             )}
@@ -382,12 +382,12 @@ const EditUnit = () => {
         
           <FormControlLabel
             control={<Checkbox checked={unitData.isPreview} onChange={handleChange} name="isPreview" color="primary" />}
-            label="متاحة كمعاينة"
+            label={t('unitsAvailableAsPreview')}
           />
 
           <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
             <StyledButton variant="contained" type="submit" disabled={saving}>
-              {saving ? 'جاري الحفظ...' : 'حفظ التغييرات'}
+              {saving ? t('unitsSaving') : t('unitsSaveChanges')}
             </StyledButton>
           </Box>
         </Box>

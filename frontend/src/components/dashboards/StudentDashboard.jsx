@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Box, Typography, Button, Grid, Avatar, LinearProgress, useTheme, Chip, Skeleton, Card, CardContent, IconButton, Tabs, Tab, Dialog, DialogContent } from '@mui/material';
+import { Box, Typography, Button, Grid, Avatar, LinearProgress, useTheme, Chip, Skeleton, Card, CardContent, IconButton, Tabs, Tab } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { alpha } from '@mui/material/styles';
 import {
@@ -14,14 +14,20 @@ import {
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
   Add as AddIcon,
-  Visibility as VisibilityIcon
+  Visibility as VisibilityIcon,
+  Lock as LockIcon,
+  Style as FlashcardsIcon,
+  Quiz as QBIcon,
+  Assessment as PerformanceIcon,
+  Pause as FreezeIcon,
+  Assignment as SelfAssessmentIcon,
+  Schedule as ScheduleIcon
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import dashboardService from '../../services/dashboard.service';
 import { contentAPI } from '../../services/content.service';
-import CourseDetails from '../courses/CourseDetails';
-
+import { courseAPI } from '../../services/courseService';
 // Animation variants
 const container = {
   hidden: { opacity: 0 },
@@ -32,12 +38,10 @@ const container = {
     }
   }
 };
-
 const item = {
   hidden: { opacity: 0, y: 20 },
   show: { opacity: 1, y: 0, transition: { duration: 0.5 } }
 };
-
 const StudentDashboard = () => {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -50,20 +54,19 @@ const StudentDashboard = () => {
     completedLessons: 0
   });
   const [courses, setCourses] = useState([]);
+  const [modules, setModules] = useState([]);
+  const [instructors, setInstructors] = useState([]);
   const [achievements, setAchievements] = useState([]);
   const [recentActivity, setRecentActivity] = useState([]);
   const [upcomingMeetings, setUpcomingMeetings] = useState([]);
   const [upcomingLectures, setUpcomingLectures] = useState([]);
   const [coursesLoading, setCoursesLoading] = useState(false);
-  const [selectedCourse, setSelectedCourse] = useState(null);
-  const [courseDetailsOpen, setCourseDetailsOpen] = useState(false);
+  const [modulesLoading, setModulesLoading] = useState(false);
   const [userName, setUserName] = useState('');
-
   useEffect(() => {
     loadDashboardData();
     loadUserName();
   }, []);
-
   const loadUserName = () => {
     try {
       const userData = localStorage.getItem('user');
@@ -71,7 +74,6 @@ const StudentDashboard = () => {
         const user = JSON.parse(userData);
         // Try different possible name fields in order of preference
         let name = '';
-        
         if (user.first_name && user.last_name) {
           name = `${user.first_name} ${user.last_name}`;
         } else if (user.first_name) {
@@ -85,7 +87,6 @@ const StudentDashboard = () => {
         } else {
           name = t('commonStudent');
         }
-        
         setUserName(name);
       } else {
         setUserName(t('commonStudent'));
@@ -95,11 +96,9 @@ const StudentDashboard = () => {
       setUserName(t('commonStudent'));
     }
   };
-
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-
       // {t('dashboardLoadingDataInParallel')}
       const [
         statsData,
@@ -114,23 +113,18 @@ const StudentDashboard = () => {
         dashboardService.getRecentActivity(),
         dashboardService.getUpcomingMeetings()
       ]);
-
       // {t('dashboardUsingRealDataFromAPI')}
       const enhancedStats = {
         completedLessons: statsData.completedLessons || 0,
         enrolledCourses: statsData.enrolledCourses || 0
       };
-      
       setStats(enhancedStats);
-
       // Set loading state for courses
       setCoursesLoading(true);
-
       // Process and validate course data from API
       const processedCourses = coursesData.length > 0 ? await Promise.all(coursesData.map(async (course) => {
         try {
           console.log(`Fetching content for course ${course.id}:`, course.title);
-
           // Fetch questions and flashcards count for each course
           const [questionsData, flashcardsData] = await Promise.all([
             contentAPI.getCourseQuestionBank(course.id).catch((err) => {
@@ -142,12 +136,9 @@ const StudentDashboard = () => {
               return { results: [] };
             })
           ]);
-
           const questionCount = questionsData?.results?.length || questionsData?.length || 0;
           const flashcardCount = flashcardsData?.results?.length || flashcardsData?.length || 0;
-
           console.log(`Course ${course.id} - Questions: ${questionCount}, Flashcards: ${flashcardCount}`);
-
           return {
             ...course,
             progress: Math.min(Math.max(course.progress || 0, 0), 100),
@@ -170,10 +161,15 @@ const StudentDashboard = () => {
           };
         }
       })) : [];
-
       setCourses(processedCourses);
       setCoursesLoading(false);
-
+      
+      // Load modules and instructors for the first course if available
+      if (processedCourses.length > 0) {
+        loadModules(processedCourses[0].id);
+        loadInstructors(processedCourses[0].id);
+      }
+      
       // {t('dashboardAddingMockAchievementData')}
       const mockAchievements = achievementsData.length > 0 ? achievementsData : [
         {
@@ -204,11 +200,9 @@ const StudentDashboard = () => {
           reward: `50 ${t('dashboardPoints')}`
         }
       ];
-
       setAchievements(mockAchievements);
       setRecentActivity(activityData);
       setUpcomingMeetings(meetingsData);
-
       // Set empty array for lectures if no data from API
       setUpcomingLectures([]);
     } catch (error) {
@@ -217,26 +211,12 @@ const StudentDashboard = () => {
       setLoading(false);
     }
   };
-
   const handleCourseContinue = (courseId) => {
     navigate(`/student/my-courses?courseId=${courseId}`);
   };
-
   const handleCourseView = (courseId) => {
     navigate(`/courses/${courseId}`);
   };
-
-  const handleCourseDetails = (course) => {
-    setSelectedCourse(course);
-    setCourseDetailsOpen(true);
-  };
-
-  const handleCloseCourseDetails = () => {
-    setCourseDetailsOpen(false);
-    setSelectedCourse(null);
-  };
-
-
   const formatDate = (date) => {
     return new Intl.DateTimeFormat('en-GB', {
       year: 'numeric',
@@ -244,17 +224,144 @@ const StudentDashboard = () => {
       day: 'numeric'
     }).format(date);
   };
-
-
   const getDayName = (date) => {
     const days = [t('dashboardSunday'), t('dashboardMonday'), t('dashboardTuesday'), t('dashboardWednesday'), t('dashboardThursday'), t('dashboardFriday'), t('dashboardSaturday')];
     return days[date.getDay()];
   };
+  const loadInstructors = async (courseId) => {
+    try {
+      console.log('Loading instructors for course ID:', courseId);
+      const courseData = await courseAPI.getCourseById(courseId);
+      console.log('Course data:', courseData);
+      
+      // Extract instructors from course data
+      let courseInstructors = [];
+      if (courseData.instructors) {
+        courseInstructors = courseData.instructors;
+      } else if (courseData.teachers) {
+        courseInstructors = courseData.teachers;
+      } else if (courseData.instructor) {
+        courseInstructors = [courseData.instructor];
+      }
+      
+      console.log('Course instructors:', courseInstructors);
+      setInstructors(courseInstructors);
+    } catch (error) {
+      console.error('Error loading instructors:', error);
+      // Add mock instructors for testing
+      const mockInstructors = [
+        {
+          id: 1,
+          first_name: 'Dr. Ahmed',
+          last_name: 'Hassan',
+          username: 'ahmed_hassan',
+          email: 'ahmed@example.com'
+        },
+        {
+          id: 2,
+          first_name: 'Prof. Sarah',
+          last_name: 'Johnson',
+          username: 'sarah_johnson',
+          email: 'sarah@example.com'
+        },
+        {
+          id: 3,
+          first_name: 'Dr. Mohammed',
+          last_name: 'Ali',
+          username: 'mohammed_ali',
+          email: 'mohammed@example.com'
+        }
+      ];
+      setInstructors(mockInstructors);
+    }
+  };
+
+  const loadModules = async (courseId) => {
+    try {
+      setModulesLoading(true);
+      console.log('Loading modules for course ID:', courseId);
+      
+      // Try to get modules with course ID first
+      let modulesData;
+      try {
+        modulesData = await contentAPI.getModules(courseId);
+      } catch (error) {
+        console.log('Failed to get modules with course ID, trying without course filter');
+        // If that fails, try to get all modules
+        try {
+          const response = await fetch('/api/content/modules/');
+          modulesData = await response.json();
+        } catch (fetchError) {
+          console.error('Failed to fetch modules:', fetchError);
+          throw error; // Throw original error
+        }
+      }
+      console.log('Raw modules data:', modulesData);
+      console.log('Modules data type:', typeof modulesData);
+      console.log('Modules data keys:', Object.keys(modulesData || {}));
+      
+      // Handle different response formats
+      let modules = [];
+      if (Array.isArray(modulesData)) {
+        modules = modulesData;
+      } else if (modulesData && modulesData.results) {
+        modules = modulesData.results;
+      } else if (modulesData && modulesData.data) {
+        modules = modulesData.data;
+      }
+      
+      console.log('Processed modules:', modules);
+      
+      // If no modules found, add some mock data for testing
+      if (modules.length === 0) {
+        console.log('No modules found, adding mock data for testing');
+        const mockModules = [
+          {
+            id: 1,
+            name: 'Introduction to Biology',
+            title: 'Introduction to Biology',
+            is_active: true,
+            order: 1,
+            description: 'Basic concepts of biology'
+          },
+          {
+            id: 2,
+            name: 'Cell Structure',
+            title: 'Cell Structure',
+            is_active: true,
+            order: 2,
+            description: 'Understanding cell components'
+          },
+          {
+            id: 3,
+            name: 'Genetics',
+            title: 'Genetics',
+            is_active: false,
+            order: 3,
+            description: 'Introduction to genetics'
+          }
+        ];
+        setModules(mockModules);
+      } else {
+        setModules(modules);
+      }
+    } catch (error) {
+      console.error('Error loading modules:', error);
+      console.error('Error details:', error.response?.data);
+      setModules([]);
+    } finally {
+      setModulesLoading(false);
+    }
+  };
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
+    // Load modules and instructors for the selected course
+    if (courses[newValue]) {
+      loadModules(courses[newValue].id);
+      loadInstructors(courses[newValue].id);
+    }
   };
-
   if (loading) {
     return (
       <Box sx={{ p: { xs: 2, md: 3 } }}>
@@ -268,7 +375,6 @@ const StudentDashboard = () => {
       </Box>
     );
   }
-
   return (
     <Box sx={{ p: { xs: 2, md: 3 } }}>
       <motion.div
@@ -277,57 +383,247 @@ const StudentDashboard = () => {
         variants={container}
       >
         {/* Header Section */}
-        <Box sx={{ mb: 5, px: 1 }}>
+        <Box sx={{ px: 1 }}>
           <motion.div variants={item}>
             <Typography
               variant="h4"
               sx={{
                 fontWeight: 800,
                 mb: 2,
-                background: theme.palette.mode === 'dark'
-                  ? 'linear-gradient(45deg, #fff, #90caf9)'
-                  : 'linear-gradient(45deg, #663399, #42a5f5)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                display: 'inline-block'
+                color: 'text.primary'
               }}
             >
               {t('dashboardWelcome')}، {userName}! 👋
             </Typography>
           </motion.div>
+        </Box>
+        {/* Dashboard Cards - 6 uniform cards */}
+        <Box sx={{ mb: 5, px: 1 }}>
+          <Box>
+            {/* Top row - first 3 cards */}
+            <Grid container spacing={2} sx={{ mb: 0.25, '& .MuiGrid-root': { paddingTop: '0 !important' } }}>
+              {/* Create Test Card */}
+              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <motion.div variants={item}>
-            <Typography
-              variant="h6"
-              color="text.secondary"
+            <Card
               sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
-                mb: 4,
-                '&::before': {
-                  content: '""',
-                  display: 'block',
-                  width: 24,
-                  height: 3,
-                  background: theme.palette.primary.main,
-                  borderRadius: 2
-                }
+                    height: 80,
+                    borderRadius: 2,
+                background: 'white',
+                    border: 'none',
+                    boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                      boxShadow: '0 6px 20px rgba(0, 0, 0, 0.12)',
+                },
+                transition: 'all 0.3s ease',
+                cursor: 'pointer'
               }}
             >
-              {t('dashboardThisIsOverviewOfYourAcademicPerformance')}
+                  <CardContent sx={{ p: 2, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box
+                      sx={{
+                          width: 45,
+                          height: 45,
+                          borderRadius: 2,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                          background: '#2196f3',
+                        color: 'white',
+                        '& svg': {
+                            fontSize: '1.5rem'
+                        }
+                      }}
+                    >
+                        <FlashcardsIcon />
+                    </Box>
+                      <Box>
+                        <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500, mb: 0.5 }}>
+                          Flashcards
             </Typography>
+                        <Typography variant="caption" sx={{ color: '#666', fontSize: '0.75rem' }}>
+                          Study with flashcards
+                    </Typography>
+                  </Box>
+                </Box>
+                    <Box sx={{ color: '#ccc' }}>
+                      <LockIcon />
+                    </Box>
+                  </CardContent>
+                </Card>
           </motion.div>
-        </Box>
-
-        {/* Stats Cards - مطابقة لشكل المعلم */}
-        <Box sx={{ mb: 5, px: 1 }}>
+            </Grid>
+            {/* Daily Warmup Card */}
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+              <motion.div variants={item}>
+                <Card
+                          sx={{
+                    height: 80,
+                    borderRadius: 2,
+                    background: 'white',
+                    border: 'none',
+                    boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 6px 20px rgba(0, 0, 0, 0.12)',
+                    },
+                    transition: 'all 0.3s ease',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <CardContent sx={{ p: 2, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Box
+                        sx={{
+                          width: 45,
+                          height: 45,
+                          borderRadius: 2,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          background: '#2196f3',
+                          color: 'white',
+                          '& svg': {
+                            fontSize: '1.5rem'
+                          }
+                        }}
+                      >
+                        <QBIcon />
+                      </Box>
+                      <Box>
+                        <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500, mb: 0.5 }}>
+                          Questions Bank
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#666', fontSize: '0.75rem' }}>
+                          Practice questions
+                      </Typography>
+                    </Box>
+                  </Box>
+                    <Box sx={{ color: '#ccc' }}>
+                      <LockIcon />
+                    </Box>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </Grid>
+            {/* Simulation Exam Card */}
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+              <motion.div variants={item}>
+                <Card
+                          sx={{
+                    height: 80,
+                    borderRadius: 2,
+                    background: 'white',
+                    border: 'none',
+                    boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 6px 20px rgba(0, 0, 0, 0.12)',
+                    },
+                    transition: 'all 0.3s ease',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <CardContent sx={{ p: 2, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Box
+                        sx={{
+                          width: 45,
+                          height: 45,
+                          borderRadius: 2,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          background: '#f44336',
+                          color: 'white',
+                          '& svg': {
+                            fontSize: '1.5rem'
+                          }
+                        }}
+                      >
+                        <SelfAssessmentIcon />
+                      </Box>
+                  <Box>
+                        <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500, mb: 0.5 }}>
+                          Self Assessment
+                    </Typography>
+                        <Typography variant="caption" sx={{ color: '#666', fontSize: '0.75rem' }}>
+                          Test your knowledge
+                      </Typography>
+                    </Box>
+                  </Box>
+                    <Box sx={{ color: '#ccc' }}>
+                      <LockIcon />
+                </Box>
+              </CardContent>
+            </Card>
+          </motion.div>
+            </Grid>
+            </Grid>
+            {/* Bottom row - last 3 cards */}
           <Grid container spacing={2} sx={{ '& .MuiGrid-root': { paddingTop: '0 !important' } }}>
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              {/* Schedule Card */}
+              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+          <motion.div variants={item}>
+            <Card
+              sx={{
+                    height: 80,
+                    borderRadius: 2,
+                background: 'white',
+                    border: 'none',
+                    boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                      boxShadow: '0 6px 20px rgba(0, 0, 0, 0.12)',
+                },
+                transition: 'all 0.3s ease',
+                cursor: 'pointer'
+              }}
+            >
+                  <CardContent sx={{ p: 2, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box
+                      sx={{
+                          width: 45,
+                          height: 45,
+                          borderRadius: 2,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                          background: '#2196f3',
+                        color: 'white',
+                        '& svg': {
+                            fontSize: '1.5rem'
+                        }
+                      }}
+                    >
+                        <ScheduleIcon />
+                    </Box>
+                      <Box>
+                        <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500, mb: 0.5 }}>
+                          Schedule
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#666', fontSize: '0.75rem' }}>
+                          Manage your time
+                    </Typography>
+                  </Box>
+                </Box>
+                    <Box sx={{ color: '#ccc' }}>
+                      <LockIcon />
+                    </Box>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </Grid>
+            {/* Performance Card */}
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
               <motion.div variants={item}>
                 <Card
-                  sx={{
-                    height: 100,
-                    borderRadius: 3,
+                          sx={{
+                    height: 80,
+                    borderRadius: 2,
                     background: 'white',
                     border: 'none',
                     boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
@@ -336,6 +632,7 @@ const StudentDashboard = () => {
                       boxShadow: '0 6px 20px rgba(0, 0, 0, 0.12)',
                     },
                     transition: 'all 0.3s ease',
+                    cursor: 'pointer'
                   }}
                 >
                   <CardContent sx={{ p: 2, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -348,35 +645,38 @@ const StudentDashboard = () => {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          background: '#9c27b0',
+                          background: '#2196f3',
                           color: 'white',
                           '& svg': {
                             fontSize: '1.5rem'
                           }
                         }}
                       >
-                        <SchoolIcon />
+                        <PerformanceIcon />
                       </Box>
                       <Box>
                         <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500, mb: 0.5 }}>
-                          {t('studentDashboardEnrolledCourses')}
+                          Performance
                         </Typography>
-                        <Typography variant="h4" fontWeight={700} sx={{ color: '#333', lineHeight: 1 }}>
-                          {stats.enrolledCourses || 0}
-                        </Typography>
-                      </Box>
+                        <Typography variant="caption" sx={{ color: '#666', fontSize: '0.75rem' }}>
+                          Track progress
+                      </Typography>
+                    </Box>
+                  </Box>
+                    <Box sx={{ color: '#ccc' }}>
+                      <LockIcon />
                     </Box>
                   </CardContent>
                 </Card>
               </motion.div>
             </Grid>
-
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            {/* Cheat Sheets Card */}
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
               <motion.div variants={item}>
                 <Card
-                  sx={{
-                    height: 100,
-                    borderRadius: 3,
+                          sx={{
+                    height: 80,
+                    borderRadius: 2,
                     background: 'white',
                     border: 'none',
                     boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
@@ -385,6 +685,7 @@ const StudentDashboard = () => {
                       boxShadow: '0 6px 20px rgba(0, 0, 0, 0.12)',
                     },
                     transition: 'all 0.3s ease',
+                    cursor: 'pointer'
                   }}
                 >
                   <CardContent sx={{ p: 2, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -397,34 +698,34 @@ const StudentDashboard = () => {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          background: '#4caf50',
+                          background: '#4db6ac',
                           color: 'white',
                           '& svg': {
                             fontSize: '1.5rem'
                           }
                         }}
                       >
-                        <MenuBookIcon />
+                        <FreezeIcon />
                       </Box>
-                      <Box>
+                  <Box>
                         <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500, mb: 0.5 }}>
-                          {t('studentDashboardCompletedLessons')}
-                        </Typography>
-                        <Typography variant="h4" fontWeight={700} sx={{ color: '#333', lineHeight: 1 }}>
-                          {stats.completedLessons || 0}
-                        </Typography>
-                      </Box>
+                          Freeze
+                    </Typography>
+                        <Typography variant="caption" sx={{ color: '#666', fontSize: '0.75rem' }}>
+                          Pause subscription
+                      </Typography>
                     </Box>
-                  </CardContent>
-                </Card>
-              </motion.div>
+                  </Box>
+                    <Box sx={{ color: '#ccc' }}>
+                      <LockIcon />
+                </Box>
+              </CardContent>
+            </Card>
+          </motion.div>
             </Grid>
-
-
-
             </Grid>
+          </Box>
         </Box>
-
         {/* Main Content with Tabs */}
         <motion.div variants={item}>
           <Card sx={{
@@ -436,19 +737,23 @@ const StudentDashboard = () => {
           }}>
             {/* Tab Header */}
             <Box sx={{
-              background: 'linear-gradient(135deg, #333679, #1a6ba8)',
+              background: '#6A5ACD',
               borderRadius: '16px 16px 0 0',
               p: 0
             }}>
               <Tabs
                 value={activeTab}
                 onChange={handleTabChange}
+                variant="scrollable"
+                scrollButtons="auto"
                 sx={{
                   '& .MuiTab-root': {
                     color: 'white',
                     fontWeight: 600,
-                    fontSize: '1rem',
+                    fontSize: '0.9rem',
                     minHeight: 60,
+                    minWidth: 'auto',
+                    px: 2,
                     '&.Mui-selected': {
                       color: 'white',
                       fontWeight: 700
@@ -457,9 +762,30 @@ const StudentDashboard = () => {
                   '& .MuiTabs-indicator': {
                     backgroundColor: 'white',
                     height: 3
+                  },
+                  '& .MuiTabs-scrollButtons': {
+                    color: 'white'
                   }
                 }}
               >
+                {courses.length > 0 ? courses.map((course, index) => (
+                  <Tab
+                    key={course.id}
+                    icon={<SchoolIcon />}
+                    label={course.title}
+                    iconPosition="start"
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      maxWidth: 200,
+                      '& .MuiTab-wrapper': {
+                        flexDirection: 'row',
+                        gap: 1
+                      }
+                    }}
+                  />
+                )) : (
                 <Tab
                   icon={<SchoolIcon />}
                   label={t('studentDashboardMyCourses')}
@@ -470,6 +796,7 @@ const StudentDashboard = () => {
                     gap: 1
                   }}
                 />
+                )}
                 {/* <Tab
                   icon={<CalendarIcon />}
                   label={t('studentDashboardLectureSchedule')}
@@ -482,161 +809,227 @@ const StudentDashboard = () => {
                 /> */}
               </Tabs>
             </Box>
-
             {/* Tab Content */}
             <Box sx={{ height: 600, overflow: 'auto' }}>
-              {/* My Courses Tab */}
-              {activeTab === 0 && (
+              {/* Course Content */}
+                  {coursesLoading || modulesLoading ? (
                 <Box sx={{ p: 3 }}>
-                  <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Box>
-                      <Typography variant="h6" fontWeight={600} sx={{ mb: 1, color: '#333679' }}>
-                        {t('studentDashboardActiveCourses')}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {t('studentDashboardTrackProgress')}
-                      </Typography>
-                    </Box>
-                  </Box>
-
-                  {coursesLoading ? (
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                       {[1, 2, 3].map((item) => (
                         <Skeleton key={item} variant="rectangular" height={120} sx={{ borderRadius: 3 }} />
                       ))}
+                  </Box>
                     </Box>
                   ) : courses.length > 0 ? (
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                      {courses.map((course, index) => (
-                        <motion.div key={course.id} variants={item}>
-                          <Card
-                            sx={{
+                  <Box sx={{
+                  p: 3, 
+                  background: '#6A5ACD', 
+                  minHeight: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 1.5
+                }}>
+                  {/* Modules List */}
+                  {modules.length > 0 ? modules.map((module, index) => {
+                    const colors = ['#4285F4', '#00BFA5', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD'];
+                    const color = colors[index % colors.length];
+                    
+                    return (
+                      <Card key={module.id} sx={{
+                    background: 'white',
+                    borderRadius: 2,
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                    border: 'none',
+                    p: 2,
+                    height: 120
+                  }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      {/* Left side - Subject info */}
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
+                        {/* Module Icon */}
+                        <Box sx={{
+                          width: 50,
+                          height: 50,
+                          borderRadius: '50%',
+                          background: color,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: 'white'
+                        }}>
+                          <SchoolIcon sx={{ fontSize: 24 }} />
+                        </Box>
+                        
+                        {/* Module Title and Progress */}
+                        <Box sx={{ flex: 1 }}>
+                          <Typography variant="h6" sx={{ 
+                            fontWeight: 700, 
+                            color: color,
+                            mb: 1
+                          }}>
+                            {module.name || module.title || `Module ${module.id}`}
+                          </Typography>
+                          
+                          {/* Progress Bars Side by Side */}
+                          <Box sx={{ display: 'flex', gap: 4 }}>
+                            {/* Questions Progress */}
+                            <Box sx={{ flex: 1 }}>
+                              <Box sx={{ mb: 1 }}>
+                                <Box sx={{ 
+                                  width: '100%', 
+                                  height: 6, 
+                                  backgroundColor: '#E0E0E0', 
                               borderRadius: 3,
-                              background: 'white',
-                              border: '1px solid #e0e0e0',
-                              boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
-                              transition: 'all 0.3s ease',
-                              cursor: 'pointer',
-                              '&:hover': {
-                                boxShadow: '0 6px 20px rgba(0, 0, 0, 0.12)',
-                                transform: 'translateY(-2px)',
-                                borderColor: '#333679'
-                              }
-                            }}
-                            onClick={() => handleCourseContinue(course.id)}
-                          >
-                            <CardContent sx={{ p: 3 }}>
-                              {/* Header with course info */}
-                              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                  {/* Course icon */}
-                                  <Box
-                                    sx={{
-                                      width: 48,
-                                      height: 48,
-                                      borderRadius: 2,
-                                      background: 'linear-gradient(135deg, #333679, #1a6ba8)',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                      flexShrink: 0
-                                    }}
-                                  >
-                                    <SchoolIcon sx={{ color: 'white', fontSize: 22 }} />
-                                  </Box>
-
-                                  {/* Course title and progress */}
-                                  <Box>
-                                    <Typography variant="h6" fontWeight={600} sx={{ color: '#333', fontSize: '1.1rem', mb: 0.5 }}>
-                                      {course.title}
-                                    </Typography>
-                                    <Typography variant="body2" sx={{ color: '#666', fontSize: '0.85rem' }}>
-                                      {course.completed_lessons || 0} {t('studentDashboardOf')} {course.total_lessons || 0} {t('studentDashboardLessonsCompleted')}
-                                    </Typography>
-                                  </Box>
+                                  overflow: 'hidden',
+                                  mb: 0.5
+                                }}>
+                                  <Box sx={{ 
+                                    width: '0.14%', // 4/2786 * 100
+                                    height: '100%', 
+                                    backgroundColor: '#E0E0E0',
+                                    borderRadius: 3
+                                  }} />
                                 </Box>
-
-                                {/* Progress percentage */}
-                                <Box sx={{ textAlign: 'right' }}>
-                                  <Typography variant="h6" fontWeight={700} sx={{ color: '#333679', fontSize: '1.2rem' }}>
-                                    {Math.round(course.progress || 0)}%
-                                  </Typography>
-                                  <Typography variant="caption" sx={{ color: '#666', fontSize: '0.75rem' }}>
-                                    {t('studentDashboardCompleted')}
-                                  </Typography>
-                                </Box>
+                                <Typography variant="caption" sx={{ color: '#666', fontSize: '0.75rem' }}>
+                                  0 questions tagged
+                                </Typography>
                               </Box>
-
-                              {/* Progress bar */}
-                              <Box sx={{ mb: 2 }}>
-                                <LinearProgress
-                                  variant="determinate"
-                                  value={Math.min(course.progress || 0, 100)}
-                                  sx={{
-                                    height: 8,
-                                    borderRadius: 4,
-                                    backgroundColor: '#f0f0f0',
-                                    '& .MuiLinearProgress-bar': {
-                                      background: 'linear-gradient(90deg, #333679, #1a6ba8)',
-                                      borderRadius: 4
-                                    }
-                                  }}
-                                />
-                              </Box>
-
-                              {/* Action buttons */}
-                              <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-                                  <Button
-                                    variant="outlined"
-                                    size="small"
-                                    startIcon={<VisibilityIcon />}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleCourseDetails(course);
-                                    }}
-                                    sx={{
-                                      borderRadius: 2,
-                                      px: 2,
-                                      py: 0.5,
-                                      fontSize: '0.8rem',
-                                      fontWeight: 600,
-                                      textTransform: 'none',
-                                      borderColor: '#333679',
-                                      color: '#333679',
-                                      '&:hover': {
-                                        borderColor: '#1a6ba8',
-                                        color: '#1a6ba8',
-                                        background: 'rgba(51, 54, 121, 0.04)'
-                                      }
-                                    }}
-                                  >
-                                    {t('studentDashboardDetails')}
-                                  </Button>
-                                  <Button
-                                    variant="contained"
-                                    size="small"
-                                    sx={{
-                                      background: 'linear-gradient(45deg, #333679, #1a6ba8)',
-                                      borderRadius: 2,
-                                      px: 2,
-                                      py: 0.5,
-                                      fontSize: '0.8rem',
-                                      fontWeight: 600,
-                                      textTransform: 'none',
-                                      '&:hover': {
-                                        background: 'linear-gradient(45deg, #1a6ba8, #333679)',
-                                      }
-                                    }}
-                                  >
-                                    {t('studentDashboardContinue')}
-                                  </Button>
+                            </Box>
+                            
+                            {/* Lessons Progress */}
+                            <Box sx={{ flex: 1 }}>
+                              <Box sx={{ mb: 1 }}>
+                                <Box sx={{ 
+                                  width: '100%', 
+                                  height: 6, 
+                                  backgroundColor: '#E0E0E0', 
+                                  borderRadius: 3,
+                                  overflow: 'hidden',
+                                  mb: 0.5
+                                }}>
+                                  <Box sx={{ 
+                                    width: '0%', // 0/380 * 100
+                                    height: '100%', 
+                                    backgroundColor: '#E0E0E0',
+                                    borderRadius: 3
+                                  }} />
                                 </Box>
-                            </CardContent>
-                          </Card>
-                        </motion.div>
-                      ))}
+                                <Typography variant="caption" sx={{ color: '#666', fontSize: '0.75rem' }}>
+                                  0 lessons completed
+                                </Typography>
+                                  </Box>
+                            </Box>
+                          </Box>
+                        </Box>
+                      </Box>
+                      
+                      {/* Right side - Content Experts */}
+                      <Box sx={{ 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        alignItems: 'center',
+                        minWidth: 200
+                      }}>
+                        <Typography variant="caption" sx={{ 
+                          color: '#999', 
+                          fontSize: '0.75rem',
+                          fontWeight: 600,
+                          textTransform: 'uppercase',
+                          mb: 1
+                        }}>
+                          CONTENT EXPERTS
+                        </Typography>
+                        
+                        {/* Instructor Avatars and Arrow */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                          <Box sx={{ display: 'flex', gap: -1 }}>
+                            {instructors.slice(0, 3).map((instructor, index) => (
+                              <Avatar key={instructor.id} sx={{ 
+                                width: 32, 
+                                height: 32, 
+                                border: '2px solid white',
+                                ml: -1,
+                                '&:first-of-type': { ml: 0 }
+                              }}>
+                                {instructor.first_name ? instructor.first_name.charAt(0).toUpperCase() : 
+                                 instructor.username ? instructor.username.charAt(0).toUpperCase() : 'I'}
+                              </Avatar>
+                            ))}
+                            {instructors.length === 0 && (
+                              <>
+                                <Avatar sx={{ 
+                                  width: 32, 
+                                  height: 32, 
+                                  border: '2px solid white',
+                                  ml: -1,
+                                  '&:first-of-type': { ml: 0 }
+                                }}>
+                                  I
+                                </Avatar>
+                                <Avatar sx={{ 
+                                  width: 32, 
+                                  height: 32, 
+                                  border: '2px solid white',
+                                  ml: -1
+                                }}>
+                                  N
+                                </Avatar>
+                                <Avatar sx={{ 
+                                  width: 32, 
+                                  height: 32, 
+                                  border: '2px solid white',
+                                  ml: -1
+                                }}>
+                                  S
+                                </Avatar>
+                              </>
+                            )}
+                          </Box>
+                          <ChevronRightIcon sx={{ color: '#ccc', fontSize: 16 }} />
+                        </Box>
+                        
+                        <Typography variant="body2" sx={{ 
+                          color: '#333', 
+                          fontSize: '0.875rem',
+                          fontWeight: 500
+                        }}>
+                          {instructors.length > 0 ? 
+                            instructors.slice(0, 3).map(instructor => 
+                              instructor.first_name || instructor.username || 'Instructor'
+                            ).join(', ') + (instructors.length > 3 ? ' & more' : '') :
+                            'Instructors'
+                          }
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Card>
+                    );
+                  }) : (
+                  <Box sx={{
+                    textAlign: 'center',
+                      py: 6,
+                    px: 3,
+                    background: 'linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%)',
+                              borderRadius: 3,
+                    border: '2px dashed #e0e0e0'
+                  }}>
+                    <SchoolIcon sx={{
+                        fontSize: 64,
+                      color: '#ccc',
+                      mb: 2,
+                      opacity: 0.6
+                    }} />
+                    <Typography variant="h6" color="text.secondary" sx={{ mb: 1, fontWeight: 600 }}>
+                        No Modules Available
+                                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        This course doesn't have any modules yet
+                                    </Typography>
+                                  </Box>
+                  )}
                     </Box>
                   ) : (
+                <Box sx={{ p: 3 }}>
                     <Box sx={{
                       textAlign: 'center',
                       py: 6,
@@ -673,11 +1066,8 @@ const StudentDashboard = () => {
                         {t('studentDashboardBrowseCourses')}
                       </Button>
                     </Box>
-                  )}
-
                 </Box>
               )}
-
               {/* Calendar Tab - جدول المحاضرات والواجبات */}
               {/* {activeTab === 1 && (
                 <Box sx={{ p: 3 }}>
@@ -705,7 +1095,6 @@ const StudentDashboard = () => {
                       </IconButton>
                     </Box>
                   </Box>
-
                   <Box sx={{
                     border: '1px solid #e0e0e0',
                     borderRadius: 2,
@@ -744,7 +1133,6 @@ const StudentDashboard = () => {
                         </Box>
                       ))}
                     </Box>
-
                     {['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00'].map((time, timeIndex) => (
                       <Box key={time} sx={{
                         display: 'grid',
@@ -764,7 +1152,6 @@ const StudentDashboard = () => {
                             {time}
                           </Typography>
                         </Box>
-
                         {[0, 1, 2, 3].map((dayIndex) => (
                           <Box
                             key={dayIndex}
@@ -815,7 +1202,6 @@ const StudentDashboard = () => {
                       </Box>
                     ))}
                   </Box>
-
                   {upcomingLectures.length === 0 && (
                     <Box sx={{ textAlign: 'center', py: 4 }}>
                       <CalendarIcon sx={{ fontSize: 48, color: '#ccc', mb: 2 }} />
@@ -840,38 +1226,7 @@ const StudentDashboard = () => {
           </Card>
         </motion.div>
       </motion.div>
-
-      {/* Course Details Dialog */}
-      <Dialog
-        open={courseDetailsOpen}
-        onClose={handleCloseCourseDetails}
-        maxWidth="md"
-        fullWidth
-        fullScreen={false}
-        sx={{
-          '& .MuiDialog-paper': {
-            borderRadius: 3,
-            height: '70vh',
-            maxHeight: '70vh',
-            width: '80vw',
-            maxWidth: '800px',
-            margin: 2,
-            display: 'flex',
-            flexDirection: 'column'
-          }
-        }}
-      >
-        <DialogContent sx={{ p: 0, flex: 1, display: 'flex', flexDirection: 'column' }}>
-          {selectedCourse && (
-            <CourseDetails
-              course={selectedCourse}
-              onClose={handleCloseCourseDetails}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
     </Box>
   );
 };
-
 export default StudentDashboard;

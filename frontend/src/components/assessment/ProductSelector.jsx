@@ -44,7 +44,7 @@ import assessmentAPI from '../../services/assessment.service';
 import courseService from '../../services/courseService';
 
 const ProductSelector = ({ type, onProductSelect, onNotification }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [products, setProducts] = useState([]);
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -253,7 +253,12 @@ const ProductSelector = ({ type, onProductSelect, onNotification }) => {
   return (
     <Box>
       {/* Floating Add Button */}
-      <Box sx={{ position: 'fixed', top: 100, left: 32, zIndex: 1200 }}>
+      <Box sx={{ 
+        position: 'fixed', 
+        top: 100, 
+        [i18n.language === 'en' ? 'right' : 'left']: 32, 
+        zIndex: 1200 
+      }}>
         <IconButton
           onClick={handleAddProduct}
           sx={{
