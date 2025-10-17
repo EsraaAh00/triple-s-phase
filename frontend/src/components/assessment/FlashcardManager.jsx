@@ -291,6 +291,7 @@ const FlashcardManager = ({ product = null, topic = null }) => {
 
   const handlePageChange = (event, page) => {
     setPage(page);
+    // fetchFlashcards will be called automatically via useEffect in the hook
   };
 
   // Stats calculation

@@ -36,7 +36,9 @@ const useFlashcards = (topicId = null) => {
         setPagination(prev => ({
           ...prev,
           ...result.pagination,
-          totalCount: result.pagination.count
+          totalCount: result.pagination.count,
+          // Keep the current page, don't reset it
+          page: prev.page
         }));
       } else {
         setError(result.error);
@@ -184,8 +186,15 @@ const useFlashcards = (topicId = null) => {
 
   // Load flashcards on mount and when topicId changes
   useEffect(() => {
+    // Reset to page 1 when topic changes
+    setPagination(prev => ({ ...prev, page: 1 }));
     fetchFlashcards();
-  }, [fetchFlashcards]);
+  }, [topicId]);
+
+  // Reload flashcards when page changes
+  useEffect(() => {
+    fetchFlashcards();
+  }, [pagination.page]);
 
   return {
     flashcards,
