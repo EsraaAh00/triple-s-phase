@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import assessmentService from '../services/assessment.service';
 
-const useQuestionBank = () => {
+const useQuestionBank = (topicId = null) => {
   // ==================== STATE ====================
   const [questions, setQuestions] = useState([]);
   const [lessons, setLessons] = useState([]);
@@ -32,6 +32,11 @@ const useQuestionBank = () => {
         ...params
       };
 
+      // Add topic filter if topicId is provided
+      if (topicId) {
+        queryParams.topic = topicId;
+      }
+
       const result = await assessmentService.getQuestions(queryParams);
       
       if (result.success) {
@@ -51,7 +56,7 @@ const useQuestionBank = () => {
     } finally {
       setLoading(false);
     }
-  }, [pagination.page, pagination.pageSize]);
+  }, [pagination.page, pagination.pageSize, topicId]);
 
   const fetchQuestion = useCallback(async (id) => {
     setLoading(true);

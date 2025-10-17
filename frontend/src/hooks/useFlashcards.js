@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import assessmentService from '../services/assessment.service';
 
-const useFlashcards = () => {
+const useFlashcards = (topicId = null) => {
   const [flashcards, setFlashcards] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -18,11 +18,18 @@ const useFlashcards = () => {
       setLoading(true);
       setError(null);
       
-      const result = await assessmentService.getFlashcards({
+      const queryParams = {
         page: pagination.page,
         page_size: pagination.pageSize,
         ...params
-      });
+      };
+
+      // Add topic filter if topicId is provided
+      if (topicId) {
+        queryParams.topic = topicId;
+      }
+      
+      const result = await assessmentService.getFlashcards(queryParams);
 
       if (result.success) {
         setFlashcards(result.data);
@@ -39,7 +46,7 @@ const useFlashcards = () => {
     } finally {
       setLoading(false);
     }
-  }, [pagination.page, pagination.pageSize]);
+  }, [pagination.page, pagination.pageSize, topicId]);
 
   // Create flashcard
   const createFlashcard = useCallback(async (flashcardData) => {
@@ -175,7 +182,7 @@ const useFlashcards = () => {
     setError(null);
   }, []);
 
-  // Load flashcards on mount
+  // Load flashcards on mount and when topicId changes
   useEffect(() => {
     fetchFlashcards();
   }, [fetchFlashcards]);

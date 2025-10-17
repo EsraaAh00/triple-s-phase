@@ -196,11 +196,11 @@ const FlashcardManager = ({ product = null, topic = null }) => {
     deleteFlashcard,
     setPage,
     clearError
-  } = useFlashcards();
+  } = useFlashcards(topic?.id);
 
   useEffect(() => {
     fetchFlashcards();
-  }, []);
+  }, [fetchFlashcards]);
 
   const handleOpenDialog = (flashcard = null) => {
     setEditingFlashcard(flashcard);
