@@ -562,7 +562,7 @@ const LearningMethodsSection = () => {
       } else {
         cardWidth = 200 + 16; // Desktop card width + gap
       }
-      
+
       scrollContainer.scrollBy({
         left: -cardWidth,
         behavior: 'smooth'
@@ -583,7 +583,7 @@ const LearningMethodsSection = () => {
       } else {
         cardWidth = 200 + 16; // Desktop card width + gap
       }
-      
+
       scrollContainer.scrollBy({
         left: cardWidth,
         behavior: 'smooth'
@@ -643,7 +643,7 @@ const LearningMethodsSection = () => {
     try {
       console.log('🔄 Fetching learning methods banner from API...');
       const bannersData = await bannerAPI.getBannersByType('main');
-      
+
       let filteredBanners = [];
       if (Array.isArray(bannersData)) {
         filteredBanners = bannersData;
@@ -652,7 +652,7 @@ const LearningMethodsSection = () => {
       } else if (bannersData?.data) {
         filteredBanners = bannersData.data;
       }
-      
+
       if (filteredBanners.length > 0) {
         const firstBanner = filteredBanners[0];
         setBannerData({
@@ -698,194 +698,253 @@ const LearningMethodsSection = () => {
       <Container maxWidth="lg">
         <ContentWrapper isRTL={i18n.language === 'ar'}>
           <LeftSection isRTL={i18n.language === 'ar'}>
-            <CategoryIcon isRTL={i18n.language === 'ar'}>
-              <Description />
-              <span>{t('coursesCourseCategories')}</span>
-            </CategoryIcon>
-
             <MainTitle variant="h2" component="h2" isRTL={i18n.language === 'ar'}>
               {getLocalizedText(bannerData?.title, bannerData?.title_ar) || t('homeEverythingInOnePlace')}
             </MainTitle>
 
-            <ViewAllButton
-              
-              onClick={() => navigate('/courses')}
-            >
-              {t('coursesViewAllCategories')} →
-            </ViewAllButton>
+            {/* Decorative line below title */}
+            <Box sx={{
+              width: '100%',
+              height: '2px',
+              background: 'linear-gradient(90deg, transparent 0%, #5C2D91 20%, #663399 50%, #5C2D91 80%, transparent 100%)',
+              margin: '20px 0 0 0',
+              marginLeft: '-40px',
+              borderRadius: '1px',
+              position: 'relative',
+              '&:before': {
+                content: '""',
+                position: 'absolute',
+                top: '-1px',
+                left: '-1px',
+                right: '-1px',
+                bottom: '-1px',
+                background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%)',
+                borderRadius: '1px',
+                zIndex: -1,
+              }
+            }} />
           </LeftSection>
 
           <RightSection>
-            {/* Three Creative Circles for Learning Features */}
-              <Box sx={{
-                display: 'flex',
+            {/* Decorative line above images */}
+            <Box sx={{
+              width: '100%',
+              height: '2px',
+              background: 'linear-gradient(90deg, transparent 0%, #5C2D91 20%, #663399 50%, #5C2D91 80%, transparent 100%)',
+              margin: '0 auto 30px',
+              borderRadius: '1px',
+              position: 'relative',
+              '&:before': {
+                content: '""',
+                position: 'absolute',
+                top: '-1px',
+                left: '-1px',
+                right: '-1px',
+                bottom: '-1px',
+                background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%)',
+                borderRadius: '1px',
+                zIndex: -1,
+              }
+            }} />
+
+            {/* Three Learning Methods with Circular Icons and Text Below */}
+            <Box sx={{
+              display: 'flex',
               gap: { xs: 2, sm: 3, md: 4 },
               justifyContent: 'center',
-                alignItems: 'center',
+              alignItems: 'flex-start',
               flexWrap: 'nowrap',
-                  width: '100%',
-                      overflowX: 'auto',
-                        '&::-webkit-scrollbar': {
-                          display: 'none',
-                        },
-                        msOverflowStyle: 'none',
-                        scrollbarWidth: 'none',
+              width: '100%',
+              overflowX: 'auto',
+              padding: { xs: '0', sm: '10px 0', md: '20px 0' },
+              '&::-webkit-scrollbar': {
+                display: 'none',
+              },
+              msOverflowStyle: 'none',
+              scrollbarWidth: 'none',
             }}>
-              {/* Lectures Circle */}
-                          <Box sx={{
-                width: { xs: '120px', sm: '140px', md: '160px' },
-                height: { xs: '120px', sm: '140px', md: '160px' },
-                flexShrink: 0,
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #663399 0%, #8b5cf6 100%)',
-                            display: 'flex',
+              {/* Lectures Method */}
+              <Box sx={{
+                display: 'flex',
                 flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                gap: 1,
-                boxShadow: '0 12px 40px rgba(102, 51, 153, 0.3), 0 0 0 8px rgba(102, 51, 153, 0.1)',
-                border: '5px solid #fff',
-                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                alignItems: 'center',
+                textAlign: 'center',
                 cursor: 'pointer',
-                position: 'relative',
-                            overflow: 'hidden',
-                '&:before': {
-                  content: '""',
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  background: 'radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%)',
-                  opacity: 0,
-                  transition: 'opacity 0.4s ease',
-                },
+                transition: 'all 0.3s ease',
+                minWidth: { xs: '140px', sm: '160px', md: '180px' },
                 '&:hover': {
-                  transform: 'translateY(-10px) scale(1.05)',
-                  boxShadow: '0 16px 50px rgba(102, 51, 153, 0.4), 0 0 0 10px rgba(102, 51, 153, 0.15)',
-                  '&:before': {
-                    opacity: 1,
-                  },
+                  transform: 'translateY(-5px)',
                 },
               }}>
-                <MenuBook sx={{ 
-                  fontSize: { xs: '2.5rem', sm: '3rem', md: '3.5rem' }, 
-                  color: '#fff',
-                  filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))',
-                }} />
-                <Typography sx={{ 
-                  color: '#fff', 
-                  fontWeight: 700, 
-                  fontSize: { xs: '0.85rem', sm: '0.95rem', md: '1rem' },
-                  textShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                <Box sx={{
+                  width: { xs: '90px', sm: '110px', md: '130px' },
+                  height: { xs: '90px', sm: '110px', md: '130px' },
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #663399 0%, #8b5cf6 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 8px 30px rgba(102, 51, 153, 0.3), 0 0 0 6px rgba(102, 51, 153, 0.1)',
+                  border: '4px solid #fff',
+                  marginBottom: theme.spacing(1.5),
+                  position: 'relative',
+                  overflow: 'hidden',
+                  '&:before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%)',
+                    opacity: 0,
+                    transition: 'opacity 0.4s ease',
+                  },
+                  '&:hover': {
+                    boxShadow: '0 16px 50px rgba(102, 51, 153, 0.4), 0 0 0 10px rgba(102, 51, 153, 0.15)',
+                    '&:before': {
+                      opacity: 1,
+                    },
+                  },
+                }}>
+                  <MenuBook sx={{
+                    fontSize: { xs: '1.8rem', sm: '2.2rem', md: '2.5rem' },
+                    color: '#fff',
+                    filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))',
+                    position: 'relative',
+                    zIndex: 1,
+                  }} />
+                </Box>
+                <Typography sx={{
+                  color: '#5C2D91',
+                  fontWeight: 700,
+                  fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
                 }}>
                   {t('commonLectures')}
                 </Typography>
-                        </Box>
+              </Box>
 
-              {/* Question Bank Circle */}
-                      <Box sx={{
-                width: { xs: '120px', sm: '140px', md: '160px' },
-                height: { xs: '120px', sm: '140px', md: '160px' },
-                flexShrink: 0,
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #34498B 0%, #5a7cb8 100%)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                gap: 1,
-                boxShadow: '0 12px 40px rgba(52, 73, 139, 0.3), 0 0 0 8px rgba(52, 73, 139, 0.1)',
-                border: '5px solid #fff',
-                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+              {/* Question Bank Method */}
+              <Box sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                textAlign: 'center',
                 cursor: 'pointer',
-                position: 'relative',
-                overflow: 'hidden',
-                '&:before': {
-                  content: '""',
-                          position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  background: 'radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%)',
-                  opacity: 0,
-                  transition: 'opacity 0.4s ease',
-                },
-                          '&:hover': {
-                  transform: 'translateY(-10px) scale(1.05)',
-                  boxShadow: '0 16px 50px rgba(52, 73, 139, 0.4), 0 0 0 10px rgba(52, 73, 139, 0.15)',
-                  '&:before': {
-                    opacity: 1,
-                  },
+                transition: 'all 0.3s ease',
+                minWidth: { xs: '140px', sm: '160px', md: '180px' },
+                '&:hover': {
+                  transform: 'translateY(-5px)',
                 },
               }}>
-                <School sx={{ 
-                  fontSize: { xs: '2.5rem', sm: '3rem', md: '3.5rem' }, 
-                  color: '#fff',
-                  filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))',
-                }} />
-                <Typography sx={{ 
-                  color: '#fff', 
-                  fontWeight: 700, 
-                  fontSize: { xs: '0.85rem', sm: '0.95rem', md: '1rem' },
-                  textShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                <Box sx={{
+                  width: { xs: '90px', sm: '110px', md: '130px' },
+                  height: { xs: '90px', sm: '110px', md: '130px' },
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #34498B 0%, #5a7cb8 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 8px 30px rgba(52, 73, 139, 0.3), 0 0 0 6px rgba(52, 73, 139, 0.1)',
+                  border: '4px solid #fff',
+                  marginBottom: theme.spacing(1.5),
+                  position: 'relative',
+                  overflow: 'hidden',
+                  '&:before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%)',
+                    opacity: 0,
+                    transition: 'opacity 0.4s ease',
+                  },
+                  '&:hover': {
+                    boxShadow: '0 16px 50px rgba(52, 73, 139, 0.4), 0 0 0 10px rgba(52, 73, 139, 0.15)',
+                    '&:before': {
+                      opacity: 1,
+                    },
+                  },
+                }}>
+                  <School sx={{
+                    fontSize: { xs: '1.8rem', sm: '2.2rem', md: '2.5rem' },
+                    color: '#fff',
+                    filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))',
+                    position: 'relative',
+                    zIndex: 1,
+                  }} />
+                </Box>
+                <Typography sx={{
+                  color: '#5C2D91',
+                  fontWeight: 700,
+                  fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
                 }}>
                   {t('navQuestionBank')}
                 </Typography>
-                </Box>
+              </Box>
 
-              {/* Flashcards Circle */}
-                <Box sx={{
-                width: { xs: '120px', sm: '140px', md: '160px' },
-                height: { xs: '120px', sm: '140px', md: '160px' },
-                flexShrink: 0,
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                justifyContent: 'center',
-                gap: 1,
-                boxShadow: '0 12px 40px rgba(111, 66, 193, 0.3), 0 0 0 8px rgba(111, 66, 193, 0.1)',
-                border: '5px solid #fff',
-                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+              {/* Flashcards Method */}
+              <Box sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                textAlign: 'center',
                 cursor: 'pointer',
-                position: 'relative',
-                overflow: 'hidden',
-                '&:before': {
-                  content: '""',
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  background: 'radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%)',
-                  opacity: 0,
-                  transition: 'opacity 0.4s ease',
-                },
+                transition: 'all 0.3s ease',
+                minWidth: { xs: '140px', sm: '160px', md: '180px' },
                 '&:hover': {
-                  transform: 'translateY(-10px) scale(1.05)',
-                  boxShadow: '0 16px 50px rgba(232, 62, 140, 0.4), 0 0 0 10px rgba(232, 62, 140, 0.15)',
-                  '&:before': {
-                    opacity: 1,
-                  },
+                  transform: 'translateY(-5px)',
                 },
               }}>
-                <Description sx={{ 
-                  fontSize: { xs: '2.5rem', sm: '3rem', md: '3.5rem' }, 
-                  color: '#fff',
-                  filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))',
-                }} />
-                <Typography sx={{ 
-                  color: '#fff', 
-                  fontWeight: 700, 
-                  fontSize: { xs: '0.85rem', sm: '0.95rem', md: '1rem' },
-                  textShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                <Box sx={{
+                  width: { xs: '90px', sm: '110px', md: '130px' },
+                  height: { xs: '90px', sm: '110px', md: '130px' },
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 8px 30px rgba(111, 66, 193, 0.3), 0 0 0 6px rgba(111, 66, 193, 0.1)',
+                  border: '4px solid #fff',
+                  marginBottom: theme.spacing(1.5),
+                  position: 'relative',
+                  overflow: 'hidden',
+                  '&:before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%)',
+                    opacity: 0,
+                    transition: 'opacity 0.4s ease',
+                  },
+                  '&:hover': {
+                    boxShadow: '0 16px 50px rgba(232, 62, 140, 0.4), 0 0 0 10px rgba(232, 62, 140, 0.15)',
+                    '&:before': {
+                      opacity: 1,
+                    },
+                  },
+                }}>
+                  <Description sx={{
+                    fontSize: { xs: '1.8rem', sm: '2.2rem', md: '2.5rem' },
+                    color: '#fff',
+                    filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))',
+                    position: 'relative',
+                    zIndex: 1,
+                  }} />
+                </Box>
+                <Typography sx={{
+                  color: '#5C2D91',
+                  fontWeight: 700,
+                  fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
                 }}>
                   {t('navFlashcards')}
-                  </Typography>
-                </Box>
+                </Typography>
+              </Box>
             </Box>
           </RightSection>
         </ContentWrapper>

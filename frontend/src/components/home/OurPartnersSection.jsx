@@ -7,16 +7,16 @@ import api from '../../services/api.service';
 const SectionContainer = styled(Box)(({ theme }) => ({
   backgroundColor: '#f9fafb',
   position: 'relative',
-  overflow: 'hidden',
-  padding: theme.spacing(2, 0),
+  overflow: 'visible', // Changed from 'hidden' to 'visible'
+  padding: theme.spacing(4, 0), // Increased padding
   '@media (max-width: 600px)': {
-    padding: theme.spacing(2, 0),
+    padding: theme.spacing(3, 0),
   },
   '@media (min-width: 600px) and (max-width: 900px)': {
-    padding: theme.spacing(2, 0),
+    padding: theme.spacing(3.5, 0),
   },
   '@media (min-width: 900px)': {
-    padding: theme.spacing(2, 0),
+    padding: theme.spacing(4, 0),
   },
 }));
 
@@ -70,16 +70,27 @@ const SectionTitle = styled(Typography)(({ theme }) => ({
 const PartnersSliderContainer = styled(Box)(({ theme }) => ({
   position: 'relative',
   width: '100%',
-  overflow: 'hidden',
-  padding: theme.spacing(2, 0),
+  overflow: 'visible', // Changed from 'hidden' to 'visible'
+  padding: theme.spacing(3, 0), // Increased padding
+  minHeight: '250px', // Added minimum height
+  '@media (max-width: 600px)': {
+    minHeight: '200px',
+    padding: theme.spacing(2.5, 0),
+  },
+  '@media (min-width: 600px) and (max-width: 900px)': {
+    minHeight: '230px',
+    padding: theme.spacing(2.5, 0),
+  },
 }));
 
 const PartnersTrack = styled(Box)(({ theme }) => ({
   display: 'flex',
-  gap: theme.spacing(4),
+  gap: theme.spacing(3),
   overflowX: 'auto',
   scrollBehavior: 'smooth',
-  padding: theme.spacing(2, 0),
+  padding: theme.spacing(2, 1), // Added horizontal padding
+  alignItems: 'center', // Center align items vertically
+  minHeight: '220px', // Added minimum height
   '&::-webkit-scrollbar': {
     height: '6px',
   },
@@ -94,6 +105,16 @@ const PartnersTrack = styled(Box)(({ theme }) => ({
       background: 'linear-gradient(90deg, #5a3594 0%, #7a6b9a 100%)',
     }
   },
+  '@media (max-width: 600px)': {
+    gap: theme.spacing(2.5),
+    minHeight: '180px',
+    padding: theme.spacing(1.5, 0.5),
+  },
+  '@media (min-width: 600px) and (max-width: 900px)': {
+    gap: theme.spacing(2.5),
+    minHeight: '200px',
+    padding: theme.spacing(2, 0.5),
+  },
   '@media (max-width: 900px)': {
     '&::-webkit-scrollbar': {
       display: 'none',
@@ -104,17 +125,16 @@ const PartnersTrack = styled(Box)(({ theme }) => ({
 }));
 
 const PartnerCard = styled(Box)(({ theme }) => ({
-  width: '180px',
-  height: '180px',
-  minWidth: '180px',
+  width: '200px',
+  height: '200px',
+  minWidth: '200px',
   backgroundColor: '#ffffff',
   borderRadius: '50%',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   padding: theme.spacing(3),
-  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.1), 0 0 0 4px rgba(111, 66, 193, 0.1)',
-  border: '3px solid rgba(111, 66, 193, 0.2)',
+  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.1)',
   transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
   cursor: 'pointer',
   flexShrink: 0,
@@ -133,23 +153,21 @@ const PartnerCard = styled(Box)(({ theme }) => ({
   },
   '&:hover': {
     transform: 'translateY(-10px) scale(1.05)',
-    boxShadow: '0 12px 40px rgba(111, 66, 193, 0.3), 0 0 0 6px rgba(111, 66, 193, 0.2)',
-    borderColor: 'rgba(111, 66, 193, 0.4)',
+    boxShadow: '0 12px 40px rgba(111, 66, 193, 0.3)',
     '&:before': {
       opacity: 1,
     },
   },
   '@media (max-width: 600px)': {
-    width: '140px',
-    height: '140px',
-    minWidth: '140px',
-    padding: theme.spacing(2),
-    border: '2px solid rgba(111, 66, 193, 0.2)',
-  },
-  '@media (min-width: 600px) and (max-width: 900px)': {
     width: '160px',
     height: '160px',
     minWidth: '160px',
+    padding: theme.spacing(2),
+  },
+  '@media (min-width: 600px) and (max-width: 900px)': {
+    width: '180px',
+    height: '180px',
+    minWidth: '180px',
     padding: theme.spacing(2.5),
   },
 }));
@@ -200,10 +218,10 @@ const OurPartnersSection = () => {
       try {
         setLoading(true);
         console.log('🔄 Fetching partnerships from API...');
-        
+
         const response = await api.get('/api/extras/partnerships/');
         console.log('✅ Partnerships received:', response);
-        
+
         // Handle response format
         let partnersData = [];
         if (Array.isArray(response.data)) {
@@ -213,10 +231,10 @@ const OurPartnersSection = () => {
         } else if (response.data?.data) {
           partnersData = response.data.data;
         }
-        
+
         console.log('📊 Partners count:', partnersData.length);
         setPartners(partnersData);
-        
+
       } catch (error) {
         console.error('❌ Error loading partners:', error);
         console.error('❌ Error details:', error.response?.data || error.message);
@@ -227,7 +245,7 @@ const OurPartnersSection = () => {
         console.log('🏁 Partners loading completed');
       }
     };
-    
+
     fetchPartners();
   }, []);
 
@@ -270,7 +288,7 @@ const OurPartnersSection = () => {
             <Handshake />
             <span>{t('partnersOurPartners') || 'Our Partners'}</span>
           </SectionLabel>
-          
+
           <SectionTitle variant="h2" component="h2">
             {t('partnersTrustedBy') || 'Our Partnership'}
           </SectionTitle>

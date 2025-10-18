@@ -520,8 +520,8 @@ const HeroButton = styled(Button)(({ theme, variant }) => ({
     : 'transparent',
   color: 'white',
   border: '2px solid rgba(255, 255, 255, 0.3)',
-  boxShadow: variant === 'contained' 
-    ? '0 8px 32px rgba(102, 51, 153, 0.6), 0 0 0 0 rgba(102, 51, 153, 0.4)' 
+  boxShadow: variant === 'contained'
+    ? '0 8px 32px rgba(102, 51, 153, 0.6), 0 0 0 0 rgba(102, 51, 153, 0.4)'
     : 'none',
   position: 'relative',
   overflow: 'hidden',
@@ -1266,7 +1266,7 @@ const HeroBanner = () => {
                     transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                   }}
                 >
-                  <ArrowForward sx={{ 
+                  <ArrowForward sx={{
                     fontSize: { xs: '18px', sm: '20px', md: '22px' },
                     color: '#fff',
                   }} />

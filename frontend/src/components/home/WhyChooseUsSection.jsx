@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Container, Typography, Button, useTheme, useMediaQuery, styled, keyframes } from '@mui/material';
 import { useTranslation } from 'react-i18next';
-import { Check, ArrowForward, School } from '@mui/icons-material';
+import { ArrowForward, School } from '@mui/icons-material';
 import { bannerAPI } from '../../services/api.service';
 
 // Animation keyframes
@@ -288,64 +288,6 @@ const Description = styled(Typography, {
     },
 }));
 
-const FeaturesGrid = styled(Box)(({ theme }) => ({
-    display: 'grid',
-    gap: theme.spacing(2),
-    // Enhanced responsive grid
-    '@media (max-width: 600px)': {
-        gridTemplateColumns: '1fr',
-    },
-    '@media (min-width: 600px) and (max-width: 900px)': {
-        gridTemplateColumns: '1fr 1fr',
-    },
-    '@media (min-width: 900px)': {
-        gridTemplateColumns: '1fr 1fr',
-    },
-}));
-
-const FeatureCard = styled(Box)(({ theme }) => ({
-    backgroundColor: '#F8F9FA',
-    borderRadius: '8px',
-    padding: theme.spacing(2),
-    borderLeft: '4px solid #663399',
-    transition: 'all 0.3s ease',
-    textAlign: 'left',
-    '&:hover': {
-        backgroundColor: '#F0F0F0',
-        transform: 'translateY(-2px)',
-        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-    },
-}));
-
-const FeatureIcon = styled(Box)(({ theme }) => ({
-    width: '20px',
-    height: '20px',
-    backgroundColor: '#663399',
-    borderRadius: '50%',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: theme.spacing(1),
-    '& .MuiSvgIcon-root': {
-        fontSize: '0.8rem',
-        color: '#FFFFFF',
-    },
-}));
-
-const FeatureTitle = styled(Typography)(({ theme }) => ({
-    fontSize: '1rem',
-    fontWeight: 700,
-    color: '#663399',
-    marginBottom: theme.spacing(0.5),
-    textAlign: 'left',
-}));
-
-const FeatureDescription = styled(Typography)(({ theme }) => ({
-    fontSize: '0.85rem',
-    color: '#A0A0A0',
-    lineHeight: 1.4,
-    textAlign: 'left',
-}));
 
 // Fallback why choose us banner data - used when no why_choose_us banners are available
 const fallbackWhyChooseUsBanner = {
@@ -489,24 +431,6 @@ const WhyChooseUsSection = () => {
         return () => clearInterval(interval);
     }, []);
 
-    const features = [
-        {
-            title: t('whyChooseUsWorldClassTrainers'),
-            description: t('whyChooseUsWorldClassTrainersDesc')
-        },
-        {
-            title: t('whyChooseUsEasyLearning'),
-            description: t('whyChooseUsEasyLearningDesc')
-        },
-        {
-            title: t('whyChooseUsFlexible'),
-            description: t('whyChooseUsFlexibleDesc')
-        },
-        {
-            title: t('whyChooseUsAffordablePrice'),
-            description: t('whyChooseUsAffordablePriceDesc')
-        }
-    ];
 
     // Show loading state
     if (loading) {
@@ -575,17 +499,6 @@ const WhyChooseUsSection = () => {
                             {getLocalizedText(displayBannerData?.description, displayBannerData?.description_ar)}
                         </Description>
 
-                        <FeaturesGrid>
-                            {features.map((feature, index) => (
-                                <FeatureCard key={index}>
-                                    <FeatureIcon>
-                                        <Check />
-                                    </FeatureIcon>
-                                    <FeatureTitle>{feature.title}</FeatureTitle>
-                                    <FeatureDescription>{feature.description}</FeatureDescription>
-                                </FeatureCard>
-                            ))}
-                        </FeaturesGrid>
                     </RightSection>
 
                     <LeftSection

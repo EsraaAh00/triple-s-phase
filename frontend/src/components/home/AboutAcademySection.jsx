@@ -14,7 +14,6 @@ import { useTranslation } from 'react-i18next';
 import {
     ArrowForward,
     School,
-    CheckCircle,
     Chat,
     KeyboardArrowUp
 } from '@mui/icons-material';
@@ -236,39 +235,6 @@ const DescriptionText = styled(Typography, {
     },
 }));
 
-const BenefitsList = styled(Box)(({ theme }) => ({
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-    justifyContent: 'flex-start',
-    gap: theme.spacing(0.5),
-    marginBottom: theme.spacing(3),
-    width: '100%',
-    marginLeft: 0,
-}));
-
-const BenefitItem = styled(Box)(({ theme }) => ({
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    gap: theme.spacing(1.5),
-    textAlign: 'left',
-    width: '100%',
-    direction: 'ltr',
-    '& .MuiSvgIcon-root': {
-        color: '#6f42c1',
-        fontSize: '1.3rem',
-        flexShrink: 0,
-    },
-    '& span': {
-        color: '#374151',
-        fontSize: '1.05rem',
-        fontWeight: 500,
-        textAlign: 'left',
-        lineHeight: 1.6,
-    },
-}));
 
 const ImageReadMoreButton = styled(Button)(({ theme }) => ({
     position: 'absolute',
@@ -733,8 +699,8 @@ const AboutAcademySection = ({ hideReadMoreButton = false }) => {
                                         boxShadow: '0 8px 24px rgba(111, 66, 193, 0.3)',
                                         mb: 0.5,
                                     }}>
-                                        <School sx={{ 
-                                            fontSize: { xs: '1.6rem', sm: '1.8rem' }, 
+                                        <School sx={{
+                                            fontSize: { xs: '1.6rem', sm: '1.8rem' },
                                             color: '#ffffff',
                                         }} />
                                     </Box>
@@ -745,7 +711,7 @@ const AboutAcademySection = ({ hideReadMoreButton = false }) => {
                         </ImageContainer>
                         {!hideReadMoreButton && (
                             <ImageReadMoreButton
-                               
+
                                 onClick={() => navigate('/about-academy-detail')}
                             >
                                 {t('aboutAcademyReadMore')} →
@@ -768,20 +734,6 @@ const AboutAcademySection = ({ hideReadMoreButton = false }) => {
                             {getLocalizedText(bannerData?.description, bannerData?.description_ar) || t('aboutAcademyDefaultDescription')}
                         </DescriptionText>
 
-                        <BenefitsList>
-                            <BenefitItem>
-                                <CheckCircle />
-                                <span>{t('aboutAcademyAccessCourses')}</span>
-                            </BenefitItem>
-                            <BenefitItem>
-                                <CheckCircle />
-                                <span>{t('aboutAcademyPopularTopics')}</span>
-                            </BenefitItem>
-                            <BenefitItem>
-                                <CheckCircle />
-                                <span>{t('aboutAcademyFindInstructor')}</span>
-                            </BenefitItem>
-                        </BenefitsList>
                     </RightSection>
                 </ContentWrapper>
 

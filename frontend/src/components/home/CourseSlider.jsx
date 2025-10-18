@@ -9,30 +9,26 @@ import coursesliderBG from '../../assets/images/coursesliderBG.png';
 
 const SliderContainer = styled(Box)(({ theme }) => ({
   position: 'relative',
-  padding: theme.spacing(4, 0, 0, 0),
-  overflow: 'hidden',
+  padding: theme.spacing(4, 0, 6, 0), // Increased bottom padding
+  overflow: 'visible', // Changed from 'hidden' to 'visible'
   direction: 'rtl',
   backgroundImage: `url(${coursesliderBG})`,
   backgroundSize: 'cover',
   backgroundPosition: 'center',
   backgroundRepeat: 'no-repeat',
-  minHeight: '70vh',
-  paddingBottom: 0,
-  // Responsive padding and height
+  minHeight: '90vh', // Increased height
+  // Responsive padding and height - ensuring enough space for circles
   '@media (max-width: 600px)': {
-    padding: theme.spacing(2, 0, 0, 0),
-    minHeight: '60vh',
-    paddingBottom: 0,
+    padding: theme.spacing(2, 0, 4, 0), // Increased bottom padding
+    minHeight: '80vh', // Increased height
   },
   '@media (min-width: 600px) and (max-width: 900px)': {
-    padding: theme.spacing(3, 0, 0, 0),
-    minHeight: '65vh',
-    paddingBottom: 0,
+    padding: theme.spacing(3, 0, 5, 0), // Increased bottom padding
+    minHeight: '85vh', // Increased height
   },
   '@media (min-width: 900px)': {
-    padding: theme.spacing(4, 0, 0, 0),
-    minHeight: '70vh',
-    paddingBottom: 0,
+    padding: theme.spacing(4, 0, 6, 0), // Increased bottom padding
+    minHeight: '90vh', // Increased height
   },
 }));
 
@@ -152,40 +148,38 @@ const CourseCard = styled(Card)(({ theme }) => ({
   borderRadius: '50%',
   overflow: 'hidden',
   backgroundColor: '#ffffff',
-  boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15), 0 0 0 6px rgba(102, 51, 153, 0.1)',
+  boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)',
   transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
   justifyContent: 'space-between',
   position: 'relative',
-  width: '280px',
-  height: '280px',
-  border: '5px solid #fff',
+  width: '300px',
+  height: '300px',
   // Responsive sizing
   '@media (max-width: 600px)': {
-    width: '220px',
-    height: '220px',
-    border: '4px solid #fff',
+    width: '240px',
+    height: '240px',
     '&:hover': {
       transform: 'translateY(-8px) scale(1.02)',
-      boxShadow: '0 12px 50px rgba(102, 51, 153, 0.25), 0 0 0 8px rgba(102, 51, 153, 0.15)',
+      boxShadow: '0 12px 50px rgba(102, 51, 153, 0.25)',
     },
   },
   '@media (min-width: 600px) and (max-width: 900px)': {
-    width: '250px',
-    height: '250px',
+    width: '270px',
+    height: '270px',
     '&:hover': {
       transform: 'translateY(-10px) scale(1.03)',
-      boxShadow: '0 14px 55px rgba(102, 51, 153, 0.28), 0 0 0 9px rgba(102, 51, 153, 0.17)',
+      boxShadow: '0 14px 55px rgba(102, 51, 153, 0.28)',
     },
   },
   '@media (min-width: 900px)': {
-    width: '280px',
-    height: '280px',
+    width: '300px',
+    height: '300px',
     '&:hover': {
       transform: 'translateY(-12px) scale(1.05)',
-      boxShadow: '0 16px 60px rgba(102, 51, 153, 0.3), 0 0 0 10px rgba(102, 51, 153, 0.2)',
+      boxShadow: '0 16px 60px rgba(102, 51, 153, 0.3)',
     },
   },
 }));
@@ -682,43 +676,43 @@ const CourseCollections = () => {
                 <>
                   <Box sx={{ order: 1 }}>
                     <SectionTitle variant="h4" component="h2" isRTL={true}>
-                  {getLocalizedText(collection.name, collection.name_ar)}
-                </SectionTitle>
-                {(collection.description || collection.description_ar) && (
-                      <Typography variant="body1" color="text.secondary" sx={{ 
+                      {getLocalizedText(collection.name, collection.name_ar)}
+                    </SectionTitle>
+                    {(collection.description || collection.description_ar) && (
+                      <Typography variant="body1" color="text.secondary" sx={{
                         mt: 1,
                         textAlign: 'right'
                       }}>
-                    {getLocalizedText(collection.description, collection.description_ar)}
-                  </Typography>
-                )}
-              </Box>
-              <Button
-                variant="outlined"
-                color="primary"
-                component={RouterLink}
-                to={`/courses?collection=${collection.slug}`}
-                endIcon={<KeyboardArrowLeft />}
-                sx={{
-                  borderRadius: '8px',
-                  textTransform: 'none',
-                  fontWeight: 500,
-                  px: 3,
+                        {getLocalizedText(collection.description, collection.description_ar)}
+                      </Typography>
+                    )}
+                  </Box>
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    component={RouterLink}
+                    to={`/courses?collection=${collection.slug}`}
+                    endIcon={<KeyboardArrowLeft />}
+                    sx={{
+                      borderRadius: '8px',
+                      textTransform: 'none',
+                      fontWeight: 500,
+                      px: 3,
                       order: 2,
-                  fontSize: { xs: '0.8rem', md: '0.875rem' },
-                  minHeight: { xs: '36px', md: '40px' },
-                  '&:hover': {
-                    backgroundColor: 'rgba(74, 108, 247, 0.05)',
-                  },
-                  '& .MuiButton-endIcon': {
-                    marginRight: '4px',
-                    marginLeft: '-4px',
-                    fontSize: { xs: '1rem', md: '1.2rem' },
-                  }
-                }}
-              >
-                {t('coursesViewAll')}
-              </Button>
+                      fontSize: { xs: '0.8rem', md: '0.875rem' },
+                      minHeight: { xs: '36px', md: '40px' },
+                      '&:hover': {
+                        backgroundColor: 'rgba(74, 108, 247, 0.05)',
+                      },
+                      '& .MuiButton-endIcon': {
+                        marginRight: '4px',
+                        marginLeft: '-4px',
+                        fontSize: { xs: '1rem', md: '1.2rem' },
+                      }
+                    }}
+                  >
+                    {t('coursesViewAll')}
+                  </Button>
                 </>
               ) : (
                 <>
@@ -753,7 +747,7 @@ const CourseCollections = () => {
                       {getLocalizedText(collection.name, collection.name_ar)}
                     </SectionTitle>
                     {(collection.description || collection.description_ar) && (
-                      <Typography variant="body1" color="text.secondary" sx={{ 
+                      <Typography variant="body1" color="text.secondary" sx={{
                         mt: 1,
                         textAlign: 'left'
                       }}>
@@ -769,9 +763,10 @@ const CourseCollections = () => {
               <Box
                 sx={{
                   position: 'relative',
-                  overflow: 'hidden',
+                  overflow: 'visible', // Changed from 'hidden' to 'visible'
                   width: '100%',
                   margin: '0 auto',
+                  padding: theme.spacing(2, 0), // Added padding to ensure circles are fully visible
                 }}
               >
                 {/* Navigation Buttons */}
@@ -788,30 +783,30 @@ const CourseCollections = () => {
                     zIndex: 2,
                     px: 1,
                   }}>
-                  <SliderButton
-                    onClick={() => prevSlide()}
-                    disabled={currentSlide === 0}
-                    sx={{
-                      pointerEvents: 'auto',
-                      opacity: currentSlide === 0 ? 0.3 : 1,
-                      ml: { xs: -0.5, sm: -1, md: -2 }, // Responsive margin
-                      display: { xs: 'flex', sm: 'flex', md: 'flex' }, // Always visible on mobile
-                    }}
-                  >
-                    <KeyboardArrowRight />
-                  </SliderButton>
-                  <SliderButton
-                    onClick={() => nextSlide(collectionIndex)}
-                    disabled={collection.courses.length <= slidesToShow || currentSlide >= Math.max(0, collection.courses.length - slidesToShow)}
-                    sx={{
-                      pointerEvents: 'auto',
-                      opacity: (collection.courses.length <= slidesToShow || currentSlide >= Math.max(0, collection.courses.length - slidesToShow)) ? 0.3 : 1,
-                      mr: { xs: -0.5, sm: -1, md: -2 }, // Responsive margin
-                      display: { xs: 'flex', sm: 'flex', md: 'flex' }, // Always visible on mobile
-                    }}
-                  >
-                    <KeyboardArrowLeft />
-                  </SliderButton>
+                    <SliderButton
+                      onClick={() => prevSlide()}
+                      disabled={currentSlide === 0}
+                      sx={{
+                        pointerEvents: 'auto',
+                        opacity: currentSlide === 0 ? 0.3 : 1,
+                        ml: { xs: -0.5, sm: -1, md: -2 }, // Responsive margin
+                        display: { xs: 'flex', sm: 'flex', md: 'flex' }, // Always visible on mobile
+                      }}
+                    >
+                      <KeyboardArrowRight />
+                    </SliderButton>
+                    <SliderButton
+                      onClick={() => nextSlide(collectionIndex)}
+                      disabled={collection.courses.length <= slidesToShow || currentSlide >= Math.max(0, collection.courses.length - slidesToShow)}
+                      sx={{
+                        pointerEvents: 'auto',
+                        opacity: (collection.courses.length <= slidesToShow || currentSlide >= Math.max(0, collection.courses.length - slidesToShow)) ? 0.3 : 1,
+                        mr: { xs: -0.5, sm: -1, md: -2 }, // Responsive margin
+                        display: { xs: 'flex', sm: 'flex', md: 'flex' }, // Always visible on mobile
+                      }}
+                    >
+                      <KeyboardArrowLeft />
+                    </SliderButton>
                   </Box>
                 )}
 
@@ -823,183 +818,194 @@ const CourseCollections = () => {
                     transform: collection.courses.length > slidesToShow ? `translateX(-${currentSlide * (100 / collection.courses.length)}%)` : 'translateX(0%)',
                     transition: 'transform 0.5s ease-in-out',
                     justifyContent: collection.courses.length <= slidesToShow ? 'center' : 'flex-start',
+                    alignItems: 'center', // Center align items vertically
                     // Enhanced responsive spacing based on slidesToShow
                     gap: {
-                      xs: theme.spacing(1.5), // Mobile: smaller gap
-                      sm: theme.spacing(2),   // Tablet: medium gap
-                      md: theme.spacing(2.5), // Desktop: larger gap
+                      xs: theme.spacing(2), // Mobile: adequate gap for 240px circles
+                      sm: theme.spacing(2.5),   // Tablet: adequate gap for 270px circles
+                      md: theme.spacing(3), // Desktop: adequate gap for 300px circles
                     },
                     padding: {
-                      xs: theme.spacing(0, 0.5, 0, 0.5),   // Mobile: no bottom padding
-                      sm: theme.spacing(0, 1.5, 0, 1.5), // Tablet: no bottom padding
-                      md: theme.spacing(0, 2, 0, 2),       // Desktop: no bottom padding
+                      xs: theme.spacing(0, 1, 0, 1),   // Mobile: adequate padding
+                      sm: theme.spacing(0, 1.5, 0, 1.5), // Tablet: adequate padding
+                      md: theme.spacing(0, 2, 0, 2),       // Desktop: adequate padding
+                    },
+                    minHeight: {
+                      xs: '280px', // Mobile: ensure enough height for 240px circle + padding
+                      sm: '310px', // Tablet: ensure enough height for 270px circle + padding
+                      md: '340px', // Desktop: ensure enough height for 300px circle + padding
                     },
                   }}
                 >
                   {collection.courses.map((course) => {
                     console.log('Full course data:', course);
                     return (
-                    <CourseCard 
-                      key={course.id} 
-                      component={RouterLink} 
-                      to={`/courses/${course.id}`} 
-                      sx={{ 
-                        textDecoration: 'none', 
-                        color: 'inherit',
-                        flex: collection.courses.length > slidesToShow ? `0 0 ${100 / collection.courses.length}%` : `0 0 ${100 / slidesToShow}%`,
-                        minWidth: 0,
-                        maxWidth: collection.courses.length <= slidesToShow ? `${100 / slidesToShow}%` : 'none',
-                        // Responsive card sizing
-                        width: {
-                          xs: collection.courses.length > slidesToShow ? `${100 / collection.courses.length}%` : '90%', // Mobile: smaller width
-                          sm: collection.courses.length > slidesToShow ? `${100 / collection.courses.length}%` : '85%', // Tablet: medium width
-                          md: collection.courses.length > slidesToShow ? `${100 / collection.courses.length}%` : '80%', // Desktop: larger width
-                        },
-                      }}
-                    >
-                      {/* Background Image */}
-                      <CourseMedia>
-                        <img
-                          src={course.image_url || 'https://via.placeholder.com/300x300'}
-                          alt={course.title}
-                        />
+                      <CourseCard
+                        key={course.id}
+                        component={RouterLink}
+                        to={`/courses/${course.id}`}
+                        sx={{
+                          textDecoration: 'none',
+                          color: 'inherit',
+                          flex: collection.courses.length > slidesToShow ? `0 0 ${100 / collection.courses.length}%` : `0 0 ${100 / slidesToShow}%`,
+                          minWidth: 0,
+                          maxWidth: collection.courses.length <= slidesToShow ? `${100 / slidesToShow}%` : 'none',
+                          // Responsive card sizing - ensuring circles are fully visible
+                          width: {
+                            xs: collection.courses.length > slidesToShow ? '240px' : '240px', // Mobile: fixed width
+                            sm: collection.courses.length > slidesToShow ? '270px' : '270px', // Tablet: fixed width
+                            md: collection.courses.length > slidesToShow ? '300px' : '300px', // Desktop: fixed width
+                          },
+                          height: {
+                            xs: '240px', // Mobile: fixed height
+                            sm: '270px', // Tablet: fixed height
+                            md: '300px', // Desktop: fixed height
+                          },
+                        }}
+                      >
+                        {/* Background Image */}
+                        <CourseMedia>
+                          <img
+                            src={course.image_url || 'https://via.placeholder.com/300x300'}
+                            alt={course.title}
+                          />
                         </CourseMedia>
-                      
-                      {/* Play Button */}
-                      <PlayButton className="play-button" sx={{ zIndex: 3 }}>
-                        <PlayCircleOutline fontSize="large" sx={{ color: '#663399' }} />
-                      </PlayButton>
-                      
-                      {/* Discount Badge */}
+
+                        {/* Play Button */}
+                        <PlayButton className="play-button" sx={{ zIndex: 3 }}>
+                          <PlayCircleOutline fontSize="large" sx={{ color: '#663399' }} />
+                        </PlayButton>
+
+                        {/* Discount Badge */}
                         {course.discount_percentage && (
-                        <DiscountBadge sx={{ 
-                          top: '15px', 
-                          right: '15px',
-                          left: 'auto',
-                          zIndex: 3,
-                        }}>
+                          <DiscountBadge sx={{
+                            top: '15px',
+                            right: '15px',
+                            left: 'auto',
+                            zIndex: 3,
+                          }}>
                             {course.discount_percentage}% خصم
                           </DiscountBadge>
                         )}
-                      
-                      {/* Content Overlay */}
-                      <CourseCardContent>
-                        {/* العنوان */}
-                        <CourseTitle variant="subtitle1" component="h3">
-                          {course.title}
-                        </CourseTitle>
-                        
-                        {/* عدد الوحدات، الدروس والتقييم في نفس السطر */}
-                            <Box sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                          gap: 1, 
-                          mb: 0.8,
-                          flexWrap: 'wrap'
-                        }}>
-                          <Box sx={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            gap: 0.3,
-                            fontSize: '0.7rem', 
-                            color: '#666'
-                          }}>
-                            <span>📑</span>
-                            <span>{(() => {
-                              const count = course.modules_count || course.modules?.length || course.units?.length || course.units_count || 0;
-                              return count;
-                            })()} وحدة</span>
-                            </Box>
-                          
-                          <Box sx={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            gap: 0.3,
-                            fontSize: '0.7rem', 
-                            color: '#666'
-                          }}>
-                            <span>📚</span>
-                            <span>{(() => {
-                              const count = course.lessons_count || course.lessons?.length || course.lectures || 0;
-                              console.log(`Lessons count for ${course.title}:`, {
-                                lessons_count: course.lessons_count,
-                                lessons: course.lessons?.length,
-                                lectures: course.lectures,
-                                final: count
-                              });
-                              return count;
-                            })()} درس</span>
-                          </Box>
-                          
-                            <Box sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                            gap: 0.3,
-                            fontSize: '0.75rem',
-                            color: '#663399',
-                            fontWeight: 600
-                          }}>
-                            <span>⭐</span>
-                            <span>{(course.rating || course.average_rating || 0).toFixed(1)}</span>
-                            </Box>
-                          </Box>
-                        
-                        {/* المعلم والسعر في نفس السطر */}
-                            <Box sx={{
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          justifyContent: 'center',
-                          gap: 2,
-                          flexWrap: 'wrap'
-                        }}>
-                          <Box sx={{ 
+
+                        {/* Content Overlay */}
+                        <CourseCardContent>
+                          {/* العنوان */}
+                          <CourseTitle variant="subtitle1" component="h3">
+                            {course.title}
+                          </CourseTitle>
+
+                          {/* عدد الوحدات، الدروس والتقييم في نفس السطر */}
+                          <Box sx={{
                             display: 'flex',
                             alignItems: 'center',
-                            gap: 0.5
+                            justifyContent: 'center',
+                            gap: 1,
+                            mb: 0.8,
+                            flexWrap: 'wrap'
                           }}>
                             <Box sx={{
-                              width: '22px',
-                              height: '22px',
-                              borderRadius: '50%',
-                              background: 'linear-gradient(135deg, #663399 0%, #8b5cf6 100%)',
                               display: 'flex',
                               alignItems: 'center',
-                              justifyContent: 'center',
-                              color: '#fff',
+                              gap: 0.3,
                               fontSize: '0.7rem',
-                              fontWeight: 700,
-                              boxShadow: '0 2px 8px rgba(102, 51, 153, 0.3)',
+                              color: '#666'
                             }}>
-                              {course.instructors && course.instructors.length > 0
-                                ? course.instructors[0].name.charAt(0).toUpperCase()
-                                : 'م'
-                              }
+                              <span>📑</span>
+                              <span>{(() => {
+                                const count = course.modules_count || course.modules?.length || course.units?.length || course.units_count || 0;
+                                return count;
+                              })()} وحدة</span>
                             </Box>
-                            <Typography variant="caption" sx={{ 
-                              color: '#666', 
+
+                            <Box sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 0.3,
                               fontSize: '0.7rem',
+                              color: '#666'
                             }}>
-                              {course.instructors && course.instructors.length > 0
-                                ? course.instructors[0].name
-                                : 'مدرب'
-                              }
-                            </Typography>
+                              <span>📚</span>
+                              <span>{(() => {
+                                const count = course.lessons_count || course.lessons?.length || course.lectures || 0;
+                                console.log(`Lessons count for ${course.title}:`, {
+                                  lessons_count: course.lessons_count,
+                                  lessons: course.lessons?.length,
+                                  lectures: course.lectures,
+                                  final: count
+                                });
+                                return count;
+                              })()} درس</span>
+                            </Box>
+
+                            <Box sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 0.3,
+                              fontSize: '0.75rem',
+                              color: '#663399',
+                              fontWeight: 600
+                            }}>
+                              <span>⭐</span>
+                              <span>{(course.rating || course.average_rating || 0).toFixed(1)}</span>
+                            </Box>
                           </Box>
-                          
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <CurrentPrice>
-                              {course.is_free ? 'مجاني' : `${parseFloat(course.discount_price || course.price)} دينار`}
-                            </CurrentPrice>
-                            {course.discount_price && course.price && course.discount_price < course.price && (
-                              <OriginalPrice>
-                                {parseFloat(course.price)} دينار
-                              </OriginalPrice>
-                            )}
+
+                          {/* المعلم والسعر في نفس السطر */}
+                          <Box sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 2,
+                            flexWrap: 'wrap'
+                          }}>
+                            <Box sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 0.5
+                            }}>
+                              <Box sx={{
+                                width: '22px',
+                                height: '22px',
+                                borderRadius: '50%',
+                                background: 'linear-gradient(135deg, #663399 0%, #8b5cf6 100%)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: '#fff',
+                                fontSize: '0.7rem',
+                                fontWeight: 700,
+                                boxShadow: '0 2px 8px rgba(102, 51, 153, 0.3)',
+                              }}>
+                                {course.instructors && course.instructors.length > 0
+                                  ? course.instructors[0].name.charAt(0).toUpperCase()
+                                  : 'م'
+                                }
+                              </Box>
+                              <Typography variant="caption" sx={{
+                                color: '#666',
+                                fontSize: '0.7rem',
+                              }}>
+                                {course.instructors && course.instructors.length > 0
+                                  ? course.instructors[0].name
+                                  : 'مدرب'
+                                }
+                              </Typography>
+                            </Box>
+
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              <CurrentPrice>
+                                {course.is_free ? 'مجاني' : `${parseFloat(course.discount_price || course.price)} دينار`}
+                              </CurrentPrice>
+                              {course.discount_price && course.price && course.discount_price < course.price && (
+                                <OriginalPrice>
+                                  {parseFloat(course.price)} دينار
+                                </OriginalPrice>
+                              )}
+                            </Box>
                           </Box>
-                        </Box>
-                      </CourseCardContent>
-                    </CourseCard>
+                        </CourseCardContent>
+                      </CourseCard>
                     );
                   })}
                 </SliderTrack>
