@@ -683,6 +683,10 @@ const Units = () => {
                 overflow: 'auto', 
                 boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                 maxHeight: '70vh',
+                width: '100%',
+                [theme.breakpoints.down('md')]: {
+                  maxHeight: '60vh',
+                },
                 '&::-webkit-scrollbar': {
                   width: '8px',
                   height: '8px',
@@ -700,78 +704,87 @@ const Units = () => {
                 },
               }}
             >
-              <Table sx={{ minWidth: 800 }}>
+              <Table sx={{ 
+                minWidth: 1000,
+                tableLayout: 'fixed',
+                width: '100%',
+                [theme.breakpoints.down('lg')]: {
+                  minWidth: 800,
+                },
+                [theme.breakpoints.down('md')]: {
+                  minWidth: 600,
+                },
+              }}>
                 <TableHead>
                   <TableRow sx={{ backgroundColor: theme.palette.primary.main }}>
                     <TableCell sx={{ 
                       color: 'white', 
                       fontWeight: 600, 
-                      py: 2, 
-                      px: 3, 
-                      textAlign: 'center',
-                      minWidth: '200px',
-                      position: 'sticky',
-                      left: 0,
-                      zIndex: 1,
-                      backgroundColor: theme.palette.primary.main
+                      py: 1, 
+                      px: 2, 
+                      textAlign: 'left',
+                      width: '20%',
+                      minWidth: '170px',
+                      borderRight: '1px solid rgba(255,255,255,0.1)'
                     }}>{t('unitsUnit')}</TableCell>
                     <TableCell sx={{ 
                       color: 'white', 
                       fontWeight: 600, 
-                      py: 2, 
-                      px: 3, 
-                      textAlign: 'center', 
-                      minWidth: '200px',
-                      maxWidth: '300px'
+                      py: 1, 
+                      px: 2, 
+                      textAlign: 'left', 
+                      width: '17%',
+                      minWidth: '130px',
+                      borderRight: '1px solid rgba(255,255,255,0.1)'
                     }}>{t('unitsDescription')}</TableCell>
                     <TableCell sx={{ 
                       color: 'white', 
                       fontWeight: 600, 
-                      py: 2, 
+                      py: 1, 
                       px: 1, 
                       textAlign: 'center', 
-                      width: '140px', 
-                      minWidth: '140px'
+                      width: '10%',
+                      minWidth: '100px',
+                      borderRight: '1px solid rgba(255,255,255,0.1)'
                     }}>{t('unitsMainUnit')}</TableCell>
                     <TableCell sx={{ 
                       color: 'white', 
                       fontWeight: 600, 
-                      py: 2, 
-                      px: 2, 
+                      py: 1, 
+                      px: 1, 
                       textAlign: 'center', 
-                      width: '100px', 
-                      minWidth: '100px'
+                      width: '8%',
+                      minWidth: '80px',
+                      borderRight: '1px solid rgba(255,255,255,0.1)'
                     }}>{t('unitsDuration')}</TableCell>
                     <TableCell sx={{ 
                       color: 'white', 
                       fontWeight: 600, 
-                      py: 2, 
-                      px: 2, 
+                      py: 1, 
+                      px: 1, 
                       textAlign: 'center', 
-                      width: '120px', 
-                      minWidth: '120px'
+                      width: '10%',
+                      minWidth: '80px',
+                      borderRight: '1px solid rgba(255,255,255,0.1)'
                     }}>{t('unitsLessonsCount')}</TableCell>
                     <TableCell sx={{ 
                       color: 'white', 
                       fontWeight: 600, 
-                      py: 2, 
-                      px: 2, 
+                      py: 1, 
+                      px: 1, 
                       textAlign: 'center', 
-                      width: '140px', 
-                      minWidth: '140px'
+                      width: '13%',
+                      minWidth: '120px',
+                      borderRight: '1px solid rgba(255,255,255,0.1)'
                     }}>{t('unitsStatus')}</TableCell>
                     <TableCell sx={{ 
                       color: 'white', 
                       fontWeight: 600, 
-                      py: 2, 
-                      px: 3, 
+                      py: 1, 
+                      px: 2, 
                       textAlign: 'center',
-                      width: '200px',
-                      minWidth: '200px',
-                      position: 'sticky',
-                      right: 0,
-                      zIndex: 1,
-                      backgroundColor: theme.palette.primary.main
+                      width: '15%',
+                      minWidth: '180px'
                     }}>{t('unitsActions')}</TableCell>
                   </TableRow>
                 </TableHead>
@@ -781,102 +794,135 @@ const Units = () => {
                     .map((unit) => (
                     <TableRow key={unit.id} hover sx={{ '&:hover': { backgroundColor: 'action.hover' } }}>
                       <TableCell sx={{ 
-                        py: 2, 
-                        px: 3,
-                        minWidth: '200px',
-                        position: 'sticky',
-                        left: 0,
-                        zIndex: 1,
-                        backgroundColor: 'inherit'
+                        py: 1, 
+                        px: 2,
+                        width: '20%',
+                        minWidth: '170px',
+                        textAlign: 'left',
+                        borderRight: '1px solid rgba(0,0,0,0.05)'
                       }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                           <Avatar
                             sx={{
                               bgcolor: theme.palette.primary.main,
-                              width: 48,
-                              height: 48,
+                              width: 36,
+                              height: 36,
                               boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                             }}
                           >
                             {getUnitIcon(unit)}
                           </Avatar>
                           <Box sx={{ minWidth: 0, flex: 1 }}>
-                            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 0.5, lineHeight: 1.2 }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.25, lineHeight: 1.2, fontSize: '0.875rem' }}>
                               {unit.title}
                             </Typography>
-                            <Typography variant="caption" color="textSecondary" sx={{ fontSize: '0.75rem' }}>
+                            <Typography variant="caption" color="textSecondary" sx={{ fontSize: '0.7rem' }}>
                               {t('unitsOrder')}: {unit.order}
                             </Typography>
                           </Box>
                         </Box>
                       </TableCell>
                       <TableCell sx={{ 
-                        py: 2, 
-                        px: 3, 
-                        minWidth: '200px',
-                        maxWidth: '300px'
+                        py: 1, 
+                        px: 2, 
+                        width: '17%',
+                        minWidth: '130px',
+                        textAlign: 'left',
+                        borderRight: '1px solid rgba(0,0,0,0.05)'
                       }}>
                         <Typography 
                           variant="body2" 
                           sx={{ 
-                            maxWidth: 300, 
                             overflow: 'hidden', 
                             textOverflow: 'ellipsis',
                             whiteSpace: 'nowrap',
-                            lineHeight: 1.4
+                            lineHeight: 1.3,
+                            fontSize: '0.8rem'
                           }}
                         >
                           {unit.description || t('unitsNoDescription')}
                         </Typography>
                       </TableCell>
-                      <TableCell sx={{ py: 2, px: 1, textAlign: 'center', width: '140px', minWidth: '140px' }}>
+                      <TableCell sx={{ 
+                        py: 1, 
+                        px: 1, 
+                        textAlign: 'center', 
+                        width: '10%',
+                        minWidth: '100px',
+                        borderRight: '1px solid rgba(0,0,0,0.05)'
+                      }}>
                         {unit.is_submodule ? (
-                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-                            <Chip
-                              label={unit.submodule_name || t('unitsSubUnit')}
-                              color="secondary"
-                              size="small"
-                              variant="outlined"
-                              sx={{ 
-                                fontWeight: 600,
-                                fontSize: '0.75rem',
-                                height: '24px',
-                                '& .MuiChip-label': {
-                                  px: 1
-                                }
-                              }}
-                            />
-                          </Box>
+                          <Chip
+                            label={unit.submodule_name || t('unitsSubUnit')}
+                            color="secondary"
+                            size="small"
+                            variant="outlined"
+                            sx={{ 
+                              fontWeight: 600,
+                              fontSize: '0.7rem',
+                              height: '20px',
+                              '& .MuiChip-label': {
+                                px: 0.5
+                              }
+                            }}
+                          />
                         ) : (
-                          <Typography variant="body2" color="textSecondary" sx={{ fontSize: '0.8rem' }}>
+                          <Typography variant="body2" color="textSecondary" sx={{ fontSize: '0.75rem' }}>
                             {t('unitsMainUnit')}
                           </Typography>
                         )}
                       </TableCell>
-                      <TableCell sx={{ py: 2, px: 2, textAlign: 'center', width: '100px', minWidth: '100px' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-                          <AccessTimeIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                          <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.8rem' }}>
+                      <TableCell sx={{ 
+                        py: 1, 
+                        px: 1, 
+                        textAlign: 'center', 
+                        width: '8%',
+                        minWidth: '80px',
+                        borderRight: '1px solid rgba(0,0,0,0.05)'
+                      }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
+                          <AccessTimeIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
+                          <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.75rem' }}>
                             {unit.duration} {t('unitsMinutes')}
                           </Typography>
                         </Box>
                       </TableCell>
-                      <TableCell sx={{ py: 2, px: 2, textAlign: 'center', width: '120px', minWidth: '120px' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-                          <ArticleIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                          <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.8rem' }}>
+                      <TableCell sx={{ 
+                        py: 1, 
+                        px: 1, 
+                        textAlign: 'center', 
+                        width: '10%',
+                        minWidth: '80px',
+                        borderRight: '1px solid rgba(0,0,0,0.05)'
+                      }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
+                          <ArticleIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
+                          <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.75rem' }}>
                             {unit.lessonsCount}
                           </Typography>
                         </Box>
                       </TableCell>
-                      <TableCell sx={{ py: 2, px: 2, textAlign: 'center', width: '140px', minWidth: '140px' }}>
-                        <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', flexWrap: 'wrap' }}>
+                      <TableCell sx={{ 
+                        py: 1, 
+                        px: 1, 
+                        textAlign: 'center', 
+                        width: '13%',
+                        minWidth: '120px',
+                        borderRight: '1px solid rgba(0,0,0,0.05)'
+                      }}>
+                        <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center', flexWrap: 'wrap' }}>
                           <Chip
                             label={getStatusText(unit.status)}
                             color={getStatusColor(unit.status)}
                             size="small"
                             variant="outlined"
-                            sx={{ fontWeight: 600, minWidth: 70 }}
+                            sx={{ 
+                              fontWeight: 600, 
+                              minWidth: 70, 
+                              height: '22px', 
+                              fontSize: '0.7rem',
+                              maxWidth: '100%'
+                            }}
                           />
                           {unit.isPreview && (
                             <Chip
@@ -884,23 +930,25 @@ const Units = () => {
                               color="primary"
                               size="small"
                               variant="outlined"
-                              sx={{ fontWeight: 600, minWidth: 70 }}
+                              sx={{ 
+                                fontWeight: 600, 
+                                minWidth: 70, 
+                                height: '22px', 
+                                fontSize: '0.7rem',
+                                maxWidth: '100%'
+                              }}
                             />
                           )}
                         </Box>
                       </TableCell>
                       <TableCell sx={{ 
-                        py: 2, 
-                        px: 3, 
+                        py: 1, 
+                        px: 2, 
                         textAlign: 'center',
-                        width: '200px',
-                        minWidth: '200px',
-                        position: 'sticky',
-                        right: 0,
-                        zIndex: 1,
-                        backgroundColor: 'inherit'
+                        width: '15%',
+                        minWidth: '180px'
                       }}>
-                        <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                        <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', flexWrap: 'nowrap' }}>
                           <Tooltip title={t('unitsViewUnit')}>
                             <IconButton
                               size="small"
@@ -908,14 +956,17 @@ const Units = () => {
                               sx={{ 
                                 color: 'primary.main',
                                 backgroundColor: 'rgba(25, 118, 210, 0.1)',
+                                width: 30,
+                                height: 30,
+                                minWidth: 30,
                                 '&:hover': {
                                   backgroundColor: 'rgba(25, 118, 210, 0.2)',
-                                  transform: 'scale(1.1)'
+                                  transform: 'scale(1.05)'
                                 },
                                 transition: 'all 0.2s ease'
                               }}
                             >
-                              <VisibilityIcon fontSize="small" />
+                              <VisibilityIcon sx={{ fontSize: 16 }} />
                             </IconButton>
                           </Tooltip>
                           <Tooltip title={t('unitsLessons')}>
@@ -925,14 +976,17 @@ const Units = () => {
                               sx={{ 
                                 color: 'success.main',
                                 backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                                width: 30,
+                                height: 30,
+                                minWidth: 30,
                                 '&:hover': {
                                   backgroundColor: 'rgba(76, 175, 80, 0.2)',
-                                  transform: 'scale(1.1)'
+                                  transform: 'scale(1.05)'
                                 },
                                 transition: 'all 0.2s ease'
                               }}
                             >
-                              <LibraryBooksIcon fontSize="small" />
+                              <LibraryBooksIcon sx={{ fontSize: 16 }} />
                             </IconButton>
                           </Tooltip>
                           <Tooltip title={t('unitsEdit')}>
@@ -942,14 +996,17 @@ const Units = () => {
                               sx={{ 
                                 color: 'warning.main',
                                 backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                                width: 30,
+                                height: 30,
+                                minWidth: 30,
                                 '&:hover': {
                                   backgroundColor: 'rgba(255, 152, 0, 0.2)',
-                                  transform: 'scale(1.1)'
+                                  transform: 'scale(1.05)'
                                 },
                                 transition: 'all 0.2s ease'
                               }}
                             >
-                              <EditIcon fontSize="small" />
+                              <EditIcon sx={{ fontSize: 16 }} />
                             </IconButton>
                           </Tooltip>
                           <Tooltip title={t('unitsMore')}>
@@ -958,14 +1015,17 @@ const Units = () => {
                               onClick={(e) => handleMenuOpen(e, unit)}
                               sx={{ 
                                 backgroundColor: 'rgba(158, 158, 158, 0.1)',
+                                width: 30,
+                                height: 30,
+                                minWidth: 30,
                                 '&:hover': {
                                   backgroundColor: 'rgba(158, 158, 158, 0.2)',
-                                  transform: 'scale(1.1)'
+                                  transform: 'scale(1.05)'
                                 },
                                 transition: 'all 0.2s ease'
                               }}
                             >
-                              <MoreVertIcon fontSize="small" />
+                              <MoreVertIcon sx={{ fontSize: 16 }} />
                             </IconButton>
                           </Tooltip>
                         </Box>

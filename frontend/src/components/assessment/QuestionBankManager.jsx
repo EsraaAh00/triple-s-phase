@@ -230,7 +230,7 @@ const QuestionBankManager = ({ product = null, chapter = null, topic = null }) =
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [questionToDelete, setQuestionToDelete] = useState(null);
 
-  const questionBankData = useQuestionBank();
+  const questionBankData = useQuestionBank(topic?.id);
   
   const {
     questions = [],

@@ -196,11 +196,11 @@ const FlashcardManager = ({ product = null, topic = null }) => {
     deleteFlashcard,
     setPage,
     clearError
-  } = useFlashcards();
+  } = useFlashcards(topic?.id);
 
   useEffect(() => {
     fetchFlashcards();
-  }, []);
+  }, [fetchFlashcards]);
 
   const handleOpenDialog = (flashcard = null) => {
     setEditingFlashcard(flashcard);
@@ -291,6 +291,7 @@ const FlashcardManager = ({ product = null, topic = null }) => {
 
   const handlePageChange = (event, page) => {
     setPage(page);
+    // fetchFlashcards will be called automatically via useEffect in the hook
   };
 
   // Stats calculation
