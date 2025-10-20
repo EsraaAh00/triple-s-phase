@@ -9,3 +9,10 @@ backend/custom_permissions.egg-info
 backend/custom_permissions/.gitignore
 frontend/.gitignore
 osama.txt
+backend/assessment/__pycache__/views.cpython-311.pyc
+backend/extras/__pycache__/admin.cpython-311.pyc
+backend/extras/__pycache__/models.cpython-311.pyc
+backend/extras/__pycache__/serializers.cpython-311.pyc
+backend/extras/__pycache__/urls.cpython-311.pyc
+backend/extras/__pycache__/views.cpython-311.pyc
+backend/extras/migrations/__pycache__/0006_cardimage_alter_banner_banner_type.cpython-311.pyc
