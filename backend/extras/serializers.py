@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Banner, CourseCollection, PrivacyPolicy, TermsAndConditions, RefundingFAQ, ContactInfo, Partnership, ContactMessage
+from .models import Banner, CourseCollection, PrivacyPolicy, TermsAndConditions, RefundingFAQ, ContactInfo, Partnership, ContactMessage, CardImage
 from courses.serializers import CourseBasicSerializer
 
 
@@ -187,3 +187,44 @@ class ContactMessageCreateSerializer(serializers.ModelSerializer):
         else:
             ip = request.META.get('REMOTE_ADDR')
         return ip
+
+
+class CardImageSerializer(serializers.ModelSerializer):
+    """Serializer for CardImage model"""
+    image_1_url = serializers.SerializerMethodField()
+    image_2_url = serializers.SerializerMethodField()
+    image_3_url = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = CardImage
+        fields = [
+            'id', 'title', 'title_ar', 'description', 'description_ar',
+            'image_1', 'image_1_url', 'image_2', 'image_2_url', 
+            'image_3', 'image_3_url', 'display_order', 'is_active',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ('created_at', 'updated_at')
+    
+    def get_image_1_url(self, obj):
+        if obj.image_1:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image_1.url)
+            return obj.image_1.url
+        return None
+    
+    def get_image_2_url(self, obj):
+        if obj.image_2:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image_2.url)
+            return obj.image_2.url
+        return None
+    
+    def get_image_3_url(self, obj):
+        if obj.image_3:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image_3.url)
+            return obj.image_3.url
+        return None

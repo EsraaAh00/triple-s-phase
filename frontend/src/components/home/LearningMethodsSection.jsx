@@ -27,7 +27,7 @@ import {
   KeyboardArrowRight,
   MenuBook
 } from '@mui/icons-material';
-import { courseAPI, bannerAPI } from '../../services/api.service';
+import { courseAPI, bannerAPI, cardImageAPI } from '../../services/api.service';
 
 const floatAnimation = keyframes`
   0% { transform: translateY(0px); }
@@ -534,6 +534,8 @@ const LearningMethodsSection = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [categories, setCategories] = useState([]);
   const [bannerData, setBannerData] = useState(null);
+  const [cardImages, setCardImages] = useState(null);
+  const [cardImagesLoading, setCardImagesLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [scrollContainer, setScrollContainer] = useState(null);
@@ -612,20 +614,12 @@ const LearningMethodsSection = () => {
   const loadCategories = async () => {
     try {
       setLoading(true);
-      console.log('🔄 Fetching categories from API...');
       const response = await courseAPI.getCategories();
-      console.log('✅ Categories received:', response);
 
       // Ensure we have an array and filter active categories
       const categoriesData = Array.isArray(response) ? response : [];
       const activeCategories = categoriesData.filter(category => category.is_active !== false);
 
-      // Log course counts for debugging
-      activeCategories.forEach(cat => {
-        console.log(`📊 Category "${cat.name}": courses_count=${cat.courses_count}, active_courses_count=${cat.active_courses_count}`);
-      });
-
-      console.log('📊 Active categories:', activeCategories.length);
       setCategories(activeCategories);
     } catch (error) {
       console.error('❌ Error loading categories:', error);
@@ -634,14 +628,12 @@ const LearningMethodsSection = () => {
       setCategories([]);
     } finally {
       setLoading(false);
-      console.log('🏁 Categories loading completed');
     }
   };
 
   // Load banner for this section
   const loadBanner = async () => {
     try {
-      console.log('🔄 Fetching learning methods banner from API...');
       const bannersData = await bannerAPI.getBannersByType('main');
 
       let filteredBanners = [];
@@ -662,7 +654,6 @@ const LearningMethodsSection = () => {
           description: firstBanner.description,
           description_ar: firstBanner.description_ar,
         });
-        console.log('✅ Learning methods banner set successfully');
       }
     } catch (error) {
       console.error('❌ Error loading banner:', error);
@@ -670,9 +661,37 @@ const LearningMethodsSection = () => {
     }
   };
 
+  // Load card images for learning methods
+  const loadCardImages = async () => {
+    try {
+      setCardImagesLoading(true);
+      const cardImagesData = await cardImageAPI.getActiveCardImages();
+
+      if (Array.isArray(cardImagesData) && cardImagesData.length > 0) {
+        // Get the first active card image set
+        const firstCardImage = cardImagesData[0];
+
+        setCardImages({
+          image_1_url: firstCardImage.image_1_url,
+          image_2_url: firstCardImage.image_2_url,
+          image_3_url: firstCardImage.image_3_url,
+        });
+      } else {
+        setCardImages(null);
+      }
+    } catch (error) {
+      console.error('❌ Error loading card images:', error);
+      console.error('❌ Error details:', error.response?.data || error.message);
+      setCardImages(null);
+    } finally {
+      setCardImagesLoading(false);
+    }
+  };
+
   useEffect(() => {
     loadCategories();
     loadBanner();
+    loadCardImages();
   }, []);
 
   const getCategoryIcon = (categoryName) => {
@@ -780,40 +799,37 @@ const LearningMethodsSection = () => {
                   width: { xs: '90px', sm: '110px', md: '130px' },
                   height: { xs: '90px', sm: '110px', md: '130px' },
                   borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #663399 0%, #8b5cf6 100%)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: '0 8px 30px rgba(102, 51, 153, 0.3), 0 0 0 6px rgba(102, 51, 153, 0.1)',
-                  border: '4px solid #fff',
                   marginBottom: theme.spacing(1.5),
                   position: 'relative',
                   overflow: 'hidden',
-                  '&:before': {
-                    content: '""',
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%)',
-                    opacity: 0,
-                    transition: 'opacity 0.4s ease',
-                  },
-                  '&:hover': {
-                    boxShadow: '0 16px 50px rgba(102, 51, 153, 0.4), 0 0 0 10px rgba(102, 51, 153, 0.15)',
-                    '&:before': {
-                      opacity: 1,
-                    },
-                  },
                 }}>
-                  <MenuBook sx={{
-                    fontSize: { xs: '1.8rem', sm: '2.2rem', md: '2.5rem' },
-                    color: '#fff',
-                    filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))',
-                    position: 'relative',
-                    zIndex: 1,
-                  }} />
+                  {cardImagesLoading ? (
+                    <CircularProgress sx={{ color: '#5C2D91', zIndex: 1 }} size={40} />
+                  ) : cardImages?.image_1_url ? (
+                    <img
+                      src={cardImages.image_1_url}
+                      alt="Lectures"
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        borderRadius: '50%',
+                      }}
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                      }}
+                    />
+                  ) : (
+                    <MenuBook sx={{
+                      fontSize: { xs: '1.8rem', sm: '2.2rem', md: '2.5rem' },
+                      color: '#5C2D91',
+                      position: 'relative',
+                      zIndex: 1,
+                    }} />
+                  )}
                 </Box>
                 <Typography sx={{
                   color: '#5C2D91',
@@ -841,40 +857,37 @@ const LearningMethodsSection = () => {
                   width: { xs: '90px', sm: '110px', md: '130px' },
                   height: { xs: '90px', sm: '110px', md: '130px' },
                   borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #34498B 0%, #5a7cb8 100%)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: '0 8px 30px rgba(52, 73, 139, 0.3), 0 0 0 6px rgba(52, 73, 139, 0.1)',
-                  border: '4px solid #fff',
                   marginBottom: theme.spacing(1.5),
                   position: 'relative',
                   overflow: 'hidden',
-                  '&:before': {
-                    content: '""',
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%)',
-                    opacity: 0,
-                    transition: 'opacity 0.4s ease',
-                  },
-                  '&:hover': {
-                    boxShadow: '0 16px 50px rgba(52, 73, 139, 0.4), 0 0 0 10px rgba(52, 73, 139, 0.15)',
-                    '&:before': {
-                      opacity: 1,
-                    },
-                  },
                 }}>
-                  <School sx={{
-                    fontSize: { xs: '1.8rem', sm: '2.2rem', md: '2.5rem' },
-                    color: '#fff',
-                    filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))',
-                    position: 'relative',
-                    zIndex: 1,
-                  }} />
+                  {cardImagesLoading ? (
+                    <CircularProgress sx={{ color: '#5C2D91', zIndex: 1 }} size={40} />
+                  ) : cardImages?.image_2_url ? (
+                    <img
+                      src={cardImages.image_2_url}
+                      alt="Question Bank"
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        borderRadius: '50%',
+                      }}
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                      }}
+                    />
+                  ) : (
+                    <School sx={{
+                      fontSize: { xs: '1.8rem', sm: '2.2rem', md: '2.5rem' },
+                      color: '#5C2D91',
+                      position: 'relative',
+                      zIndex: 1,
+                    }} />
+                  )}
                 </Box>
                 <Typography sx={{
                   color: '#5C2D91',
@@ -902,40 +915,37 @@ const LearningMethodsSection = () => {
                   width: { xs: '90px', sm: '110px', md: '130px' },
                   height: { xs: '90px', sm: '110px', md: '130px' },
                   borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: '0 8px 30px rgba(111, 66, 193, 0.3), 0 0 0 6px rgba(111, 66, 193, 0.1)',
-                  border: '4px solid #fff',
                   marginBottom: theme.spacing(1.5),
                   position: 'relative',
                   overflow: 'hidden',
-                  '&:before': {
-                    content: '""',
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%)',
-                    opacity: 0,
-                    transition: 'opacity 0.4s ease',
-                  },
-                  '&:hover': {
-                    boxShadow: '0 16px 50px rgba(232, 62, 140, 0.4), 0 0 0 10px rgba(232, 62, 140, 0.15)',
-                    '&:before': {
-                      opacity: 1,
-                    },
-                  },
                 }}>
-                  <Description sx={{
-                    fontSize: { xs: '1.8rem', sm: '2.2rem', md: '2.5rem' },
-                    color: '#fff',
-                    filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))',
-                    position: 'relative',
-                    zIndex: 1,
-                  }} />
+                  {cardImagesLoading ? (
+                    <CircularProgress sx={{ color: '#5C2D91', zIndex: 1 }} size={40} />
+                  ) : cardImages?.image_3_url ? (
+                    <img
+                      src={cardImages.image_3_url}
+                      alt="Flashcards"
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        borderRadius: '50%',
+                      }}
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                      }}
+                    />
+                  ) : (
+                    <Description sx={{
+                      fontSize: { xs: '1.8rem', sm: '2.2rem', md: '2.5rem' },
+                      color: '#5C2D91',
+                      position: 'relative',
+                      zIndex: 1,
+                    }} />
+                  )}
                 </Box>
                 <Typography sx={{
                   color: '#5C2D91',

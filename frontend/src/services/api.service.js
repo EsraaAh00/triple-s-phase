@@ -1007,4 +1007,42 @@ export const collectionAPI = {
   }
 };
 
+// Card Images API methods
+export const cardImageAPI = {
+  // Get all card images
+  getCardImages: async (params = {}) => {
+    try {
+      const response = await api.get('/api/extras/card-images/', { params });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching card images:', error);
+      throw error;
+    }
+  },
+
+  // Get active card images
+  getActiveCardImages: async () => {
+    try {
+      console.log('🔍 Fetching active card images...');
+      const response = await api.get('/api/extras/card-images/active/');
+      console.log('✅ Active card images:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching active card images:', error);
+      throw error;
+    }
+  },
+
+  // Get card image by ID
+  getCardImage: async (id) => {
+    try {
+      const response = await api.get(`/api/extras/card-images/${id}/`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching card image:', error);
+      throw error;
+    }
+  }
+};
+
 export default api;

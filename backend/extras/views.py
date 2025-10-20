@@ -13,7 +13,7 @@ from django.http import JsonResponse
 
 from courses.models import Course
 
-from .models import Banner, CourseCollection, PrivacyPolicy, TermsAndConditions, RefundingFAQ, ContactInfo, Partnership, ContactMessage
+from .models import Banner, CourseCollection, PrivacyPolicy, TermsAndConditions, RefundingFAQ, ContactInfo, Partnership, ContactMessage, CardImage
 from .serializers import (
     BannerSerializer,
     BannerByTypeSerializer,
@@ -25,7 +25,8 @@ from .serializers import (
     ContactInfoSerializer,
     PartnershipSerializer,
     ContactMessageSerializer,
-    ContactMessageCreateSerializer
+    ContactMessageCreateSerializer,
+    CardImageSerializer
 )
 
 
@@ -44,7 +45,7 @@ class BannerViewSet(viewsets.ModelViewSet):
         """
         Instantiates and returns the list of permissions that this view requires.
         """
-        if self.action in ['list', 'retrieve', 'active', 'promotional']:
+        if self.action in ['list', 'retrieve', 'active']:
             permission_classes = [AllowAny]
         else:
             permission_classes = [IsAdminUser]
@@ -91,24 +92,6 @@ class BannerViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
             
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
-    
-    @action(detail=False, methods=['get'])
-    def promotional(self, request, *args, **kwargs):
-        """
-        Get all active promotional banners for displaying between course collections.
-        """
-        now = timezone.now()
-        queryset = self.get_queryset().filter(
-            is_active=True,
-            banner_type='promo',
-            start_date__lte=now,
-        ).filter(Q(end_date__isnull=True) | Q(end_date__gte=now))
-        
-        # Order by display_order and then by creation date
-        queryset = queryset.order_by('display_order', '-created_at')
-        
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
@@ -555,3 +538,50 @@ class ContactMessageViewSet(viewsets.ModelViewSet):
             'urgent_messages': ContactMessage.objects.filter(is_urgent=True).count(),
         }
         return Response(stats)
+
+
+class CardImageViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for managing card images.
+    """
+    queryset = CardImage.objects.all()
+    serializer_class = CardImageSerializer
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ['is_active']
+    ordering_fields = ['display_order', 'created_at']
+    ordering = ['display_order', '-created_at']
+
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+        if self.action in ['list', 'retrieve', 'active']:
+            permission_classes = [AllowAny]
+        else:
+            permission_classes = [IsAdminUser]
+        return [permission() for permission in permission_classes]
+    
+    def get_queryset(self):
+        """
+        Optionally filter by active card images only.
+        """
+        queryset = super().get_queryset()
+        
+        # Filter active card images if requested
+        if self.request.query_params.get('active_only', '').lower() in ('true', '1'):
+            queryset = queryset.filter(is_active=True)
+            
+        return queryset
+    
+    @action(detail=False, methods=['get'])
+    def active(self, request, *args, **kwargs):
+        """
+        Get all active card images.
+        """
+        queryset = self.get_queryset().filter(is_active=True)
+        
+        # Order by display_order and then by creation date
+        queryset = queryset.order_by('display_order', '-created_at')
+        
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)

@@ -13,6 +13,7 @@ router.register(r'refunding-faq', views.RefundingFAQViewSet, basename='refunding
 router.register(r'contact-info', views.ContactInfoViewSet, basename='contact-info')
 router.register(r'partnerships', views.PartnershipViewSet, basename='partnership')
 router.register(r'contact-messages', views.ContactMessageViewSet, basename='contact-message')
+router.register(r'card-images', views.CardImageViewSet, basename='card-image')
 
 # Admin dashboard endpoints
 admin_urlpatterns = [

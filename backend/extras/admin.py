@@ -9,7 +9,7 @@ from django.utils import timezone
 from django.db.models import Count, Q
 from django.contrib.auth import get_user_model
 from courses.models import Course, Enrollment
-from .models import Banner, CourseCollection, PrivacyPolicy, TermsAndConditions, RefundingFAQ, ContactInfo, Partnership, ContactMessage
+from .models import Banner, CourseCollection, PrivacyPolicy, TermsAndConditions, RefundingFAQ, ContactInfo, Partnership, ContactMessage, CardImage
 from .views import get_admin_dashboard_data
 from core.admin_views import user_permissions, group_permissions
 from datetime import timedelta
@@ -336,6 +336,33 @@ class ContactMessageAdmin(admin.ModelAdmin):
         return qs
 
 
+class CardImageAdmin(admin.ModelAdmin):
+    list_display = ('title', 'title_ar', 'is_active', 'display_order', 'updated_at')
+    list_filter = ('is_active',)
+    search_fields = ('title', 'title_ar', 'description', 'description_ar')
+    list_editable = ('is_active', 'display_order')
+    readonly_fields = ('created_at', 'updated_at')
+    
+    fieldsets = (
+        ('English Content', {
+            'fields': ('title', 'description')
+        }),
+        ('Arabic Content - المحتوى العربي', {
+            'fields': ('title_ar', 'description_ar')
+        }),
+        ('Images - الصور', {
+            'fields': ('image_1', 'image_2', 'image_3')
+        }),
+        ('Settings - الإعدادات', {
+            'fields': ('display_order', 'is_active')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
 # Register models with the custom admin site
 custom_admin_site.register(Banner, BannerAdmin)
 custom_admin_site.register(CourseCollection, CourseCollectionAdmin)
@@ -345,6 +372,7 @@ custom_admin_site.register(RefundingFAQ, RefundingFAQAdmin)
 custom_admin_site.register(ContactInfo, ContactInfoAdmin)
 custom_admin_site.register(Partnership, PartnershipAdmin)
 custom_admin_site.register(ContactMessage, ContactMessageAdmin)
+custom_admin_site.register(CardImage, CardImageAdmin)
 
 # Also register with the default admin site for backward compatibility
 admin.site.register(Banner, BannerAdmin)
@@ -355,3 +383,4 @@ admin.site.register(RefundingFAQ, RefundingFAQAdmin)
 admin.site.register(ContactInfo, ContactInfoAdmin)
 admin.site.register(Partnership, PartnershipAdmin)
 admin.site.register(ContactMessage, ContactMessageAdmin)
+admin.site.register(CardImage, CardImageAdmin)

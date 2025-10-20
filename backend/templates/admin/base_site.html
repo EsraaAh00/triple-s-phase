@@ -79,7 +79,7 @@
         margin: 0;
         font-size: 1.3rem;
     }
-    
+
     #site-name a {
         color: #fff !important;
         text-decoration: none;
@@ -87,12 +87,12 @@
         align-items: center;
         gap: 12px;
     }
-    
+
     #site-name a:hover {
         color: var(--secondary) !important;
         transition: color 0.3s ease;
     }
-    
+
     #site-name i {
         font-size: 1.6rem;
         color: var(--secondary);
@@ -104,7 +104,8 @@
         gap: 20px;
     }
 
-    #user-tools a, #user-tools button {
+    #user-tools a,
+    #user-tools button {
         color: #fff;
         text-decoration: none;
         font-weight: 500;
@@ -120,14 +121,16 @@
         font-size: 0.9rem;
     }
 
-    #user-tools a:hover, #user-tools button:hover {
+    #user-tools a:hover,
+    #user-tools button:hover {
         background: rgba(255, 255, 255, 0.2);
         color: #fff;
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
-    #user-tools a i, #user-tools button i {
+    #user-tools a i,
+    #user-tools button i {
         font-size: 1rem;
     }
 
@@ -457,7 +460,7 @@
     }
 
     /* Responsive Design - Mobile First Approach */
-    
+
     /* Large screens (1201px and up) */
     @media (min-width: 1201px) {
         #sidebar {
@@ -472,23 +475,23 @@
             z-index: 999 !important;
             background: #fff !important;
         }
-        
+
         #content {
             margin-right: 280px !important;
         }
-        
+
         .sidebar-toggle {
             display: none;
         }
     }
-    
+
     /* Medium screens (992px to 1200px) */
     @media (max-width: 1200px) and (min-width: 993px) {
         :root {
             --sidebar-width: 260px;
         }
-        
-    #sidebar {
+
+        #sidebar {
             width: var(--sidebar-width) !important;
             right: -100% !important;
             transition: right 0.3s ease !important;
@@ -500,45 +503,46 @@
         }
 
         #sidebar.active {
-        right: 0 !important;
+            right: 0 !important;
         }
-        
+
         .sidebar-toggle {
             display: flex;
             top: 15px;
             right: 15px;
         }
-        
+
         .stats-grid {
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
         }
-        
+
         .quick-actions {
             grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
         }
     }
-    
+
     /* Small screens (768px to 992px) */
     @media (max-width: 992px) and (min-width: 769px) {
         :root {
             --sidebar-width: 240px;
             --header-height: 60px;
         }
-        
+
         #header {
             height: var(--header-height);
             padding: 0 20px;
         }
-        
+
         #site-name {
             font-size: 1.1rem;
         }
-        
-        #user-tools a, #user-tools button {
+
+        #user-tools a,
+        #user-tools button {
             padding: 6px 12px;
             font-size: 0.8rem;
         }
-        
+
         #sidebar {
             width: var(--sidebar-width) !important;
             top: var(--header-height) !important;
@@ -555,7 +559,7 @@
         #sidebar.active {
             right: 0 !important;
         }
-        
+
         .sidebar-toggle {
             display: flex;
             top: 10px;
@@ -563,72 +567,74 @@
             width: 40px;
             height: 40px;
         }
-        
+
         .stats-grid {
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 20px;
         }
-        
+
         .quick-actions {
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px;
         }
-        
+
         .stat-card {
             padding: 20px;
         }
-        
+
         .stat-icon {
             width: 50px;
             height: 50px;
             margin-left: 15px;
         }
-        
+
         .stat-info h2 {
             font-size: 1.8rem;
         }
     }
-    
+
     /* Mobile screens (up to 768px) */
     @media (max-width: 768px) {
         :root {
             --sidebar-width: 100%;
             --header-height: 60px;
         }
-        
+
         body {
             font-size: 13px;
         }
-        
+
         #header {
             height: var(--header-height);
             padding: 0 15px;
             flex-wrap: wrap;
             gap: 10px;
         }
-        
+
         #site-name {
             font-size: 1rem;
             order: 1;
             flex: 1;
         }
-        
+
         #user-tools {
             order: 2;
             gap: 8px;
             flex-wrap: wrap;
         }
-        
-        #user-tools a, #user-tools button {
+
+        #user-tools a,
+        #user-tools button {
             padding: 5px 10px;
             font-size: 0.75rem;
             gap: 5px;
         }
-        
-        #user-tools a i, #user-tools button i {
+
+        #user-tools a i,
+        #user-tools button i {
             font-size: 0.8rem;
         }
-        
+
         #sidebar {
             width: 100% !important;
             top: var(--header-height) !important;
@@ -646,7 +652,7 @@
         #sidebar.active {
             right: 0 !important;
         }
-        
+
         .sidebar-toggle {
             display: flex;
             top: 10px;
@@ -655,168 +661,169 @@
             height: 35px;
             z-index: 1003;
         }
-        
+
         .sidebar-toggle i {
             font-size: 1rem;
         }
-        
+
         /* Mobile layout adjustments */
         .stats-grid {
             grid-template-columns: 1fr;
             gap: 15px;
             margin-bottom: 20px;
         }
-        
+
         .quick-actions {
             grid-template-columns: 1fr;
             gap: 15px;
             margin-bottom: 20px;
         }
-        
+
         .stat-card {
             padding: 15px;
             flex-direction: column;
             text-align: center;
         }
-        
+
         .stat-icon {
             width: 45px;
             height: 45px;
             margin-left: 0;
             margin-bottom: 10px;
         }
-        
+
         .stat-info h4 {
             font-size: 0.8rem;
             margin-bottom: 5px;
         }
-        
+
         .stat-info h2 {
             font-size: 1.5rem;
         }
-        
+
         .quick-action {
             padding: 20px;
         }
-        
+
         .quick-action i {
             font-size: 1.5rem;
             margin-bottom: 10px;
         }
-        
+
         .quick-action h3 {
             font-size: 1rem;
             margin-bottom: 8px;
         }
-        
+
         .quick-action p {
             font-size: 0.8rem;
         }
-        
+
         .card-header {
             padding: 15px 20px;
         }
-        
+
         .card-header h3 {
             font-size: 1rem;
         }
-        
+
         .card-body {
             padding: 20px;
         }
-        
+
         .data-table {
             font-size: 0.8rem;
         }
-        
+
         .data-table th,
         .data-table td {
             padding: 8px 12px;
         }
     }
-    
+
     /* Extra small screens (up to 480px) */
     @media (max-width: 480px) {
         #header {
             padding: 0 10px;
         }
-        
+
         #site-name {
             font-size: 0.9rem;
         }
-        
+
         #site-name a {
             gap: 8px;
         }
-        
+
         #site-name i {
             font-size: 1.2rem;
         }
-        
+
         #user-tools {
             gap: 5px;
         }
-        
-        #user-tools a, #user-tools button {
+
+        #user-tools a,
+        #user-tools button {
             padding: 4px 8px;
             font-size: 0.7rem;
         }
-        
+
         #content {
             padding: 8px;
         }
-        
+
         .stat-card {
             padding: 12px;
         }
-        
+
         .stat-icon {
             width: 40px;
             height: 40px;
             font-size: 1.2rem;
         }
-        
+
         .stat-info h2 {
             font-size: 1.3rem;
         }
-        
+
         .quick-action {
             padding: 15px;
         }
-        
+
         .card-header {
             padding: 12px 15px;
         }
-        
+
         .card-body {
             padding: 15px;
         }
-        
+
         .btn {
             padding: 8px 16px;
             font-size: 0.8rem;
         }
     }
-    
+
     /* Landscape orientation adjustments for mobile */
     @media (max-width: 768px) and (orientation: landscape) {
         #header {
             height: 50px;
         }
-        
+
         :root {
             --header-height: 50px;
         }
-        
+
         #sidebar {
             top: var(--header-height) !important;
             height: calc(100vh - var(--header-height)) !important;
         }
-        
+
         #content {
             margin-top: var(--header-height);
         }
-        
+
         .sidebar-toggle {
             top: 8px;
             right: 8px;
@@ -859,22 +866,22 @@
 {% block usertools %}
 <div id="user-tools">
     {% if user.is_active and user.is_staff %}
-        {% if site_url %}
-            <a href="{{ site_url }}">
-                <i class="fas fa-external-link-alt"></i> عرض الموقع
-            </a>
-        {% endif %}
-        {% if user.has_usable_password %}
-            <a href="{% url 'admin:password_change' %}">
-                <i class="fas fa-key"></i> تغيير كلمة المرور
-            </a>
-        {% endif %}
-        <form id="logout-form" method="post" action="{% url 'admin:logout' %}" style="display: inline;">
-            {% csrf_token %}
-            <button type="submit">
-                <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
-            </button>
-        </form>
+    {% if site_url %}
+    <a href="{{ site_url }}">
+        <i class="fas fa-external-link-alt"></i> عرض الموقع
+    </a>
+    {% endif %}
+    {% if user.has_usable_password %}
+    <a href="{% url 'admin:password_change' %}">
+        <i class="fas fa-key"></i> تغيير كلمة المرور
+    </a>
+    {% endif %}
+    <form id="logout-form" method="post" action="{% url 'admin:logout' %}" style="display: inline;">
+        {% csrf_token %}
+        <button type="submit">
+            <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+        </button>
+    </form>
     {% endif %}
 </div>
 {% endblock %}
@@ -891,31 +898,35 @@
     <ul class="sidebar-menu">
         <!-- Dashboard -->
         <li>
-            <a href="{% url 'custom_admin:index' %}" class="{% if request.path == '/admin/' or request.path == '/admin' %}active{% endif %}">
+            <a href="{% url 'custom_admin:index' %}"
+                class="{% if request.path == '/admin/' or request.path == '/admin' %}active{% endif %}">
                 <i class="fas fa-tachometer-alt"></i>
                 <span>لوحة التحكم</span>
             </a>
         </li>
-        
+
         <!-- Users Section -->
         <li class="menu-section">
             <span>إدارة المستخدمين</span>
         </li>
-        
+
         <li>
-            <a href="{% url 'admin:auth_user_changelist' %}" class="{% if '/admin/auth/user/' in request.path %}active{% endif %}">
+            <a href="{% url 'admin:auth_user_changelist' %}"
+                class="{% if '/admin/auth/user/' in request.path %}active{% endif %}">
                 <i class="fas fa-users"></i>
                 <span>المستخدمين</span>
             </a>
         </li>
         <li>
-            <a href="{% url 'admin:users_instructor_changelist' %}" class="{% if '/admin/users/instructor/' in request.path %}active{% endif %}">
+            <a href="{% url 'admin:users_instructor_changelist' %}"
+                class="{% if '/admin/users/instructor/' in request.path %}active{% endif %}">
                 <i class="fas fa-chalkboard-teacher"></i>
                 <span>المدربين</span>
             </a>
         </li>
         <li>
-            <a href="{% url 'admin:users_student_changelist' %}" class="{% if '/admin/users/student/' in request.path %}active{% endif %}">
+            <a href="{% url 'admin:users_student_changelist' %}"
+                class="{% if '/admin/users/student/' in request.path %}active{% endif %}">
                 <i class="fas fa-user-graduate"></i>
                 <span>الطلاب</span>
             </a>
@@ -926,152 +937,181 @@
             <span>إدارة المحتوى</span>
         </li>
         <li>
-            <a href="{% url 'admin:courses_course_changelist' %}" class="{% if '/admin/courses/course/' in request.path %}active{% endif %}">
+            <a href="{% url 'admin:courses_course_changelist' %}"
+                class="{% if '/admin/courses/course/' in request.path %}active{% endif %}">
                 <i class="fas fa-book"></i>
                 <span>الكورسات</span>
             </a>
         </li>
         <li>
-            <a href="{% url 'admin:courses_category_changelist' %}" class="{% if '/admin/courses/category/' in request.path %}active{% endif %}">
+            <a href="{% url 'admin:courses_category_changelist' %}"
+                class="{% if '/admin/courses/category/' in request.path %}active{% endif %}">
                 <i class="fas fa-tags"></i>
                 <span>التصنيفات</span>
             </a>
         </li>
         <li>
-            <a href="{% url 'admin:content_module_changelist' %}" class="{% if '/admin/content/module/' in request.path %}active{% endif %}">
+            <a href="{% url 'admin:content_module_changelist' %}"
+                class="{% if '/admin/content/module/' in request.path %}active{% endif %}">
                 <i class="fas fa-layer-group"></i>
                 <span>الوحدات</span>
             </a>
         </li>
         <li>
-            <a href="{% url 'admin:content_lesson_changelist' %}" class="{% if '/admin/content/lesson/' in request.path %}active{% endif %}">
+            <a href="{% url 'admin:content_lesson_changelist' %}"
+                class="{% if '/admin/content/lesson/' in request.path %}active{% endif %}">
                 <i class="fas fa-book-reader"></i>
                 <span>الدروس</span>
             </a>
         </li>
         <li>
-            <a href="{% url 'admin:meetings_meeting_changelist' %}" class="{% if '/admin/meetings/meeting/' in request.path %}active{% endif %}">
+            <a href="{% url 'admin:meetings_meeting_changelist' %}"
+                class="{% if '/admin/meetings/meeting/' in request.path %}active{% endif %}">
                 <i class="fas fa-video"></i>
                 <span>المحاضرات</span>
             </a>
         </li>
-        
+
         <!-- Assessment System -->
         <li class="menu-section">
             <span>نظام التقييمات</span>
         </li>
-        
+
         <!-- Question Bank Products -->
         <li>
-            <a href="{% url 'admin:assessment_questionbankproduct_changelist' %}" class="{% if '/admin/assessment/questionbankproduct/' in request.path %}active{% endif %}">
+            <a href="{% url 'admin:assessment_questionbankproduct_changelist' %}"
+                class="{% if '/admin/assessment/questionbankproduct/' in request.path %}active{% endif %}">
                 <i class="fas fa-store"></i>
                 <span>منتجات بنك الأسئلة</span>
             </a>
         </li>
-    
+
         <li>
-            <a href="{% url 'admin:assessment_questionbankchapter_changelist' %}" class="{% if '/admin/assessment/questionbankchapter/' in request.path %}active{% endif %}">
+            <a href="{% url 'admin:assessment_questionbankchapter_changelist' %}"
+                class="{% if '/admin/assessment/questionbankchapter/' in request.path %}active{% endif %}">
                 <i class="fas fa-book"></i>
                 <span>فصول الأسئلة</span>
             </a>
         </li>
         <li>
-            <a href="{% url 'admin:assessment_questionbanktopic_changelist' %}" class="{% if '/admin/assessment/questionbanktopic/' in request.path %}active{% endif %}">
+            <a href="{% url 'admin:assessment_questionbanktopic_changelist' %}"
+                class="{% if '/admin/assessment/questionbanktopic/' in request.path %}active{% endif %}">
                 <i class="fas fa-bookmark"></i>
                 <span>مواضيع الأسئلة</span>
             </a>
         </li>
         <li>
-            <a href="{% url 'admin:assessment_questionbank_changelist' %}" class="{% if '/admin/assessment/questionbank/' in request.path %}active{% endif %}">
+            <a href="{% url 'admin:assessment_questionbank_changelist' %}"
+                class="{% if '/admin/assessment/questionbank/' in request.path %}active{% endif %}">
                 <i class="fas fa-question-circle"></i>
                 <span>بنك الأسئلة</span>
             </a>
         </li>
-        
+
         <!-- Flashcard Products -->
         <li>
-            <a href="{% url 'admin:assessment_flashcardproduct_changelist' %}" class="{% if '/admin/assessment/flashcardproduct/' in request.path %}active{% endif %}">
+            <a href="{% url 'admin:assessment_flashcardproduct_changelist' %}"
+                class="{% if '/admin/assessment/flashcardproduct/' in request.path %}active{% endif %}">
                 <i class="fas fa-store"></i>
                 <span>منتجات البطاقات التعليمية</span>
             </a>
         </li>
- 
+
         <li>
-            <a href="{% url 'admin:assessment_flashcardchapter_changelist' %}" class="{% if '/admin/assessment/flashcardchapter/' in request.path %}active{% endif %}">
+            <a href="{% url 'admin:assessment_flashcardchapter_changelist' %}"
+                class="{% if '/admin/assessment/flashcardchapter/' in request.path %}active{% endif %}">
                 <i class="fas fa-layer-group"></i>
                 <span>فصول البطاقات</span>
             </a>
         </li>
         <li>
-            <a href="{% url 'admin:assessment_flashcardtopic_changelist' %}" class="{% if '/admin/assessment/flashcardtopic/' in request.path %}active{% endif %}">
+            <a href="{% url 'admin:assessment_flashcardtopic_changelist' %}"
+                class="{% if '/admin/assessment/flashcardtopic/' in request.path %}active{% endif %}">
                 <i class="fas fa-tags"></i>
                 <span>مواضيع البطاقات</span>
             </a>
         </li>
         <li>
-            <a href="{% url 'admin:assessment_flashcard_changelist' %}" class="{% if '/admin/assessment/flashcard/' in request.path %}active{% endif %}">
+            <a href="{% url 'admin:assessment_flashcard_changelist' %}"
+                class="{% if '/admin/assessment/flashcard/' in request.path %}active{% endif %}">
                 <i class="fas fa-credit-card"></i>
                 <span>البطاقات التعليمية</span>
             </a>
         </li>
 
-       
+
         <!-- Extras Section -->
         <li class="menu-section">
             <span>إضافات</span>
         </li>
         <li>
-            <a href="{% url 'admin:extras_banner_changelist' %}" class="{% if '/admin/extras/banner/' in request.path %}active{% endif %}">
+            <a href="{% url 'admin:extras_banner_changelist' %}"
+                class="{% if '/admin/extras/banner/' in request.path %}active{% endif %}">
                 <i class="fas fa-image"></i>
                 <span>اللافتات</span>
             </a>
         </li>
         <li>
-            <a href="{% url 'admin:extras_coursecollection_changelist' %}" class="{% if '/admin/extras/coursecollection/' in request.path %}active{% endif %}">
+            <a href="{% url 'admin:extras_cardimage_changelist' %}"
+                class="{% if '/admin/extras/cardimage/' in request.path %}active{% endif %}">
+                <i class="fas fa-image"></i>
+                <span>الصور المرجعية</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'admin:extras_coursecollection_changelist' %}"
+                class="{% if '/admin/extras/coursecollection/' in request.path %}active{% endif %}">
                 <i class="fas fa-th-large"></i>
                 <span>مجموعات الكورسات</span>
             </a>
         </li>
-        
-            <li>    
-                <a href="{% url 'admin:extras_privacypolicy_changelist' %}" class="{% if '/admin/extras/privacypolicy/' in request.path %}active{% endif %}">
-                    <i class="fas fa-file-alt"></i>
-                    <span>سياسة الخصوصية</span>
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'admin:extras_termsandconditions_changelist' %}" class="{% if '/admin/extras/termsandconditions/' in request.path %}active{% endif %}">
-                    <i class="fas fa-file-alt"></i>
-                    <span>الشروط والأحكام</span>
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'admin:extras_refundingfaq_changelist' %}" class="{% if '/admin/extras/refundingfaq/' in request.path %}active{% endif %}">
-                    <i class="fas fa-question-circle"></i>
-                    <span>الأسئلة الشائعة (FAQ)</span>
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'admin:extras_contactinfo_changelist' %}" class="{% if '/admin/extras/contactinfo/' in request.path %}active{% endif %}">
-                    <i class="fas fa-address-book"></i>
-                    <span>معلومات التواصل</span>
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'admin:extras_contactmessage_changelist' %}" class="{% if '/admin/extras/contactmessage/' in request.path %}active{% endif %}">
-                    <i class="fas fa-envelope"></i>
-                    <span>رسائل التواصل</span>
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'admin:extras_partnership_changelist' %}" class="{% if '/admin/extras/partnership/' in request.path %}active{% endif %}">
-                    <i class="fas fa-file-alt"></i>
-                    <span>الشركاء</span>
-                </a>
-            </li>
-            
+
         <li>
-            <a href="{% url 'admin:reviews_coursereview_changelist' %}" class="{% if '/admin/reviews/coursereview/' in request.path %}active{% endif %}">
+            <a href="{% url 'admin:extras_privacypolicy_changelist' %}"
+                class="{% if '/admin/extras/privacypolicy/' in request.path %}active{% endif %}">
+                <i class="fas fa-file-alt"></i>
+                <span>سياسة الخصوصية</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'admin:extras_termsandconditions_changelist' %}"
+                class="{% if '/admin/extras/termsandconditions/' in request.path %}active{% endif %}">
+                <i class="fas fa-file-alt"></i>
+                <span>الشروط والأحكام</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'admin:extras_refundingfaq_changelist' %}"
+                class="{% if '/admin/extras/refundingfaq/' in request.path %}active{% endif %}">
+                <i class="fas fa-question-circle"></i>
+                <span>الأسئلة الشائعة (FAQ)</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'admin:extras_contactinfo_changelist' %}"
+                class="{% if '/admin/extras/contactinfo/' in request.path %}active{% endif %}">
+                <i class="fas fa-address-book"></i>
+                <span>معلومات التواصل</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'admin:extras_contactmessage_changelist' %}"
+                class="{% if '/admin/extras/contactmessage/' in request.path %}active{% endif %}">
+                <i class="fas fa-envelope"></i>
+                <span>رسائل التواصل</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'admin:extras_partnership_changelist' %}"
+                class="{% if '/admin/extras/partnership/' in request.path %}active{% endif %}">
+                <i class="fas fa-file-alt"></i>
+                <span>الشركاء</span>
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'admin:reviews_coursereview_changelist' %}"
+                class="{% if '/admin/reviews/coursereview/' in request.path %}active{% endif %}">
                 <i class="fas fa-star"></i>
                 <span>التقييمات</span>
             </a>
@@ -1087,19 +1127,22 @@
             </a>
         </li> -->
         <li>
-            <a href="{% url 'admin:courses_enrollment_changelist' %}" class="{% if '/admin/courses/enrollment/' in request.path %}active{% endif %}">
+            <a href="{% url 'admin:courses_enrollment_changelist' %}"
+                class="{% if '/admin/courses/enrollment/' in request.path %}active{% endif %}">
                 <i class="fas fa-user-check"></i>
                 <span>اشتراكات الكورسات</span>
             </a>
         </li>
         <li>
-            <a href="{% url 'admin:assessment_questionbankproductenrollment_changelist' %}" class="{% if '/admin/assessment/questionbankproductenrollment/' in request.path %}active{% endif %}">
+            <a href="{% url 'admin:assessment_questionbankproductenrollment_changelist' %}"
+                class="{% if '/admin/assessment/questionbankproductenrollment/' in request.path %}active{% endif %}">
                 <i class="fas fa-user-check"></i>
                 <span>اشتراكات بنك الأسئلة</span>
             </a>
         </li>
         <li>
-            <a href="{% url 'admin:assessment_flashcardproductenrollment_changelist' %}" class="{% if '/admin/assessment/flashcardproductenrollment/' in request.path %}active{% endif %}">
+            <a href="{% url 'admin:assessment_flashcardproductenrollment_changelist' %}"
+                class="{% if '/admin/assessment/flashcardproductenrollment/' in request.path %}active{% endif %}">
                 <i class="fas fa-user-check"></i>
                 <span>اشتراكات البطاقات التعليمية</span>
             </a>
@@ -1114,279 +1157,279 @@
 </aside>
 
 <style>
-/* Hide default Django admin sidebar */
-#nav-sidebar {
-    display: none !important;
-}
+    /* Hide default Django admin sidebar */
+    #nav-sidebar {
+        display: none !important;
+    }
 
-/* Style for sidebar toggle button */
-.sidebar-toggle {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-    color: white;
-    border: none;
-    border-radius: var(--border-radius);
-    width: 45px;
-    height: 45px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 1001;
-    box-shadow: var(--box-shadow);
-    transition: all 0.3s ease;
-}
-
-.sidebar-toggle:hover {
-    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
-    transform: translateY(-2px);
-    box-shadow: var(--box-shadow-hover);
-}
-
-.sidebar-toggle i {
-    font-size: 1.2rem;
-}
-
-/* Adjust main content when sidebar is open */
-body.sidebar-active #content {
-    margin-right: var(--sidebar-width);
-}
-
-/* Responsive adjustments */
-@media (max-width: 1200px) {
+    /* Style for sidebar toggle button */
     .sidebar-toggle {
-        display: flex;
-    }
-    
-    body.sidebar-active #content {
-        margin-right: 0;
-    }
-    
-    body.sidebar-active::before {
-        content: '';
         position: fixed;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 998;
-        display: block;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        color: white;
+        border: none;
+        border-radius: var(--border-radius);
+        width: 45px;
+        height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 1001;
+        box-shadow: var(--box-shadow);
+        transition: all 0.3s ease;
     }
-}
 
-/* Hide toggle button on desktop */
-@media (min-width: 1201px) {
-    .sidebar-toggle {
-        display: none;
+    .sidebar-toggle:hover {
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+        transform: translateY(-2px);
+        box-shadow: var(--box-shadow-hover);
     }
-}
+
+    .sidebar-toggle i {
+        font-size: 1.2rem;
+    }
+
+    /* Adjust main content when sidebar is open */
+    body.sidebar-active #content {
+        margin-right: var(--sidebar-width);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 1200px) {
+        .sidebar-toggle {
+            display: flex;
+        }
+
+        body.sidebar-active #content {
+            margin-right: 0;
+        }
+
+        body.sidebar-active::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 998;
+            display: block;
+        }
+    }
+
+    /* Hide toggle button on desktop */
+    @media (min-width: 1201px) {
+        .sidebar-toggle {
+            display: none;
+        }
+    }
 </style>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const sidebarToggle = document.getElementById('sidebar-toggle');
-    const sidebar = document.getElementById('sidebar');
-    const content = document.getElementById('content');
-    
-    // Responsive breakpoints
-    const breakpoints = {
-        mobile: 768,
-        tablet: 992,
-        desktop: 1200
-    };
-    
-    // Get current breakpoint
-    function getCurrentBreakpoint() {
-        const width = window.innerWidth;
-        if (width <= breakpoints.mobile) return 'mobile';
-        if (width <= breakpoints.tablet) return 'tablet';
-        if (width <= breakpoints.desktop) return 'medium';
-        return 'desktop';
-    }
-    
-    // Initialize sidebar based on screen size
-    function initializeSidebar() {
-        const breakpoint = getCurrentBreakpoint();
-        
-        if (sidebar) {
-            // Reset classes
-            sidebar.classList.remove('active');
-            document.body.classList.remove('sidebar-active');
-            
-            if (breakpoint === 'desktop') {
-                // Desktop: Always show sidebar
-            sidebar.style.display = 'block';
-            sidebar.style.visibility = 'visible';
-            sidebar.style.opacity = '1';
-            sidebar.style.position = 'fixed';
-            sidebar.style.top = '70px';
-            sidebar.style.right = '0';
-            sidebar.style.width = '280px';
-            sidebar.style.height = 'calc(100vh - 70px)';
-            sidebar.style.background = '#fff';
-            sidebar.style.zIndex = '999';
-                
-                if (sidebarToggle) {
-                    sidebarToggle.style.display = 'none';
-                }
-            } else {
-                // Mobile/Tablet: Hide sidebar by default
-                sidebar.style.display = 'block';
-                sidebar.style.visibility = 'visible';
-                sidebar.style.opacity = '1';
-                sidebar.style.position = 'fixed';
-                
-                if (breakpoint === 'mobile') {
-                    sidebar.style.width = '100%';
-                    sidebar.style.top = '60px';
-                    sidebar.style.height = 'calc(100vh - 60px)';
-                } else {
-                    sidebar.style.width = '240px';
-                    sidebar.style.top = '60px';
-                    sidebar.style.height = 'calc(100vh - 60px)';
-                }
-                
-                sidebar.style.right = '-100%';
-                sidebar.style.background = '#fff';
-                sidebar.style.zIndex = '1002';
-                
-                if (sidebarToggle) {
-                    sidebarToggle.style.display = 'flex';
-                }
-            }
+    document.addEventListener('DOMContentLoaded', function () {
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const sidebar = document.getElementById('sidebar');
+        const content = document.getElementById('content');
+
+        // Responsive breakpoints
+        const breakpoints = {
+            mobile: 768,
+            tablet: 992,
+            desktop: 1200
+        };
+
+        // Get current breakpoint
+        function getCurrentBreakpoint() {
+            const width = window.innerWidth;
+            if (width <= breakpoints.mobile) return 'mobile';
+            if (width <= breakpoints.tablet) return 'tablet';
+            if (width <= breakpoints.desktop) return 'medium';
+            return 'desktop';
         }
-    }
-    
-    // Function to toggle sidebar
-    function toggleSidebar() {
-        if (sidebar) {
-            sidebar.classList.toggle('active');
-            document.body.classList.toggle('sidebar-active');
-            
-            // Save state in localStorage (only for non-desktop)
+
+        // Initialize sidebar based on screen size
+        function initializeSidebar() {
             const breakpoint = getCurrentBreakpoint();
-            if (breakpoint !== 'desktop') {
-            if (sidebar.classList.contains('active')) {
-                localStorage.setItem('sidebarState', 'expanded');
-            } else {
-                localStorage.setItem('sidebarState', 'collapsed');
-                }
-            }
-        }
-    }
-    
-    // Initialize sidebar
-    initializeSidebar();
-    
-    // Restore sidebar state from localStorage (only for mobile/tablet)
-    const breakpoint = getCurrentBreakpoint();
-    if (breakpoint !== 'desktop' && localStorage.getItem('sidebarState') === 'expanded') {
-        if (sidebar) {
-            sidebar.classList.add('active');
-            document.body.classList.add('sidebar-active');
-        }
-    }
-    
-    // Add click event to toggle button
-    if (sidebarToggle && sidebar) {
-        sidebarToggle.addEventListener('click', function(e) {
-            e.stopPropagation();
-            toggleSidebar();
-        });
-    }
-    
-    // Close sidebar when clicking outside (mobile/tablet only)
-    document.addEventListener('click', function(event) {
-        const breakpoint = getCurrentBreakpoint();
-        if (breakpoint !== 'desktop') {
-            if (sidebar && sidebar.classList.contains('active') && 
-                !sidebar.contains(event.target) && 
-                !sidebarToggle.contains(event.target)) {
-                toggleSidebar();
-            }
-        }
-    });
-    
-    // Handle window resize with debouncing
-    let resizeTimeout;
-    function handleResize() {
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(function() {
-            initializeSidebar();
-        
-            // Close sidebar if switching to desktop
-            if (getCurrentBreakpoint() === 'desktop') {
+
             if (sidebar) {
+                // Reset classes
                 sidebar.classList.remove('active');
                 document.body.classList.remove('sidebar-active');
+
+                if (breakpoint === 'desktop') {
+                    // Desktop: Always show sidebar
+                    sidebar.style.display = 'block';
+                    sidebar.style.visibility = 'visible';
+                    sidebar.style.opacity = '1';
+                    sidebar.style.position = 'fixed';
+                    sidebar.style.top = '70px';
+                    sidebar.style.right = '0';
+                    sidebar.style.width = '280px';
+                    sidebar.style.height = 'calc(100vh - 70px)';
+                    sidebar.style.background = '#fff';
+                    sidebar.style.zIndex = '999';
+
+                    if (sidebarToggle) {
+                        sidebarToggle.style.display = 'none';
+                    }
+                } else {
+                    // Mobile/Tablet: Hide sidebar by default
+                    sidebar.style.display = 'block';
+                    sidebar.style.visibility = 'visible';
+                    sidebar.style.opacity = '1';
+                    sidebar.style.position = 'fixed';
+
+                    if (breakpoint === 'mobile') {
+                        sidebar.style.width = '100%';
+                        sidebar.style.top = '60px';
+                        sidebar.style.height = 'calc(100vh - 60px)';
+                    } else {
+                        sidebar.style.width = '240px';
+                        sidebar.style.top = '60px';
+                        sidebar.style.height = 'calc(100vh - 60px)';
+                    }
+
+                    sidebar.style.right = '-100%';
+                    sidebar.style.background = '#fff';
+                    sidebar.style.zIndex = '1002';
+
+                    if (sidebarToggle) {
+                        sidebarToggle.style.display = 'flex';
+                    }
+                }
             }
         }
-        }, 150);
-    }
-    
-    window.addEventListener('resize', handleResize);
-    
-    // Close sidebar when navigation link is clicked (mobile/tablet only)
-    const navLinks = document.querySelectorAll('.sidebar-menu a');
-    navLinks.forEach(link => {
-        link.addEventListener('click', function() {
+
+        // Function to toggle sidebar
+        function toggleSidebar() {
+            if (sidebar) {
+                sidebar.classList.toggle('active');
+                document.body.classList.toggle('sidebar-active');
+
+                // Save state in localStorage (only for non-desktop)
+                const breakpoint = getCurrentBreakpoint();
+                if (breakpoint !== 'desktop') {
+                    if (sidebar.classList.contains('active')) {
+                        localStorage.setItem('sidebarState', 'expanded');
+                    } else {
+                        localStorage.setItem('sidebarState', 'collapsed');
+                    }
+                }
+            }
+        }
+
+        // Initialize sidebar
+        initializeSidebar();
+
+        // Restore sidebar state from localStorage (only for mobile/tablet)
+        const breakpoint = getCurrentBreakpoint();
+        if (breakpoint !== 'desktop' && localStorage.getItem('sidebarState') === 'expanded') {
+            if (sidebar) {
+                sidebar.classList.add('active');
+                document.body.classList.add('sidebar-active');
+            }
+        }
+
+        // Add click event to toggle button
+        if (sidebarToggle && sidebar) {
+            sidebarToggle.addEventListener('click', function (e) {
+                e.stopPropagation();
+                toggleSidebar();
+            });
+        }
+
+        // Close sidebar when clicking outside (mobile/tablet only)
+        document.addEventListener('click', function (event) {
             const breakpoint = getCurrentBreakpoint();
             if (breakpoint !== 'desktop') {
-                toggleSidebar();
+                if (sidebar && sidebar.classList.contains('active') &&
+                    !sidebar.contains(event.target) &&
+                    !sidebarToggle.contains(event.target)) {
+                    toggleSidebar();
+                }
             }
         });
-    });
-    
-    // Touch/swipe support for mobile
-    let touchStartX = 0;
-    let touchEndX = 0;
-    
-    function handleSwipe() {
-        const breakpoint = getCurrentBreakpoint();
-        if (breakpoint === 'mobile') {
-            const swipeThreshold = 50;
-            const swipeDistance = touchEndX - touchStartX;
-            
-            // Swipe right to open sidebar
-            if (swipeDistance > swipeThreshold && !sidebar.classList.contains('active')) {
-                toggleSidebar();
-            }
-            // Swipe left to close sidebar
-            else if (swipeDistance < -swipeThreshold && sidebar.classList.contains('active')) {
-                toggleSidebar();
+
+        // Handle window resize with debouncing
+        let resizeTimeout;
+        function handleResize() {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(function () {
+                initializeSidebar();
+
+                // Close sidebar if switching to desktop
+                if (getCurrentBreakpoint() === 'desktop') {
+                    if (sidebar) {
+                        sidebar.classList.remove('active');
+                        document.body.classList.remove('sidebar-active');
+                    }
+                }
+            }, 150);
+        }
+
+        window.addEventListener('resize', handleResize);
+
+        // Close sidebar when navigation link is clicked (mobile/tablet only)
+        const navLinks = document.querySelectorAll('.sidebar-menu a');
+        navLinks.forEach(link => {
+            link.addEventListener('click', function () {
+                const breakpoint = getCurrentBreakpoint();
+                if (breakpoint !== 'desktop') {
+                    toggleSidebar();
+                }
+            });
+        });
+
+        // Touch/swipe support for mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        function handleSwipe() {
+            const breakpoint = getCurrentBreakpoint();
+            if (breakpoint === 'mobile') {
+                const swipeThreshold = 50;
+                const swipeDistance = touchEndX - touchStartX;
+
+                // Swipe right to open sidebar
+                if (swipeDistance > swipeThreshold && !sidebar.classList.contains('active')) {
+                    toggleSidebar();
+                }
+                // Swipe left to close sidebar
+                else if (swipeDistance < -swipeThreshold && sidebar.classList.contains('active')) {
+                    toggleSidebar();
+                }
             }
         }
-    }
-    
-    document.addEventListener('touchstart', function(e) {
-        touchStartX = e.changedTouches[0].screenX;
-    });
-    
-    document.addEventListener('touchend', function(e) {
-        touchEndX = e.changedTouches[0].screenX;
-        handleSwipe();
-    });
-    
-    // Prevent body scroll when sidebar is open on mobile
-    function preventBodyScroll() {
-        const breakpoint = getCurrentBreakpoint();
-        if (breakpoint === 'mobile' && sidebar.classList.contains('active')) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = '';
+
+        document.addEventListener('touchstart', function (e) {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', function (e) {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        // Prevent body scroll when sidebar is open on mobile
+        function preventBodyScroll() {
+            const breakpoint = getCurrentBreakpoint();
+            if (breakpoint === 'mobile' && sidebar.classList.contains('active')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
         }
-    }
-    
-    // Observe sidebar state changes
-    if (sidebar) {
-        const observer = new MutationObserver(preventBodyScroll);
-        observer.observe(sidebar, { attributes: true, attributeFilter: ['class'] });
-    }
-    
-    console.log('Responsive sidebar initialized - Current breakpoint:', getCurrentBreakpoint());
-});
+
+        // Observe sidebar state changes
+        if (sidebar) {
+            const observer = new MutationObserver(preventBodyScroll);
+            observer.observe(sidebar, { attributes: true, attributeFilter: ['class'] });
+        }
+
+        console.log('Responsive sidebar initialized - Current breakpoint:', getCurrentBreakpoint());
+    });
 </script>
 {% endblock %}

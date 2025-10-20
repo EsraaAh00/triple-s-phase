@@ -11,7 +11,6 @@ class Banner(models.Model):
         ('main', 'Main Banner'),
         ('header', 'Header Banner'),
         ('sidebar', 'Sidebar Banner'),
-        ('promo', 'Promotional Banner'),
         ('about_us', 'About Us Banner'),
         ('why_choose_us', 'Why Choose Us Banner'),
     ]
@@ -342,3 +341,71 @@ class ContactMessage(models.Model):
             'closed': 'مغلق',
         }
         return status_map.get(self.status, self.status)
+
+
+class CardImage(models.Model):
+    """Model for managing card images with three upload slots"""
+    
+    # English fields
+    title = models.CharField(max_length=200, verbose_name='Title (EN)')
+    description = models.TextField(blank=True, null=True, verbose_name='Description (EN)')
+    
+    # Arabic fields
+    title_ar = models.CharField(max_length=200, blank=True, null=True, verbose_name='العنوان (AR)')
+    description_ar = models.TextField(blank=True, null=True, verbose_name='الوصف (AR)')
+    
+    # Three image fields
+    image_1 = models.ImageField(
+        upload_to='card_images/',
+        validators=[
+            FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'webp'])
+        ],
+        verbose_name='الصورة الأولى'
+    )
+    image_2 = models.ImageField(
+        upload_to='card_images/',
+        validators=[
+            FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'webp'])
+        ],
+        verbose_name='الصورة الثانية'
+    )
+    image_3 = models.ImageField(
+        upload_to='card_images/',
+        validators=[
+            FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'webp'])
+        ],
+        verbose_name='الصورة الثالثة'
+    )
+    
+    # Display settings
+    display_order = models.PositiveIntegerField(default=0, verbose_name='ترتيب العرض')
+    is_active = models.BooleanField(default=True, verbose_name='نشط')
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = 'صورة كارد'
+        verbose_name_plural = 'صور الكارد'
+        ordering = ['display_order', '-created_at']
+    
+    def __str__(self):
+        return self.title
+    
+    def get_image_1_url(self):
+        """Get the URL for image 1"""
+        if self.image_1:
+            return self.image_1.url
+        return None
+    
+    def get_image_2_url(self):
+        """Get the URL for image 2"""
+        if self.image_2:
+            return self.image_2.url
+        return None
+    
+    def get_image_3_url(self):
+        """Get the URL for image 3"""
+        if self.image_3:
+            return self.image_3.url
+        return None
