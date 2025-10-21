@@ -431,11 +431,29 @@ class QuestionBankProductAdmin(admin.ModelAdmin):
 class QuestionBankProductEnrollmentAdmin(admin.ModelAdmin):
     """Admin interface for QuestionBankProductEnrollment model"""
     
-    list_display = ['student', 'product', 'enrolled_at', 'is_active']
-    list_filter = ['is_active', 'enrolled_at', 'product']
+    list_display = ['student', 'product', 'enrollment_date', 'status', 'progress', 'is_paid']
+    list_filter = ['status', 'is_paid', 'enrollment_date', 'product']
     search_fields = ['student__username', 'student__email', 'product__title']
-    readonly_fields = ['enrolled_at']
-    date_hierarchy = 'enrolled_at'
+    readonly_fields = ['enrollment_date', 'last_accessed']
+    date_hierarchy = 'enrollment_date'
+    
+    fieldsets = (
+        ('Enrollment Info', {
+            'fields': ('student', 'product', 'status', 'enrollment_date')
+        }),
+        ('Progress', {
+            'fields': ('progress', 'completion_date', 'last_accessed')
+        }),
+        ('Payment', {
+            'fields': ('is_paid', 'payment_amount', 'payment_date', 'transaction_id')
+        })
+    )
+    
+    class Media:
+        js = ('admin/js/admin.js',)
+        css = {
+            'all': ('admin/css/admin.css',)
+        }
 
 
 # Flashcard Product Admin
@@ -477,11 +495,29 @@ class FlashcardProductAdmin(admin.ModelAdmin):
 class FlashcardProductEnrollmentAdmin(admin.ModelAdmin):
     """Admin interface for FlashcardProductEnrollment model"""
     
-    list_display = ['student', 'product', 'enrolled_at', 'is_active']
-    list_filter = ['is_active', 'enrolled_at', 'product']
+    list_display = ['student', 'product', 'enrollment_date', 'status', 'progress', 'is_paid']
+    list_filter = ['status', 'is_paid', 'enrollment_date', 'product']
     search_fields = ['student__username', 'student__email', 'product__title']
-    readonly_fields = ['enrolled_at']
-    date_hierarchy = 'enrolled_at'
+    readonly_fields = ['enrollment_date', 'last_accessed']
+    date_hierarchy = 'enrollment_date'
+    
+    fieldsets = (
+        ('Enrollment Info', {
+            'fields': ('student', 'product', 'status', 'enrollment_date')
+        }),
+        ('Progress', {
+            'fields': ('progress', 'completion_date', 'last_accessed')
+        }),
+        ('Payment', {
+            'fields': ('is_paid', 'payment_amount', 'payment_date', 'transaction_id')
+        })
+    )
+    
+    class Media:
+        js = ('admin/js/admin.js',)
+        css = {
+            'all': ('admin/css/admin.css',)
+        }
 
 
 # Customize admin site headers

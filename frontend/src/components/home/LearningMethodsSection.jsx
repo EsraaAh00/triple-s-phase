@@ -135,6 +135,23 @@ const ContentWrapper = styled(Box, {
     minHeight: '200px',
     alignItems: 'center',
   },
+  // Diagonal connecting line
+  '&:before': {
+    content: '""',
+    position: 'absolute',
+    top: '15%',
+    left: isRTL ? 'auto' : '48%',
+    right: isRTL ? '48%' : 'auto',
+    width: '2px',
+    height: '300px',
+    background: 'linear-gradient(135deg, #5C2D91 0%, #663399 50%, #5C2D91 100%)',
+    transform: 'translateY(-50%) rotate(25deg)',
+    zIndex: 1,
+    display: 'none',
+    '@media (min-width: 1200px)': {
+      display: 'block',
+    },
+  },
 }));
 
 const LeftSection = styled(Box, {
@@ -723,11 +740,10 @@ const LearningMethodsSection = () => {
 
             {/* Decorative line below title */}
             <Box sx={{
-              width: '100%',
+              width: '90%',
               height: '2px',
               background: 'linear-gradient(90deg, transparent 0%, #5C2D91 20%, #663399 50%, #5C2D91 80%, transparent 100%)',
-              margin: '20px 0 0 0',
-              marginLeft: '-40px',
+              margin: '20px auto 0',
               borderRadius: '1px',
               position: 'relative',
               '&:before': {
@@ -740,6 +756,20 @@ const LearningMethodsSection = () => {
                 background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%)',
                 borderRadius: '1px',
                 zIndex: -1,
+              },
+              // Shape at the beginning of the line
+              '&:after': {
+                content: '""',
+                position: 'absolute',
+                top: '50%',
+                left: '-8px',
+                width: '16px',
+                height: '16px',
+                background: 'linear-gradient(135deg, #5C2D91 0%, #663399 50%, #5C2D91 100%)',
+                transform: 'translateY(-50%) rotate(45deg)',
+                borderRadius: '2px',
+                zIndex: 1,
+                boxShadow: '0 2px 8px rgba(92, 45, 145, 0.3)',
               }
             }} />
           </LeftSection>
@@ -747,7 +777,7 @@ const LearningMethodsSection = () => {
           <RightSection>
             {/* Decorative line above images */}
             <Box sx={{
-              width: '100%',
+              width: '95%',
               height: '2px',
               background: 'linear-gradient(90deg, transparent 0%, #5C2D91 20%, #663399 50%, #5C2D91 80%, transparent 100%)',
               margin: '0 auto 30px',
@@ -763,13 +793,27 @@ const LearningMethodsSection = () => {
                 background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%)',
                 borderRadius: '1px',
                 zIndex: -1,
+              },
+              // Shape at the end of the line
+              '&:after': {
+                content: '""',
+                position: 'absolute',
+                top: '50%',
+                right: '-8px',
+                width: '16px',
+                height: '16px',
+                background: 'linear-gradient(135deg, #5C2D91 0%, #663399 50%, #5C2D91 100%)',
+                transform: 'translateY(-50%) rotate(45deg)',
+                borderRadius: '2px',
+                zIndex: 1,
+                boxShadow: '0 2px 8px rgba(92, 45, 145, 0.3)',
               }
             }} />
 
             {/* Three Learning Methods with Circular Icons and Text Below */}
             <Box sx={{
               display: 'flex',
-              gap: { xs: 2, sm: 3, md: 4 },
+              gap: { xs: 0, sm: 0.3, md: 0.5 },
               justifyContent: 'center',
               alignItems: 'flex-start',
               flexWrap: 'nowrap',
@@ -790,14 +834,14 @@ const LearningMethodsSection = () => {
                 textAlign: 'center',
                 cursor: 'pointer',
                 transition: 'all 0.3s ease',
-                minWidth: { xs: '140px', sm: '160px', md: '180px' },
+                minWidth: { xs: '160px', sm: '180px', md: '200px' },
                 '&:hover': {
                   transform: 'translateY(-5px)',
                 },
               }}>
                 <Box sx={{
-                  width: { xs: '90px', sm: '110px', md: '130px' },
-                  height: { xs: '90px', sm: '110px', md: '130px' },
+                  width: { xs: '110px', sm: '130px', md: '150px' },
+                  height: { xs: '110px', sm: '130px', md: '150px' },
                   borderRadius: '50%',
                   display: 'flex',
                   alignItems: 'center',
@@ -807,7 +851,7 @@ const LearningMethodsSection = () => {
                   overflow: 'hidden',
                 }}>
                   {cardImagesLoading ? (
-                    <CircularProgress sx={{ color: '#5C2D91', zIndex: 1 }} size={40} />
+                    <CircularProgress sx={{ color: '#5C2D91', zIndex: 1 }} size={50} />
                   ) : cardImages?.image_1_url ? (
                     <img
                       src={cardImages.image_1_url}
@@ -824,7 +868,7 @@ const LearningMethodsSection = () => {
                     />
                   ) : (
                     <MenuBook sx={{
-                      fontSize: { xs: '1.8rem', sm: '2.2rem', md: '2.5rem' },
+                      fontSize: { xs: '2.2rem', sm: '2.6rem', md: '3rem' },
                       color: '#5C2D91',
                       position: 'relative',
                       zIndex: 1,
@@ -848,14 +892,14 @@ const LearningMethodsSection = () => {
                 textAlign: 'center',
                 cursor: 'pointer',
                 transition: 'all 0.3s ease',
-                minWidth: { xs: '140px', sm: '160px', md: '180px' },
+                minWidth: { xs: '160px', sm: '180px', md: '200px' },
                 '&:hover': {
                   transform: 'translateY(-5px)',
                 },
               }}>
                 <Box sx={{
-                  width: { xs: '90px', sm: '110px', md: '130px' },
-                  height: { xs: '90px', sm: '110px', md: '130px' },
+                  width: { xs: '110px', sm: '130px', md: '150px' },
+                  height: { xs: '110px', sm: '130px', md: '150px' },
                   borderRadius: '50%',
                   display: 'flex',
                   alignItems: 'center',
@@ -865,7 +909,7 @@ const LearningMethodsSection = () => {
                   overflow: 'hidden',
                 }}>
                   {cardImagesLoading ? (
-                    <CircularProgress sx={{ color: '#5C2D91', zIndex: 1 }} size={40} />
+                    <CircularProgress sx={{ color: '#5C2D91', zIndex: 1 }} size={50} />
                   ) : cardImages?.image_2_url ? (
                     <img
                       src={cardImages.image_2_url}
@@ -882,7 +926,7 @@ const LearningMethodsSection = () => {
                     />
                   ) : (
                     <School sx={{
-                      fontSize: { xs: '1.8rem', sm: '2.2rem', md: '2.5rem' },
+                      fontSize: { xs: '2.2rem', sm: '2.6rem', md: '3rem' },
                       color: '#5C2D91',
                       position: 'relative',
                       zIndex: 1,
@@ -906,14 +950,14 @@ const LearningMethodsSection = () => {
                 textAlign: 'center',
                 cursor: 'pointer',
                 transition: 'all 0.3s ease',
-                minWidth: { xs: '140px', sm: '160px', md: '180px' },
+                minWidth: { xs: '160px', sm: '180px', md: '200px' },
                 '&:hover': {
                   transform: 'translateY(-5px)',
                 },
               }}>
                 <Box sx={{
-                  width: { xs: '90px', sm: '110px', md: '130px' },
-                  height: { xs: '90px', sm: '110px', md: '130px' },
+                  width: { xs: '110px', sm: '130px', md: '150px' },
+                  height: { xs: '110px', sm: '130px', md: '150px' },
                   borderRadius: '50%',
                   display: 'flex',
                   alignItems: 'center',
@@ -923,7 +967,7 @@ const LearningMethodsSection = () => {
                   overflow: 'hidden',
                 }}>
                   {cardImagesLoading ? (
-                    <CircularProgress sx={{ color: '#5C2D91', zIndex: 1 }} size={40} />
+                    <CircularProgress sx={{ color: '#5C2D91', zIndex: 1 }} size={50} />
                   ) : cardImages?.image_3_url ? (
                     <img
                       src={cardImages.image_3_url}
@@ -940,7 +984,7 @@ const LearningMethodsSection = () => {
                     />
                   ) : (
                     <Description sx={{
-                      fontSize: { xs: '1.8rem', sm: '2.2rem', md: '2.5rem' },
+                      fontSize: { xs: '2.2rem', sm: '2.6rem', md: '3rem' },
                       color: '#5C2D91',
                       position: 'relative',
                       zIndex: 1,

@@ -192,83 +192,136 @@ class QuestionBankProduct(models.Model):
 class QuestionBankProductEnrollment(models.Model):
     """Model for student enrollment in question bank products"""
     
-    PAYMENT_STATUS_CHOICES = [
+    STATUS_CHOICES = [
         ('pending', _('Pending')),
-        ('paid', _('Paid')),
-        ('failed', _('Failed')),
-        ('refunded', _('Refunded')),
-    ]
-    
-    PAYMENT_METHOD_CHOICES = [
-        ('credit_card', _('Credit Card')),
-        ('bank_transfer', _('Bank Transfer')),
-        ('paypal', _('PayPal')),
-        ('stripe', _('Stripe')),
-        ('free', _('Free')),
+        ('active', _('Active')),
+        ('completed', _('Completed')),
+        ('dropped', _('Dropped')),
+        ('suspended', _('Suspended')),
     ]
     
     student = models.ForeignKey(
-        User, 
-        on_delete=models.CASCADE, 
+        User,
+        on_delete=models.CASCADE,
         related_name='question_bank_enrollments',
         verbose_name=_('Student')
     )
     product = models.ForeignKey(
-        QuestionBankProduct, 
-        on_delete=models.CASCADE, 
+        QuestionBankProduct,
+        on_delete=models.CASCADE,
         related_name='enrollments',
         verbose_name=_('Question Bank Product')
     )
-    enrolled_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Enrolled At'))
-    is_active = models.BooleanField(default=True, verbose_name=_('Is Active'))
-    
-    # Payment fields
-    amount_paid = models.DecimalField(
-        max_digits=10, decimal_places=2, 
-        default=0.00, verbose_name=_('Amount Paid')
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='active',
+        verbose_name=_('Status')
     )
-    payment_status = models.CharField(
-        max_length=20, choices=PAYMENT_STATUS_CHOICES, 
-        default='pending', verbose_name=_('Payment Status')
+    enrollment_date = models.DateTimeField(
+        default=timezone.now,
+        verbose_name=_('Enrollment Date')
     )
-    payment_method = models.CharField(
-        max_length=20, choices=PAYMENT_METHOD_CHOICES, 
-        default='free', verbose_name=_('Payment Method')
+    completion_date = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_('Completion Date')
+    )
+    last_accessed = models.DateTimeField(
+        auto_now=True,
+        verbose_name=_('Last Accessed')
+    )
+    progress = models.FloatField(
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        verbose_name=_('Progress %')
+    )
+    is_paid = models.BooleanField(
+        default=False,
+        verbose_name=_('Is Paid')
+    )
+    payment_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name=_('Payment Amount')
     )
     payment_date = models.DateTimeField(
-        blank=True, null=True, verbose_name=_('Payment Date')
+        null=True,
+        blank=True,
+        verbose_name=_('Payment Date')
     )
     transaction_id = models.CharField(
-        max_length=255, blank=True, null=True, 
+        max_length=255,
+        blank=True,
+        null=True,
         verbose_name=_('Transaction ID')
-    )
-    payment_reference = models.CharField(
-        max_length=255, blank=True, null=True, 
-        verbose_name=_('Payment Reference')
     )
     
     class Meta:
         verbose_name = _('Question Bank Product Enrollment')
         verbose_name_plural = _('Question Bank Product Enrollments')
-        unique_together = ['student', 'product']
-        ordering = ['-enrolled_at']
+        unique_together = ('student', 'product')
+        ordering = ['-enrollment_date']
     
     def __str__(self):
         return f"{self.student.get_full_name()} - {self.product.title}"
     
-    def is_paid(self):
-        """Check if the enrollment is paid"""
-        return self.payment_status == 'paid'
+    def save(self, *args, **kwargs):
+        # Update completion date if status changes to completed
+        if self.status == 'completed' and not self.completion_date:
+            self.completion_date = timezone.now()
+        
+        # Update last accessed timestamp
+        self.last_accessed = timezone.now()
+        
+        super().save(*args, **kwargs)
     
-    def is_free(self):
-        """Check if the enrollment is free"""
-        return self.payment_method == 'free' or self.amount_paid == 0
+    def update_progress(self, new_progress):
+        """
+        Update the enrollment progress and handle completion
+        
+        Args:
+            new_progress (float): New progress percentage (0-100)
+        """
+        if new_progress >= 100 and self.status != 'completed':
+            self.status = 'completed'
+            self.completion_date = timezone.now()
+        
+        self.progress = min(100, max(0, new_progress))  # Ensure between 0-100
+        # Use direct database update to avoid triggering signals
+        QuestionBankProductEnrollment.objects.filter(pk=self.pk).update(
+            progress=self.progress,
+            status=self.status,
+            completion_date=self.completion_date,
+            last_accessed=timezone.now()
+        )
     
-    def get_payment_display(self):
-        """Get formatted payment information"""
-        if self.is_free():
-            return "مجاني"
-        return f"{self.amount_paid} ريال - {self.get_payment_status_display()}"
+    def mark_complete(self):
+        """Mark the enrollment as completed"""
+        self.status = 'completed'
+        self.progress = 100
+        self.completion_date = timezone.now()
+        # Use direct database update to avoid triggering signals
+        QuestionBankProductEnrollment.objects.filter(pk=self.pk).update(
+            status=self.status,
+            progress=self.progress,
+            completion_date=self.completion_date,
+            last_accessed=timezone.now()
+        )
+    
+    def is_active_enrollment(self):
+        """Check if this is an active enrollment"""
+        return self.status in ['active', 'completed']
+    
+    def get_certificate_eligible(self):
+        """Check if this enrollment is eligible for a certificate"""
+        return (
+            self.status == 'completed' and 
+            self.progress >= 100 and 
+            self.product.is_certified
+        )
 
 
 # Question Bank Chapter Model
@@ -738,83 +791,136 @@ class FlashcardProduct(models.Model):
 class FlashcardProductEnrollment(models.Model):
     """Model for student enrollment in flashcard products"""
     
-    PAYMENT_STATUS_CHOICES = [
+    STATUS_CHOICES = [
         ('pending', _('Pending')),
-        ('paid', _('Paid')),
-        ('failed', _('Failed')),
-        ('refunded', _('Refunded')),
-    ]
-    
-    PAYMENT_METHOD_CHOICES = [
-        ('credit_card', _('Credit Card')),
-        ('bank_transfer', _('Bank Transfer')),
-        ('paypal', _('PayPal')),
-        ('stripe', _('Stripe')),
-        ('free', _('Free')),
+        ('active', _('Active')),
+        ('completed', _('Completed')),
+        ('dropped', _('Dropped')),
+        ('suspended', _('Suspended')),
     ]
     
     student = models.ForeignKey(
-        User, 
-        on_delete=models.CASCADE, 
+        User,
+        on_delete=models.CASCADE,
         related_name='flashcard_enrollments',
         verbose_name=_('Student')
     )
     product = models.ForeignKey(
-        FlashcardProduct, 
-        on_delete=models.CASCADE, 
+        FlashcardProduct,
+        on_delete=models.CASCADE,
         related_name='enrollments',
         verbose_name=_('Flashcard Product')
     )
-    enrolled_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Enrolled At'))
-    is_active = models.BooleanField(default=True, verbose_name=_('Is Active'))
-    
-    # Payment fields
-    amount_paid = models.DecimalField(
-        max_digits=10, decimal_places=2, 
-        default=0.00, verbose_name=_('Amount Paid')
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='active',
+        verbose_name=_('Status')
     )
-    payment_status = models.CharField(
-        max_length=20, choices=PAYMENT_STATUS_CHOICES, 
-        default='pending', verbose_name=_('Payment Status')
+    enrollment_date = models.DateTimeField(
+        default=timezone.now,
+        verbose_name=_('Enrollment Date')
     )
-    payment_method = models.CharField(
-        max_length=20, choices=PAYMENT_METHOD_CHOICES, 
-        default='free', verbose_name=_('Payment Method')
+    completion_date = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_('Completion Date')
+    )
+    last_accessed = models.DateTimeField(
+        auto_now=True,
+        verbose_name=_('Last Accessed')
+    )
+    progress = models.FloatField(
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        verbose_name=_('Progress %')
+    )
+    is_paid = models.BooleanField(
+        default=False,
+        verbose_name=_('Is Paid')
+    )
+    payment_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name=_('Payment Amount')
     )
     payment_date = models.DateTimeField(
-        blank=True, null=True, verbose_name=_('Payment Date')
+        null=True,
+        blank=True,
+        verbose_name=_('Payment Date')
     )
     transaction_id = models.CharField(
-        max_length=255, blank=True, null=True, 
+        max_length=255,
+        blank=True,
+        null=True,
         verbose_name=_('Transaction ID')
-    )
-    payment_reference = models.CharField(
-        max_length=255, blank=True, null=True, 
-        verbose_name=_('Payment Reference')
     )
     
     class Meta:
         verbose_name = _('Flashcard Product Enrollment')
         verbose_name_plural = _('Flashcard Product Enrollments')
-        unique_together = ['student', 'product']
-        ordering = ['-enrolled_at']
+        unique_together = ('student', 'product')
+        ordering = ['-enrollment_date']
     
     def __str__(self):
         return f"{self.student.get_full_name()} - {self.product.title}"
     
-    def is_paid(self):
-        """Check if the enrollment is paid"""
-        return self.payment_status == 'paid'
+    def save(self, *args, **kwargs):
+        # Update completion date if status changes to completed
+        if self.status == 'completed' and not self.completion_date:
+            self.completion_date = timezone.now()
+        
+        # Update last accessed timestamp
+        self.last_accessed = timezone.now()
+        
+        super().save(*args, **kwargs)
     
-    def is_free(self):
-        """Check if the enrollment is free"""
-        return self.payment_method == 'free' or self.amount_paid == 0
+    def update_progress(self, new_progress):
+        """
+        Update the enrollment progress and handle completion
+        
+        Args:
+            new_progress (float): New progress percentage (0-100)
+        """
+        if new_progress >= 100 and self.status != 'completed':
+            self.status = 'completed'
+            self.completion_date = timezone.now()
+        
+        self.progress = min(100, max(0, new_progress))  # Ensure between 0-100
+        # Use direct database update to avoid triggering signals
+        FlashcardProductEnrollment.objects.filter(pk=self.pk).update(
+            progress=self.progress,
+            status=self.status,
+            completion_date=self.completion_date,
+            last_accessed=timezone.now()
+        )
     
-    def get_payment_display(self):
-        """Get formatted payment information"""
-        if self.is_free():
-            return "مجاني"
-        return f"{self.amount_paid} ريال - {self.get_payment_status_display()}"
+    def mark_complete(self):
+        """Mark the enrollment as completed"""
+        self.status = 'completed'
+        self.progress = 100
+        self.completion_date = timezone.now()
+        # Use direct database update to avoid triggering signals
+        FlashcardProductEnrollment.objects.filter(pk=self.pk).update(
+            status=self.status,
+            progress=self.progress,
+            completion_date=self.completion_date,
+            last_accessed=timezone.now()
+        )
+    
+    def is_active_enrollment(self):
+        """Check if this is an active enrollment"""
+        return self.status in ['active', 'completed']
+    
+    def get_certificate_eligible(self):
+        """Check if this enrollment is eligible for a certificate"""
+        return (
+            self.status == 'completed' and 
+            self.progress >= 100 and 
+            self.product.is_certified
+        )
 
 
 # Flashcard Chapter Model

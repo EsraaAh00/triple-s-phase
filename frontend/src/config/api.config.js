@@ -13,7 +13,7 @@ const getBaseURL = () => {
     return import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
   }
   // In production, use the production URL
-  //return import.meta.env.VITE_API_BASE_URL || 'https://admin.triplesacademy.com';
+  return import.meta.env.VITE_API_BASE_URL || 'https://admin.triplesacademy.com';
 };
 
 export const API_CONFIG = {
