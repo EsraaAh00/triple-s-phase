@@ -145,7 +145,9 @@ const ContentWrapper = styled(Box, {
     width: '2px',
     height: '300px',
     background: 'linear-gradient(135deg, #5C2D91 0%, #663399 50%, #5C2D91 100%)',
-    transform: 'translateY(-50%) rotate(25deg)',
+    transform: isRTL 
+      ? 'translateY(-50%) rotate(-25deg)' 
+      : 'translateY(-50%) rotate(25deg)',
     zIndex: 1,
     display: 'none',
     '@media (min-width: 1200px)': {
@@ -742,7 +744,9 @@ const LearningMethodsSection = () => {
             <Box sx={{
               width: '90%',
               height: '2px',
-              background: 'linear-gradient(90deg, transparent 0%, #5C2D91 20%, #663399 50%, #5C2D91 80%, transparent 100%)',
+              background: i18n.language === 'ar' 
+                ? 'linear-gradient(270deg, transparent 0%, #5C2D91 20%, #663399 50%, #5C2D91 80%, transparent 100%)'
+                : 'linear-gradient(90deg, transparent 0%, #5C2D91 20%, #663399 50%, #5C2D91 80%, transparent 100%)',
               margin: '20px auto 0',
               borderRadius: '1px',
               position: 'relative',
@@ -753,16 +757,19 @@ const LearningMethodsSection = () => {
                 left: '-1px',
                 right: '-1px',
                 bottom: '-1px',
-                background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%)',
+                background: i18n.language === 'ar'
+                  ? 'linear-gradient(270deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%)'
+                  : 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%)',
                 borderRadius: '1px',
                 zIndex: -1,
               },
-              // Shape at the beginning of the line
+              // Shape at the beginning/end of the line based on language direction
               '&:after': {
                 content: '""',
                 position: 'absolute',
                 top: '50%',
-                left: '-8px',
+                left: i18n.language === 'ar' ? 'auto' : '-8px',
+                right: i18n.language === 'ar' ? '-8px' : 'auto',
                 width: '16px',
                 height: '16px',
                 background: 'linear-gradient(135deg, #5C2D91 0%, #663399 50%, #5C2D91 100%)',
@@ -779,7 +786,9 @@ const LearningMethodsSection = () => {
             <Box sx={{
               width: '95%',
               height: '2px',
-              background: 'linear-gradient(90deg, transparent 0%, #5C2D91 20%, #663399 50%, #5C2D91 80%, transparent 100%)',
+              background: i18n.language === 'ar' 
+                ? 'linear-gradient(270deg, transparent 0%, #5C2D91 20%, #663399 50%, #5C2D91 80%, transparent 100%)'
+                : 'linear-gradient(90deg, transparent 0%, #5C2D91 20%, #663399 50%, #5C2D91 80%, transparent 100%)',
               margin: '0 auto 30px',
               borderRadius: '1px',
               position: 'relative',
@@ -790,16 +799,19 @@ const LearningMethodsSection = () => {
                 left: '-1px',
                 right: '-1px',
                 bottom: '-1px',
-                background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%)',
+                background: i18n.language === 'ar'
+                  ? 'linear-gradient(270deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%)'
+                  : 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%)',
                 borderRadius: '1px',
                 zIndex: -1,
               },
-              // Shape at the end of the line
+              // Shape at the end/beginning of the line based on language direction
               '&:after': {
                 content: '""',
                 position: 'absolute',
                 top: '50%',
-                right: '-8px',
+                left: i18n.language === 'ar' ? '-8px' : 'auto',
+                right: i18n.language === 'ar' ? 'auto' : '-8px',
                 width: '16px',
                 height: '16px',
                 background: 'linear-gradient(135deg, #5C2D91 0%, #663399 50%, #5C2D91 100%)',
