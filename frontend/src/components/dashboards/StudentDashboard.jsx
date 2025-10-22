@@ -62,6 +62,7 @@ const StudentDashboard = () => {
   const [upcomingLectures, setUpcomingLectures] = useState([]);
   const [coursesLoading, setCoursesLoading] = useState(false);
   const [modulesLoading, setModulesLoading] = useState(false);
+  const [instructorsLoading, setInstructorsLoading] = useState(false);
   const [userName, setUserName] = useState('');
   useEffect(() => {
     loadDashboardData();
@@ -211,8 +212,11 @@ const StudentDashboard = () => {
       setLoading(false);
     }
   };
-  const handleCourseContinue = (courseId) => {
-    navigate(`/student/my-courses?courseId=${courseId}`);
+  const handleCourseContinue = (courseId, moduleId = null) => {
+    const url = moduleId 
+      ? `/student/my-courses?courseId=${courseId}&moduleId=${moduleId}`
+      : `/student/my-courses?courseId=${courseId}`;
+    navigate(url);
   };
   const handleCourseView = (courseId) => {
     navigate(`/courses/${courseId}`);
@@ -230,25 +234,56 @@ const StudentDashboard = () => {
   };
   const loadInstructors = async (courseId) => {
     try {
+      setInstructorsLoading(true);
       console.log('Loading instructors for course ID:', courseId);
       const courseData = await courseAPI.getCourseById(courseId);
       console.log('Course data:', courseData);
       
       // Extract instructors from course data
       let courseInstructors = [];
-      if (courseData.instructors) {
+      if (courseData.instructors && Array.isArray(courseData.instructors)) {
         courseInstructors = courseData.instructors;
-      } else if (courseData.teachers) {
+      } else if (courseData.teachers && Array.isArray(courseData.teachers)) {
         courseInstructors = courseData.teachers;
       } else if (courseData.instructor) {
-        courseInstructors = [courseData.instructor];
+        courseInstructors = Array.isArray(courseData.instructor) ? courseData.instructor : [courseData.instructor];
       }
       
-      console.log('Course instructors:', courseInstructors);
-      setInstructors(courseInstructors);
+      console.log('Course instructors found:', courseInstructors);
+      
+      // If no instructors found from API, use mock data for demonstration
+      if (courseInstructors.length === 0) {
+        console.log('No instructors found in API response, using mock data');
+        const mockInstructors = [
+          {
+            id: 1,
+            first_name: 'Dr. Ahmed',
+            last_name: 'Hassan',
+            username: 'ahmed_hassan',
+            email: 'ahmed@example.com'
+          },
+          {
+            id: 2,
+            first_name: 'Prof. Sarah',
+            last_name: 'Johnson',
+            username: 'sarah_johnson',
+            email: 'sarah@example.com'
+          },
+          {
+            id: 3,
+            first_name: 'Dr. Mohammed',
+            last_name: 'Ali',
+            username: 'mohammed_ali',
+            email: 'mohammed@example.com'
+          }
+        ];
+        setInstructors(mockInstructors);
+      } else {
+        setInstructors(courseInstructors);
+      }
     } catch (error) {
       console.error('Error loading instructors:', error);
-      // Add mock instructors for testing
+      // Fallback to mock instructors on error
       const mockInstructors = [
         {
           id: 1,
@@ -273,6 +308,8 @@ const StudentDashboard = () => {
         }
       ];
       setInstructors(mockInstructors);
+    } finally {
+      setInstructorsLoading(false);
     }
   };
 
@@ -310,11 +347,15 @@ const StudentDashboard = () => {
         modules = modulesData.data;
       }
       
-      console.log('Processed modules:', modules);
+      // Filter to show only main modules (not submodules)
+      const mainModules = modules.filter(module => !module.submodule);
       
-      // If no modules found, add some mock data for testing
-      if (modules.length === 0) {
-        console.log('No modules found, adding mock data for testing');
+      console.log('All modules:', modules);
+      console.log('Main modules only:', mainModules);
+      
+      // If no main modules found, add some mock data for testing
+      if (mainModules.length === 0) {
+        console.log('No main modules found, adding mock data for testing');
         const mockModules = [
           {
             id: 1,
@@ -322,7 +363,8 @@ const StudentDashboard = () => {
             title: 'Introduction to Biology',
             is_active: true,
             order: 1,
-            description: 'Basic concepts of biology'
+            description: 'Basic concepts of biology',
+            submodule: false // Explicitly mark as main module
           },
           {
             id: 2,
@@ -330,7 +372,8 @@ const StudentDashboard = () => {
             title: 'Cell Structure',
             is_active: true,
             order: 2,
-            description: 'Understanding cell components'
+            description: 'Understanding cell components',
+            submodule: false // Explicitly mark as main module
           },
           {
             id: 3,
@@ -338,12 +381,13 @@ const StudentDashboard = () => {
             title: 'Genetics',
             is_active: false,
             order: 3,
-            description: 'Introduction to genetics'
+            description: 'Introduction to genetics',
+            submodule: false // Explicitly mark as main module
           }
         ];
         setModules(mockModules);
       } else {
-        setModules(modules);
+        setModules(mainModules);
       }
     } catch (error) {
       console.error('Error loading modules:', error);
@@ -356,8 +400,11 @@ const StudentDashboard = () => {
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
+    // Reset instructors when changing tabs
+    setInstructors([]);
     // Load modules and instructors for the selected course
     if (courses[newValue]) {
+      console.log('Tab changed to course:', courses[newValue].title, 'ID:', courses[newValue].id);
       loadModules(courses[newValue].id);
       loadInstructors(courses[newValue].id);
     }
@@ -737,7 +784,7 @@ const StudentDashboard = () => {
           }}>
             {/* Tab Header */}
             <Box sx={{
-              background: '#6A5ACD',
+              background: 'linear-gradient(135deg, #333679 0%, #4DBFB3 50%, #333679 100%)',
               borderRadius: '16px 16px 0 0',
               p: 0
             }}>
@@ -823,7 +870,7 @@ const StudentDashboard = () => {
                   ) : courses.length > 0 ? (
                   <Box sx={{
                   p: 3, 
-                  background: '#6A5ACD', 
+                  background: 'linear-gradient(135deg, #333679 0%, #4DBFB3 50%, #333679 100%)', 
                   minHeight: '100%',
                   display: 'flex',
                   flexDirection: 'column',
@@ -834,15 +881,28 @@ const StudentDashboard = () => {
                     const colors = ['#4285F4', '#00BFA5', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD'];
                     const color = colors[index % colors.length];
                     
+                    // Debug: Log instructors for this module
+                    console.log('Instructors for module:', module.name, instructors);
+                    
                     return (
-                      <Card key={module.id} sx={{
-                    background: 'white',
-                    borderRadius: 2,
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                    border: 'none',
-                    p: 2,
-                    height: 120
-                  }}>
+                      <Card 
+                        key={module.id} 
+                        sx={{
+                          background: 'white',
+                          borderRadius: 2,
+                          boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                          border: 'none',
+                          p: 2,
+                          height: 120,
+                          cursor: 'pointer',
+                          transition: 'all 0.3s ease',
+                          '&:hover': {
+                            transform: 'translateY(-2px)',
+                            boxShadow: '0 8px 32px rgba(0,0,0,0.15)'
+                          }
+                        }}
+                        onClick={() => handleCourseContinue(courses[activeTab]?.id, module.id)}
+                      >
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       {/* Left side - Subject info */}
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
@@ -942,49 +1002,64 @@ const StudentDashboard = () => {
                         
                         {/* Instructor Avatars and Arrow */}
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                          <Box sx={{ display: 'flex', gap: -1 }}>
-                            {instructors.slice(0, 3).map((instructor, index) => (
-                              <Avatar key={instructor.id} sx={{ 
-                                width: 32, 
-                                height: 32, 
-                                border: '2px solid white',
-                                ml: -1,
-                                '&:first-of-type': { ml: 0 }
-                              }}>
-                                {instructor.first_name ? instructor.first_name.charAt(0).toUpperCase() : 
-                                 instructor.username ? instructor.username.charAt(0).toUpperCase() : 'I'}
-                              </Avatar>
-                            ))}
-                            {instructors.length === 0 && (
-                              <>
-                                <Avatar sx={{ 
-                                  width: 32, 
-                                  height: 32, 
-                                  border: '2px solid white',
-                                  ml: -1,
-                                  '&:first-of-type': { ml: 0 }
-                                }}>
-                                  I
-                                </Avatar>
-                                <Avatar sx={{ 
-                                  width: 32, 
-                                  height: 32, 
-                                  border: '2px solid white',
-                                  ml: -1
-                                }}>
-                                  N
-                                </Avatar>
-                                <Avatar sx={{ 
-                                  width: 32, 
-                                  height: 32, 
-                                  border: '2px solid white',
-                                  ml: -1
-                                }}>
-                                  S
-                                </Avatar>
-                              </>
-                            )}
-                          </Box>
+                          {instructorsLoading ? (
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Box sx={{ width: 32, height: 32, borderRadius: '50%', backgroundColor: '#f0f0f0' }} />
+                              <Typography variant="caption" sx={{ color: '#666' }}>
+                                Loading...
+                              </Typography>
+                            </Box>
+                          ) : (
+                            <Box sx={{ display: 'flex', gap: -1 }}>
+                              {instructors && instructors.length > 0 ? (
+                                instructors.slice(0, 3).map((instructor, index) => (
+                                  <Avatar key={instructor.id || index} sx={{ 
+                                    width: 32, 
+                                    height: 32, 
+                                    border: '2px solid white',
+                                    ml: -1,
+                                    '&:first-of-type': { ml: 0 },
+                                    backgroundColor: '#6A5ACD'
+                                  }}>
+                                    {instructor.first_name ? instructor.first_name.charAt(0).toUpperCase() : 
+                                     instructor.username ? instructor.username.charAt(0).toUpperCase() : 
+                                     instructor.name ? instructor.name.charAt(0).toUpperCase() : 'I'}
+                                  </Avatar>
+                                ))
+                              ) : (
+                                <>
+                                  <Avatar sx={{ 
+                                    width: 32, 
+                                    height: 32, 
+                                    border: '2px solid white',
+                                    ml: -1,
+                                    '&:first-of-type': { ml: 0 },
+                                    backgroundColor: '#6A5ACD'
+                                  }}>
+                                    I
+                                  </Avatar>
+                                  <Avatar sx={{ 
+                                    width: 32, 
+                                    height: 32, 
+                                    border: '2px solid white',
+                                    ml: -1,
+                                    backgroundColor: '#6A5ACD'
+                                  }}>
+                                    N
+                                  </Avatar>
+                                  <Avatar sx={{ 
+                                    width: 32, 
+                                    height: 32, 
+                                    border: '2px solid white',
+                                    ml: -1,
+                                    backgroundColor: '#6A5ACD'
+                                  }}>
+                                    S
+                                  </Avatar>
+                                </>
+                              )}
+                            </Box>
+                          )}
                           <ChevronRightIcon sx={{ color: '#ccc', fontSize: 16 }} />
                         </Box>
                         
@@ -993,10 +1068,13 @@ const StudentDashboard = () => {
                           fontSize: '0.875rem',
                           fontWeight: 500
                         }}>
-                          {instructors.length > 0 ? 
-                            instructors.slice(0, 3).map(instructor => 
-                              instructor.first_name || instructor.username || 'Instructor'
-                            ).join(', ') + (instructors.length > 3 ? ' & more' : '') :
+                          {instructorsLoading ? (
+                            'Loading instructors...'
+                          ) : instructors && instructors.length > 0 ? 
+                            instructors.slice(0, 3).map(instructor => {
+                              const name = instructor.first_name || instructor.username || instructor.name || 'Instructor';
+                              return name;
+                            }).join(', ') + (instructors.length > 3 ? ' & more' : '') :
                             'Instructors'
                           }
                         </Typography>

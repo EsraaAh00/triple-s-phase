@@ -151,12 +151,16 @@ export const courseAPI = {
 
   // Create new course
   createCourse: async (courseData) => {
+    console.log('API: Creating course with data:', courseData);
+    console.log('API: Instructors in courseData:', courseData.instructors);
     const formData = new FormData();
 
     // Add basic fields
     Object.keys(courseData).forEach(key => {
       if (key === 'tags' && Array.isArray(courseData[key])) {
         courseData[key].forEach(tag => formData.append('tags', tag));
+      } else if (key === 'instructors' && Array.isArray(courseData[key])) {
+        courseData[key].forEach(instructor => formData.append('instructors', instructor));
       } else if (key === 'image' && courseData[key] instanceof File) {
         formData.append('image', courseData[key]);
       } else if (key === 'syllabus_pdf' && courseData[key] instanceof File) {
@@ -172,6 +176,12 @@ export const courseAPI = {
         }
       }
     });
+
+    // Debug FormData
+    console.log('API: FormData contents:');
+    for (let [key, value] of formData.entries()) {
+      console.log(`API: FormData ${key}:`, value);
+    }
 
     try {
       const response = await api.post('/api/courses/courses/', formData, {
@@ -212,12 +222,16 @@ export const courseAPI = {
 
   // Update course
   updateCourse: async (id, courseData) => {
+    console.log('API: Updating course with data:', courseData);
+    console.log('API: Instructors in courseData:', courseData.instructors);
     const formData = new FormData();
 
     // Add basic fields
     Object.keys(courseData).forEach(key => {
       if (key === 'tags' && Array.isArray(courseData[key])) {
         courseData[key].forEach(tag => formData.append('tags', tag));
+      } else if (key === 'instructors' && Array.isArray(courseData[key])) {
+        courseData[key].forEach(instructor => formData.append('instructors', instructor));
       } else if (key === 'image' && courseData[key] instanceof File) {
         formData.append('image', courseData[key]);
       } else if (key === 'syllabus_pdf' && courseData[key] instanceof File) {
@@ -233,6 +247,12 @@ export const courseAPI = {
         }
       }
     });
+
+    // Debug FormData
+    console.log('API: Update FormData contents:');
+    for (let [key, value] of formData.entries()) {
+      console.log(`API: Update FormData ${key}:`, value);
+    }
 
     try {
       const response = await api.patch(`/api/courses/courses/${id}/`, formData, {
@@ -288,6 +308,24 @@ export const courseAPI = {
   getTags: async () => {
     const response = await api.get('/api/courses/tags/');
     return response.data;
+  },
+
+  // Get instructors
+  getInstructors: async () => {
+    try {
+      console.log('API: Fetching instructors from /api/users/instructors/');
+      console.log('API: Token exists:', !!localStorage.getItem('token'));
+      const response = await api.get('/api/users/instructors/');
+      console.log('API: Instructors response:', response);
+      console.log('API: Instructors data:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('API: Error fetching instructors:', error);
+      console.error('API: Error response:', error.response);
+      console.error('API: Error status:', error.response?.status);
+      console.error('API: Error data:', error.response?.data);
+      return [];
+    }
   },
 
   // Search courses

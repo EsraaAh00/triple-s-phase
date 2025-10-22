@@ -80,7 +80,8 @@ class StudentInline(admin.StackedInline):
 
 
 # Unregister the default User admin
-admin.site.unregister(User)
+if admin.site.is_registered(User):
+    admin.site.unregister(User)
 
 
 @admin.register(User)
@@ -448,30 +449,42 @@ class OrganizationAdmin(admin.ModelAdmin):
         queryset = super().get_queryset(request)
         return queryset.select_related('profile').prefetch_related('instructor_set')
 
+# Unregister the default Instructor admin to replace with filtered version
+if admin.site.is_registered(Instructor):
+    admin.site.unregister(Instructor)
+
 @admin.register(Instructor)
 class InstructorAdmin(admin.ModelAdmin):
     list_display = (
-        'profile_name', 'organization', 'department', 'qualification', 
+        'instructor_name', 'organization', 'department', 'qualification', 
         'courses_count', 'students_count', 'date_of_birth'
     )
     list_filter = ('organization', 'department', 'date_of_birth')
-    search_fields = ('profile__name', 'profile__user__username', 'department', 'qualification')
+    search_fields = ('name', 'profile__name', 'profile__user__username', 'department', 'qualification')
     
     fieldsets = (
         ('معلومات أساسية', {
-            'fields': ('profile', 'organization', 'department', 'qualification', 'date_of_birth')
+            'fields': ('name', 'profile', 'organization', 'department', 'qualification', 'date_of_birth'),
+            'description': 'يمكن إدخال اسم المدرب مباشرة أو ربطه بملف شخصي موجود'
         }),
         ('السيرة الذاتية', {
             'fields': ('bio', 'research_interests')
         }),
     )
     
-    def profile_name(self, obj):
-        if obj.profile:
+    def instructor_name(self, obj):
+        """Display instructor name with link to profile if available"""
+        if obj.name:
+            if obj.profile:
+                url = reverse('admin:users_profile_change', args=[obj.profile.id])
+                return format_html('<a href="{}">{} (ملف شخصي)</a>', url, obj.name)
+            else:
+                return obj.name
+        elif obj.profile:
             url = reverse('admin:users_profile_change', args=[obj.profile.id])
             return format_html('<a href="{}">{}</a>', url, obj.profile.name)
-        return '-'
-    profile_name.short_description = 'اسم المدرب'
+        return 'بدون اسم'
+    instructor_name.short_description = 'اسم المدرب'
     
     def courses_count(self, obj):
         count = obj.courses_taught.count()
@@ -491,8 +504,28 @@ class InstructorAdmin(admin.ModelAdmin):
     students_count.short_description = 'الطلاب'
     
     def get_queryset(self, request):
-        return super().get_queryset(request).select_related('profile', 'organization').prefetch_related('courses_taught', 'courses_taught__enrollments')
+        """Show all instructors - with or without profiles"""
+        queryset = super().get_queryset(request)
+        return queryset.select_related('profile', 'organization').prefetch_related('courses_taught', 'courses_taught__enrollments')
+    
+    def has_add_permission(self, request):
+        """Allow adding new instructors"""
+        return True
+    
+    def get_form(self, request, obj=None, **kwargs):
+        """Customize the form to make profile optional"""
+        form = super().get_form(request, obj, **kwargs)
+        if 'profile' in form.base_fields:
+            form.base_fields['profile'].required = False
+            form.base_fields['profile'].help_text = "اختياري - يمكن ربط المدرب بملف شخصي موجود"
+        if 'name' in form.base_fields:
+            form.base_fields['name'].help_text = "اسم المدرب - يمكن إدخاله مباشرة أو الحصول عليه من الملف الشخصي"
+        return form
 
+
+# Unregister the default Student admin to replace with filtered version
+if admin.site.is_registered(Student):
+    admin.site.unregister(Student)
 
 @admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):
@@ -531,5 +564,17 @@ class StudentAdmin(admin.ModelAdmin):
     completed_courses.short_description = 'الدورات المكتملة'
     
     def get_queryset(self, request):
+        """Filter to show only students (profiles with status=Student)"""
         queryset = super().get_queryset(request)
-        return queryset.select_related('profile__user').prefetch_related('profile__user__course_enrollments')
+        return queryset.filter(profile__status='Student').select_related('profile__user').prefetch_related('profile__user__course_enrollments')
+    
+    def has_add_permission(self, request):
+        """Allow adding new students"""
+        return True
+    
+    def get_form(self, request, obj=None, **kwargs):
+        """Customize the form to only show profiles with Student status"""
+        form = super().get_form(request, obj, **kwargs)
+        if 'profile' in form.base_fields:
+            form.base_fields['profile'].queryset = Profile.objects.filter(status='Student')
+        return form

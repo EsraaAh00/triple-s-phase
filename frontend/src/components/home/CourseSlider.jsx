@@ -1,34 +1,34 @@
 import { useState, useEffect, useRef } from 'react';
-import { Box, Button, Card, CardContent, CardMedia, Container, IconButton, Rating, Stack, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { Box, Button, Card, CardContent, CardMedia, Container, IconButton, Rating, Stack, Typography, useMediaQuery, useTheme, Tooltip } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { styled } from '@mui/material/styles';
-import { KeyboardArrowLeft, KeyboardArrowRight, PlayCircleOutline } from '@mui/icons-material';
+import { PlayCircleOutline, KeyboardArrowRight, KeyboardArrowLeft } from '@mui/icons-material';
 import { Link as RouterLink } from 'react-router-dom';
 import { courseAPI } from '../../services/courseService';
 import coursesliderBG from '../../assets/images/coursesliderBG.png';
 
 const SliderContainer = styled(Box)(({ theme }) => ({
   position: 'relative',
-  padding: theme.spacing(4, 0, 6, 0), // Increased bottom padding
-  overflow: 'visible', // Changed from 'hidden' to 'visible'
+  padding: theme.spacing(2, 0, 0, 0), // تقليل المسافات
+  overflow: 'visible',
   direction: 'rtl',
   backgroundImage: `url(${coursesliderBG})`,
   backgroundSize: 'cover',
   backgroundPosition: 'center',
   backgroundRepeat: 'no-repeat',
-  minHeight: '90vh', // Increased height
-  // Responsive padding and height - ensuring enough space for circles
+  minHeight: 'auto', // إزالة الارتفاع الثابت
+  // Responsive padding - تقليل المسافات
   '@media (max-width: 600px)': {
-    padding: theme.spacing(2, 0, 4, 0), // Increased bottom padding
-    minHeight: '80vh', // Increased height
+    padding: theme.spacing(1, 0, 0, 0), // تقليل المسافات على الموبايل
+    minHeight: 'auto',
   },
   '@media (min-width: 600px) and (max-width: 900px)': {
-    padding: theme.spacing(3, 0, 5, 0), // Increased bottom padding
-    minHeight: '85vh', // Increased height
+    padding: theme.spacing(1.5, 0, 0, 0), // تقليل المسافات على التابلت
+    minHeight: 'auto',
   },
   '@media (min-width: 900px)': {
-    padding: theme.spacing(4, 0, 6, 0), // Increased bottom padding
-    minHeight: '90vh', // Increased height
+    padding: theme.spacing(2, 0, 0, 0), // تقليل المسافات على الديسكتوب
+    minHeight: 'auto',
   },
 }));
 
@@ -94,54 +94,52 @@ const SectionTitle = styled(Typography, {
   },
 }));
 
-const SliderButton = styled(IconButton)(({ theme }) => ({
-  backgroundColor: theme.palette.background.paper,
-  color: theme.palette.text.primary,
-  boxShadow: theme.shadows[2],
-  // Responsive sizing
-  '@media (max-width: 600px)': {
-    width: '36px',
-    height: '36px',
-    '& .MuiSvgIcon-root': {
-      fontSize: '1.2rem',
-    },
-  },
-  '@media (min-width: 600px) and (max-width: 900px)': {
-    width: '40px',
-    height: '40px',
-    '& .MuiSvgIcon-root': {
-      fontSize: '1.3rem',
-    },
-  },
-  '@media (min-width: 900px)': {
-    width: '44px',
-    height: '44px',
-    '& .MuiSvgIcon-root': {
-      fontSize: '1.5rem',
-    },
-  },
-  '&:hover': {
-    backgroundColor: theme.palette.primary.main,
-    color: theme.palette.primary.contrastText,
-  },
-  '&.Mui-disabled': {
-    opacity: 0.5,
-  },
-}));
 
 const SliderTrack = styled(Box)(({ theme }) => ({
   display: 'flex',
   gap: theme.spacing(2.5),
+  overflowX: 'auto',
+  scrollBehavior: 'smooth',
+  padding: theme.spacing(2, 1),
+  alignItems: 'center',
+  minHeight: '320px',
+  '&::-webkit-scrollbar': {
+    height: '6px',
+  },
+  '&::-webkit-scrollbar-track': {
+    background: 'rgba(0,0,0,0.1)',
+    borderRadius: '3px',
+  },
+  '&::-webkit-scrollbar-thumb': {
+    background: 'linear-gradient(90deg, #6f42c1 0%, #8b5cf6 100%)',
+    borderRadius: '3px',
+    '&:hover': {
+      background: 'linear-gradient(90deg, #5a3594 0%, #7a6b9a 100%)',
+    }
+  },
   // Responsive gap
   '@media (max-width: 600px)': {
     gap: theme.spacing(1.5),
+    minHeight: '280px',
+    padding: theme.spacing(1.5, 0.5),
   },
   '@media (min-width: 600px) and (max-width: 900px)': {
     gap: theme.spacing(2),
+    minHeight: '300px',
+    padding: theme.spacing(2, 0.5),
   },
   '@media (min-width: 900px)': {
     gap: theme.spacing(2.5),
+    minHeight: '320px',
+    padding: theme.spacing(2, 1),
   },
+  '@media (max-width: 900px)': {
+    '&::-webkit-scrollbar': {
+      display: 'none',
+    },
+    msOverflowStyle: 'none',
+    scrollbarWidth: 'none',
+  }
 }));
 
 const CourseCard = styled(Card)(({ theme }) => ({
@@ -157,6 +155,7 @@ const CourseCard = styled(Card)(({ theme }) => ({
   position: 'relative',
   width: '300px',
   height: '300px',
+  flexShrink: 0,
   // Responsive sizing
   '@media (max-width: 600px)': {
     width: '240px',
@@ -289,26 +288,28 @@ const CourseCardContent = styled(Box)(({ theme }) => ({
   bottom: 0,
   left: 0,
   right: 0,
-  padding: '20px 16px',
-  background: 'linear-gradient(to top, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.95) 70%, transparent 100%)',
-  backdropFilter: 'blur(10px)',
+  padding: '15px 12px',
+  background: 'linear-gradient(to top, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.85) 60%, transparent 100%)',
+  backdropFilter: 'blur(8px)',
   borderRadius: '0 0 50% 50%',
   transition: 'all 0.3s ease',
   textAlign: 'center',
   zIndex: 2,
-  height: '50%',
+  height: '40%', // تصغير الجزء المبهم
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'flex-end',
-  paddingBottom: '30px',
+  paddingBottom: '20px',
   // Responsive sizing
   '@media (max-width: 600px)': {
-    padding: '16px 12px',
-    paddingBottom: '25px',
+    padding: '12px 10px',
+    paddingBottom: '18px',
+    height: '35%', // أصغر على الموبايل
   },
   '@media (min-width: 600px) and (max-width: 900px)': {
-    padding: '18px 14px',
-    paddingBottom: '28px',
+    padding: '14px 11px',
+    paddingBottom: '20px',
+    height: '38%',
   },
   '& .MuiRating-root': {
     direction: 'ltr',
@@ -350,27 +351,31 @@ const CourseTitle = styled(Typography)({
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   minHeight: '2.4em',
-  lineHeight: '1.2',
-  fontWeight: 700,
-  color: '#333333',
-  fontSize: '0.85rem',
-  marginBottom: '6px',
+  lineHeight: '1.3',
+  fontWeight: 800, // زيادة الوزن للوضوح
+  color: '#1a1a1a', // لون أغمق للوضوح
+  fontSize: '0.9rem', // خط أكبر قليلاً
+  marginBottom: '0px', // حذف المسافة أسفل العنوان
   textAlign: 'center',
+  textShadow: '0 1px 2px rgba(255,255,255,0.8)', // ظل نص للوضوح
   // Responsive font size and height
   '@media (max-width: 600px)': {
-    fontSize: '0.75rem',
+    fontSize: '0.8rem', // خط أكبر على الموبايل
     minHeight: '2.2em',
-    marginBottom: '5px',
+    marginBottom: '0px', // حذف المسافة على الموبايل
+    fontWeight: 700, // وزن أقل قليلاً على الموبايل
   },
   '@media (min-width: 600px) and (max-width: 900px)': {
-    fontSize: '0.8rem',
+    fontSize: '0.85rem', // خط أكبر على التابلت
     minHeight: '2.3em',
-    marginBottom: '5px',
+    marginBottom: '0px', // حذف المسافة على التابلت
+    fontWeight: 750,
   },
   '@media (min-width: 900px)': {
-    fontSize: '0.85rem',
+    fontSize: '0.9rem', // خط أكبر على الديسكتوب
     minHeight: '2.4em',
-    marginBottom: '6px',
+    marginBottom: '0px', // حذف المسافة على الديسكتوب
+    fontWeight: 800,
   },
 });
 
@@ -445,29 +450,6 @@ const StudentsCount = styled(Typography)(({ theme }) => ({
   gap: '4px',
 }));
 
-const SliderDots = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  justifyContent: 'center',
-  gap: theme.spacing(1),
-  marginTop: theme.spacing(2),
-}));
-
-const Dot = styled(Box, {
-  shouldForwardProp: (prop) => prop !== 'active',
-})(({ active, theme }) => ({
-  width: 10,
-  height: 10,
-  borderRadius: '50%',
-  backgroundColor: theme.palette.action.disabled,
-  cursor: 'pointer',
-  transition: 'all 0.3s ease',
-  '&:hover': {
-    backgroundColor: theme.palette.primary.main,
-  },
-  ...(active && {
-    backgroundColor: theme.palette.primary.main,
-  }),
-}));
 
 const CourseCollections = () => {
   const { t, i18n } = useTranslation();
@@ -478,8 +460,6 @@ const CourseCollections = () => {
   const [collections, setCollections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [slidesToShow, setSlidesToShow] = useState(4);
   const sliderRef = useRef(null);
 
   // Helper function to get localized text
@@ -491,32 +471,6 @@ const CourseCollections = () => {
     return enText;
   };
 
-  // Calculate slides to show based on screen size
-  useEffect(() => {
-    const updateSlidesToShow = () => {
-      if (isMobile) {
-        setSlidesToShow(1); // Mobile: 1 card
-      } else if (isTablet) {
-        setSlidesToShow(2); // Tablet: 2 cards
-      } else {
-        setSlidesToShow(3); // Desktop: 3 cards
-      }
-    };
-
-    updateSlidesToShow();
-    window.addEventListener('resize', updateSlidesToShow);
-    return () => window.removeEventListener('resize', updateSlidesToShow);
-  }, [isMobile, isTablet]);
-
-  // Reset current slide when collections change
-  useEffect(() => {
-    setCurrentSlide(0);
-  }, [collections]);
-
-  // Reset current slide when slidesToShow changes
-  useEffect(() => {
-    setCurrentSlide(0);
-  }, [slidesToShow]);
 
   // Fetch collections from API
   useEffect(() => {
@@ -536,22 +490,6 @@ const CourseCollections = () => {
     fetchCollections();
   }, []);
 
-  // Slider navigation functions
-  const nextSlide = (collectionIndex = 0) => {
-    if (collections.length > collectionIndex && collections[collectionIndex]?.courses?.length > 0) {
-      const courses = collections[collectionIndex].courses;
-      const maxSlide = Math.max(0, courses.length - slidesToShow);
-      setCurrentSlide(prev => Math.min(prev + 1, maxSlide));
-    }
-  };
-
-  const prevSlide = () => {
-    setCurrentSlide(prev => Math.max(prev - 1, 0));
-  };
-
-  const goToSlide = (index) => {
-    setCurrentSlide(index);
-  };
 
   if (loading) {
     return (
@@ -763,80 +701,13 @@ const CourseCollections = () => {
               <Box
                 sx={{
                   position: 'relative',
-                  overflow: 'visible', // Changed from 'hidden' to 'visible'
+                  overflow: 'visible',
                   width: '100%',
                   margin: '0 auto',
-                  padding: theme.spacing(2, 0), // Added padding to ensure circles are fully visible
+                  padding: theme.spacing(2, 0),
                 }}
               >
-                {/* Navigation Buttons */}
-                {collection.courses.length > slidesToShow && (
-                  <Box sx={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: 0,
-                    right: 0,
-                    transform: 'translateY(-50%)',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    pointerEvents: 'none',
-                    zIndex: 2,
-                    px: 1,
-                  }}>
-                    <SliderButton
-                      onClick={() => prevSlide()}
-                      disabled={currentSlide === 0}
-                      sx={{
-                        pointerEvents: 'auto',
-                        opacity: currentSlide === 0 ? 0.3 : 1,
-                        ml: { xs: -0.5, sm: -1, md: -2 }, // Responsive margin
-                        display: { xs: 'flex', sm: 'flex', md: 'flex' }, // Always visible on mobile
-                      }}
-                    >
-                      <KeyboardArrowRight />
-                    </SliderButton>
-                    <SliderButton
-                      onClick={() => nextSlide(collectionIndex)}
-                      disabled={collection.courses.length <= slidesToShow || currentSlide >= Math.max(0, collection.courses.length - slidesToShow)}
-                      sx={{
-                        pointerEvents: 'auto',
-                        opacity: (collection.courses.length <= slidesToShow || currentSlide >= Math.max(0, collection.courses.length - slidesToShow)) ? 0.3 : 1,
-                        mr: { xs: -0.5, sm: -1, md: -2 }, // Responsive margin
-                        display: { xs: 'flex', sm: 'flex', md: 'flex' }, // Always visible on mobile
-                      }}
-                    >
-                      <KeyboardArrowLeft />
-                    </SliderButton>
-                  </Box>
-                )}
-
-                <SliderTrack
-                  ref={sliderRef}
-                  sx={{
-                    display: 'flex',
-                    width: collection.courses.length > slidesToShow ? `${collection.courses.length * 100}%` : '100%',
-                    transform: collection.courses.length > slidesToShow ? `translateX(-${currentSlide * (100 / collection.courses.length)}%)` : 'translateX(0%)',
-                    transition: 'transform 0.5s ease-in-out',
-                    justifyContent: collection.courses.length <= slidesToShow ? 'center' : 'flex-start',
-                    alignItems: 'center', // Center align items vertically
-                    // Enhanced responsive spacing based on slidesToShow
-                    gap: {
-                      xs: theme.spacing(2), // Mobile: adequate gap for 240px circles
-                      sm: theme.spacing(2.5),   // Tablet: adequate gap for 270px circles
-                      md: theme.spacing(3), // Desktop: adequate gap for 300px circles
-                    },
-                    padding: {
-                      xs: theme.spacing(0, 1, 0, 1),   // Mobile: adequate padding
-                      sm: theme.spacing(0, 1.5, 0, 1.5), // Tablet: adequate padding
-                      md: theme.spacing(0, 2, 0, 2),       // Desktop: adequate padding
-                    },
-                    minHeight: {
-                      xs: '280px', // Mobile: ensure enough height for 240px circle + padding
-                      sm: '310px', // Tablet: ensure enough height for 270px circle + padding
-                      md: '340px', // Desktop: ensure enough height for 300px circle + padding
-                    },
-                  }}
-                >
+                <SliderTrack ref={sliderRef}>
                   {collection.courses.map((course) => {
                     console.log('Full course data:', course);
                     return (
@@ -847,20 +718,6 @@ const CourseCollections = () => {
                         sx={{
                           textDecoration: 'none',
                           color: 'inherit',
-                          flex: collection.courses.length > slidesToShow ? `0 0 ${100 / collection.courses.length}%` : `0 0 ${100 / slidesToShow}%`,
-                          minWidth: 0,
-                          maxWidth: collection.courses.length <= slidesToShow ? `${100 / slidesToShow}%` : 'none',
-                          // Responsive card sizing - ensuring circles are fully visible
-                          width: {
-                            xs: collection.courses.length > slidesToShow ? '240px' : '240px', // Mobile: fixed width
-                            sm: collection.courses.length > slidesToShow ? '270px' : '270px', // Tablet: fixed width
-                            md: collection.courses.length > slidesToShow ? '300px' : '300px', // Desktop: fixed width
-                          },
-                          height: {
-                            xs: '240px', // Mobile: fixed height
-                            sm: '270px', // Tablet: fixed height
-                            md: '300px', // Desktop: fixed height
-                          },
                         }}
                       >
                         {/* Background Image */}
@@ -901,7 +758,7 @@ const CourseCollections = () => {
                             alignItems: 'center',
                             justifyContent: 'center',
                             gap: 1,
-                            mb: 0.8,
+                            mb: 0.2, // تقليل المسافة من 0.8 إلى 0.2
                             flexWrap: 'wrap'
                           }}>
                             <Box sx={{
@@ -951,46 +808,121 @@ const CourseCollections = () => {
                             </Box>
                           </Box>
 
-                          {/* المعلم والسعر في نفس السطر */}
+                          {/* المدربين والسعر في نفس السطر */}
                           <Box sx={{
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             gap: 2,
-                            flexWrap: 'wrap'
+                            flexWrap: 'wrap',
+                            mt: 0.5 // إضافة مسافة صغيرة من الأعلى
                           }}>
+                            {/* عرض المدربين ملتصقين ببعض */}
                             <Box sx={{
                               display: 'flex',
                               alignItems: 'center',
-                              gap: 0.5
+                              gap: 1
                             }}>
-                              <Box sx={{
-                                width: '22px',
-                                height: '22px',
-                                borderRadius: '50%',
-                                background: 'linear-gradient(135deg, #663399 0%, #8b5cf6 100%)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: '#fff',
-                                fontSize: '0.7rem',
-                                fontWeight: 700,
-                                boxShadow: '0 2px 8px rgba(102, 51, 153, 0.3)',
-                              }}>
-                                {course.instructors && course.instructors.length > 0
-                                  ? course.instructors[0].name.charAt(0).toUpperCase()
-                                  : 'م'
-                                }
+                              <Box sx={{ display: 'flex' }}>
+                                {course.instructors && course.instructors.length > 0 ? (
+                                  course.instructors.slice(0, 3).map((instructor, index) => (
+                                    <Box
+                                      key={instructor.id || index}
+                                      sx={{
+                                        width: 18, // تصغير أكثر من 24 إلى 18
+                                        height: 18, // تصغير أكثر من 24 إلى 18
+                                        borderRadius: '50%',
+                                        border: '1px solid white', // تصغير الحدود أكثر
+                                        marginLeft: index > 0 ? '-4px' : '0', // تقليل التداخل أكثر
+                                        backgroundColor: '#6A5ACD',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        color: 'white',
+                                        fontSize: '0.5rem', // تصغير الخط أكثر
+                                        fontWeight: 700,
+                                        boxShadow: '0 1px 4px rgba(106, 90, 205, 0.3)', // تصغير الظل أكثر
+                                        cursor: 'pointer',
+                                        position: 'relative',
+                                        zIndex: 3 - index,
+                                        '&:hover': {
+                                          zIndex: 10,
+                                          transform: 'scale(1.1)',
+                                          transition: 'all 0.3s ease',
+                                          boxShadow: '0 2px 6px rgba(106, 90, 205, 0.4)'
+                                        }
+                                      }}
+                                    >
+                                      {instructor.first_name ? instructor.first_name.charAt(0).toUpperCase() : 
+                                       instructor.username ? instructor.username.charAt(0).toUpperCase() : 
+                                       instructor.name ? instructor.name.charAt(0).toUpperCase() : 'م'}
+                                    </Box>
+                                  ))
+                                ) : (
+                                  <>
+                                    <Box sx={{
+                                      width: 18, // تصغير أكثر من 24 إلى 18
+                                      height: 18, // تصغير أكثر من 24 إلى 18
+                                      borderRadius: '50%',
+                                      border: '1px solid white', // تصغير الحدود أكثر
+                                      marginLeft: '0',
+                                      backgroundColor: '#6A5ACD',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      color: 'white',
+                                      fontSize: '0.5rem', // تصغير الخط أكثر
+                                      fontWeight: 700,
+                                      boxShadow: '0 1px 4px rgba(106, 90, 205, 0.3)', // تصغير الظل أكثر
+                                      position: 'relative',
+                                      zIndex: 3
+                                    }}>
+                                      م
+                                    </Box>
+                                    <Box sx={{
+                                      width: 18, // تصغير أكثر من 24 إلى 18
+                                      height: 18, // تصغير أكثر من 24 إلى 18
+                                      borderRadius: '50%',
+                                      border: '1px solid white', // تصغير الحدود أكثر
+                                      marginLeft: '-4px', // تقليل التداخل أكثر
+                                      backgroundColor: '#6A5ACD',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      color: 'white',
+                                      fontSize: '0.5rem', // تصغير الخط أكثر
+                                      fontWeight: 700,
+                                      boxShadow: '0 1px 4px rgba(106, 90, 205, 0.3)', // تصغير الظل أكثر
+                                      position: 'relative',
+                                      zIndex: 2
+                                    }}>
+                                      د
+                                    </Box>
+                                    <Box sx={{
+                                      width: 18, // تصغير أكثر من 24 إلى 18
+                                      height: 18, // تصغير أكثر من 24 إلى 18
+                                      borderRadius: '50%',
+                                      border: '1px solid white', // تصغير الحدود أكثر
+                                      marginLeft: '-4px', // تقليل التداخل أكثر
+                                      backgroundColor: '#6A5ACD',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      color: 'white',
+                                      fontSize: '0.5rem', // تصغير الخط أكثر
+                                      fontWeight: 700,
+                                      boxShadow: '0 1px 4px rgba(106, 90, 205, 0.3)', // تصغير الظل أكثر
+                                      position: 'relative',
+                                      zIndex: 1
+                                    }}>
+                                      ر
+                                    </Box>
+                                  </>
+                                )}
                               </Box>
-                              <Typography variant="caption" sx={{
-                                color: '#666',
-                                fontSize: '0.7rem',
-                              }}>
-                                {course.instructors && course.instructors.length > 0
-                                  ? course.instructors[0].name
-                                  : 'مدرب'
-                                }
-                              </Typography>
+                              <Box sx={{ color: '#ccc', fontSize: '0.8rem' }}>
+                                →
+                              </Box>
                             </Box>
 
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -1009,19 +941,6 @@ const CourseCollections = () => {
                     );
                   })}
                 </SliderTrack>
-
-                {/* Slider Dots */}
-                {collection.courses.length > slidesToShow && (
-                  <SliderDots>
-                    {Array.from({ length: Math.ceil(collection.courses.length / slidesToShow) }).map((_, index) => (
-                      <Dot
-                        key={index}
-                        active={Math.floor(currentSlide / slidesToShow) === index}
-                        onClick={() => goToSlide(index * slidesToShow)}
-                      />
-                    ))}
-                  </SliderDots>
-                )}
               </Box>
             ) : (
               <Box sx={{

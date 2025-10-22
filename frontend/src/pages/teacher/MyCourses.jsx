@@ -752,6 +752,14 @@ const MyCourses = () => {
                       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
                         <PeopleIcon sx={{ fontSize: 20, color: '#333679' }} />
                         <Typography variant="subtitle2" fontWeight={700}>
+                          المدربين
+                        </Typography>
+                      </Box>
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 700, color: '#2c3e50', borderBottom: '2px solid #e0e0e0', textAlign: 'center', py: 2 }}>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                        <PeopleIcon sx={{ fontSize: 20, color: '#333679' }} />
+                        <Typography variant="subtitle2" fontWeight={700}>
                           {t('coursesStudents')}
                         </Typography>
                       </Box>
@@ -881,6 +889,35 @@ const MyCourses = () => {
                             }}
                           />
                         </Box>
+                        </Box>
+                      </TableCell>
+                      <TableCell sx={{ textAlign: 'center' }}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, alignItems: 'center' }}>
+                          {course.instructors && course.instructors.length > 0 ? (
+                            course.instructors.slice(0, 2).map((instructor, index) => (
+                              <Chip 
+                                key={index}
+                                label={instructor.name || instructor.profile?.name || `Instructor ${instructor.id}`} 
+                                size="small" 
+                                sx={{ 
+                                  fontWeight: 'bold',
+                                  bgcolor: '#e74c3c',
+                                  color: 'white',
+                                  fontSize: '0.7rem',
+                                  maxWidth: '120px'
+                                }}
+                              />
+                            ))
+                          ) : (
+                            <Typography variant="body2" color="textSecondary" sx={{ fontSize: '0.75rem' }}>
+                              لا يوجد مدربين
+                            </Typography>
+                          )}
+                          {course.instructors && course.instructors.length > 2 && (
+                            <Typography variant="caption" color="textSecondary" sx={{ fontSize: '0.7rem' }}>
+                              +{course.instructors.length - 2} آخرين
+                            </Typography>
+                          )}
                         </Box>
                       </TableCell>
                       <TableCell sx={{ textAlign: 'center' }}>

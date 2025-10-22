@@ -550,18 +550,18 @@ def instructors_list(request):
         if department:
             instructors = instructors.filter(department__icontains=department)
             
-        # Order by name
-        instructors = instructors.order_by('profile__name')
+        # Order by name (handle cases where profile might be None)
+        instructors = instructors.order_by('name', 'profile__name')
         
         # Serialize the data
         data = [
             {
                 'id': instructor.id,
-                'name': instructor.profile.name,
-                'email': instructor.profile.email,
+                'name': instructor.get_display_name(),
+                'email': instructor.profile.email if instructor.profile else None,
                 'department': instructor.department,
                 'bio': instructor.bio,
-                'profile_pic': instructor.profile.image_profile.url if instructor.profile.image_profile else None
+                'profile_pic': instructor.profile.image_profile.url if instructor.profile and instructor.profile.image_profile else None
             }
             for instructor in instructors
         ]

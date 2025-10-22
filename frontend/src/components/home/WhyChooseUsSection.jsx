@@ -17,16 +17,16 @@ const bounceAnimation = keyframes`
 const SectionContainer = styled(Box)(({ theme }) => ({
     position: 'relative',
     backgroundColor: '#FFFFFF',
-    // Responsive padding
-    padding: theme.spacing(8, 0),
+    // تقليل المسافات
+    padding: theme.spacing(2, 0, 4, 0), // تقليل المسافة العلوية
     '@media (max-width: 600px)': {
-        padding: theme.spacing(4, 0),
+        padding: theme.spacing(1, 0, 2, 0), // تقليل المسافات على الموبايل
     },
     '@media (min-width: 600px) and (max-width: 900px)': {
-        padding: theme.spacing(6, 0),
+        padding: theme.spacing(1.5, 0, 3, 0), // تقليل المسافات على التابلت
     },
     '@media (min-width: 900px)': {
-        padding: theme.spacing(8, 0),
+        padding: theme.spacing(2, 0, 4, 0), // تقليل المسافات على الديسكتوب
     },
     '&:after': {
         content: '""',
@@ -49,26 +49,26 @@ const ContentWrapper = styled(Box, {
 })(({ theme, isRTL }) => ({
     display: 'flex',
     flexDirection: isRTL ? 'row-reverse' : 'row',
-    gap: theme.spacing(8),
+    gap: theme.spacing(4), // تقليل المسافة من 8 إلى 4
     alignItems: 'center',
     position: 'relative',
     zIndex: 1,
-    // Enhanced responsive layout
+    // Enhanced responsive layout - تقليل المسافات
     '@media (max-width: 600px)': {
         flexDirection: 'column',
-        gap: theme.spacing(4),
+        gap: theme.spacing(2), // تقليل من 4 إلى 2
     },
     '@media (min-width: 600px) and (max-width: 900px)': {
         flexDirection: 'column',
-        gap: theme.spacing(5),
+        gap: theme.spacing(2.5), // تقليل من 5 إلى 2.5
     },
     '@media (min-width: 900px) and (max-width: 1200px)': {
         flexDirection: 'column',
-        gap: theme.spacing(6),
+        gap: theme.spacing(3), // تقليل من 6 إلى 3
     },
     '@media (min-width: 1200px)': {
         flexDirection: isRTL ? 'row-reverse' : 'row',
-        gap: theme.spacing(8),
+        gap: theme.spacing(4), // تقليل من 8 إلى 4
     },
 }));
 
@@ -182,25 +182,28 @@ const GetStartedButton = styled(Button)(({ theme }) => ({
 }));
 
 const RightSection = styled(Box)(({ theme }) => ({
-    padding: theme.spacing(2, 0),
+    padding: theme.spacing(1, 0), // تقليل المسافة من 2 إلى 1
     flex: '1',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'flex-start',
-    gap: theme.spacing(2),
+    gap: theme.spacing(1), // تقليل المسافة من 2 إلى 1
     width: '100%',
     // Responsive order
     '@media (max-width: 600px)': {
         order: 1,
         width: '100%',
+        padding: theme.spacing(0.5, 0), // تقليل المسافة على الموبايل
     },
     '@media (min-width: 600px) and (max-width: 900px)': {
         order: 1,
         width: '100%',
+        padding: theme.spacing(0.5, 0), // تقليل المسافة على التابلت
     },
     '@media (min-width: 900px) and (max-width: 1200px)': {
         order: 1,
         width: '100%',
+        padding: theme.spacing(1, 0), // تقليل المسافة على الشاشات المتوسطة
     },
 }));
 
@@ -249,18 +252,21 @@ const MainTitle = styled(Typography, {
     fontWeight: 800,
     color: '#663399',
     lineHeight: 1.2,
-    marginBottom: theme.spacing(3),
+    marginBottom: theme.spacing(1.5), // تقليل المسافة من 3 إلى 1.5
     textAlign: isRTL ? 'right' : 'left',
     // Responsive font size
     fontSize: '2.5rem',
     '@media (max-width: 600px)': {
         fontSize: '1.75rem',
+        marginBottom: theme.spacing(1), // تقليل المسافة على الموبايل
     },
     '@media (min-width: 600px) and (max-width: 900px)': {
         fontSize: '2rem',
+        marginBottom: theme.spacing(1.2), // تقليل المسافة على التابلت
     },
     '@media (min-width: 900px)': {
         fontSize: '2.5rem',
+        marginBottom: theme.spacing(1.5), // تقليل المسافة على الديسكتوب
     },
 }));
 
@@ -269,7 +275,7 @@ const Description = styled(Typography, {
 })(({ theme, isRTL }) => ({
     color: '#A0A0A0',
     lineHeight: 1.6,
-    marginBottom: theme.spacing(4),
+    marginBottom: theme.spacing(2), // تقليل المسافة من 4 إلى 2
     maxWidth: '500px',
     textAlign: isRTL ? 'right' : 'left',
     // Responsive font size and width
@@ -277,14 +283,17 @@ const Description = styled(Typography, {
     '@media (max-width: 600px)': {
         fontSize: '0.9rem',
         maxWidth: '100%',
+        marginBottom: theme.spacing(1.5), // تقليل المسافة على الموبايل
     },
     '@media (min-width: 600px) and (max-width: 900px)': {
         fontSize: '0.95rem',
         maxWidth: '100%',
+        marginBottom: theme.spacing(1.8), // تقليل المسافة على التابلت
     },
     '@media (min-width: 900px)': {
         fontSize: '1rem',
         maxWidth: '500px',
+        marginBottom: theme.spacing(2), // تقليل المسافة على الديسكتوب
     },
 }));
 

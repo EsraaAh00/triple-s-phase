@@ -1,7 +1,10 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from django.urls import reverse
+from django.urls import reverse, path
 from django.utils.safestring import mark_safe
+from django.http import JsonResponse
+from django.db.models import Q
+from django.contrib.auth.models import User
 from .models import (
     Assessment, QuestionBank, AssessmentQuestions, 
     StudentSubmission, StudentAnswer, Flashcard, StudentFlashcardProgress,
@@ -431,11 +434,12 @@ class QuestionBankProductAdmin(admin.ModelAdmin):
 class QuestionBankProductEnrollmentAdmin(admin.ModelAdmin):
     """Admin interface for QuestionBankProductEnrollment model"""
     
-    list_display = ['student', 'product', 'enrollment_date', 'status', 'progress', 'is_paid']
+    list_display = ['student_name', 'product', 'enrollment_date', 'status', 'progress', 'is_paid']
     list_filter = ['status', 'is_paid', 'enrollment_date', 'product']
-    search_fields = ['student__username', 'student__email', 'product__title']
+    search_fields = ['student__username', 'student__email', 'student__first_name', 'student__last_name', 'student__profile__name', 'product__title']
     readonly_fields = ['enrollment_date', 'last_accessed']
     date_hierarchy = 'enrollment_date'
+    autocomplete_fields = ['student']
     
     fieldsets = (
         ('Enrollment Info', {
@@ -448,6 +452,59 @@ class QuestionBankProductEnrollmentAdmin(admin.ModelAdmin):
             'fields': ('is_paid', 'payment_amount', 'payment_date', 'transaction_id')
         })
     )
+    
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.select_related('student', 'student__profile', 'product')
+    
+    def get_form(self, request, obj=None, **kwargs):
+        """Filter student field to show only students"""
+        form = super().get_form(request, obj, **kwargs)
+        if 'student' in form.base_fields:
+            # Filter to show only users with Student status
+            form.base_fields['student'].queryset = User.objects.filter(profile__status='Student')
+            form.base_fields['student'].help_text = "اكتب للبحث عن طالب - يتم عرض الطلاب فقط"
+        return form
+    
+    def student_name(self, obj):
+        """Display student name with profile info"""
+        if obj.student.profile:
+            return f"{obj.student.profile.name} ({obj.student.username})"
+        return f"{obj.student.get_full_name() or obj.student.username}"
+    student_name.short_description = 'الطالب'
+    
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('student-autocomplete/', self.student_autocomplete, name='questionbank_student_autocomplete'),
+        ]
+        return custom_urls + urls
+    
+    def student_autocomplete(self, request):
+        """AJAX endpoint for student autocomplete search"""
+        query = request.GET.get('q', '')
+        if len(query) < 2:
+            return JsonResponse({'results': []})
+        
+        # Search in username, first_name, last_name, and profile name
+        students = User.objects.filter(
+            profile__status='Student'
+        ).filter(
+            Q(username__icontains=query) |
+            Q(first_name__icontains=query) |
+            Q(last_name__icontains=query) |
+            Q(profile__name__icontains=query)
+        ).select_related('profile')[:20]
+        
+        results = []
+        for student in students:
+            display_name = student.profile.name if student.profile and student.profile.name else f"{student.get_full_name() or student.username}"
+            results.append({
+                'id': student.id,
+                'text': f"{display_name} ({student.username})"
+            })
+        
+        return JsonResponse({'results': results})
     
     class Media:
         js = ('admin/js/admin.js',)
@@ -495,11 +552,12 @@ class FlashcardProductAdmin(admin.ModelAdmin):
 class FlashcardProductEnrollmentAdmin(admin.ModelAdmin):
     """Admin interface for FlashcardProductEnrollment model"""
     
-    list_display = ['student', 'product', 'enrollment_date', 'status', 'progress', 'is_paid']
+    list_display = ['student_name', 'product', 'enrollment_date', 'status', 'progress', 'is_paid']
     list_filter = ['status', 'is_paid', 'enrollment_date', 'product']
-    search_fields = ['student__username', 'student__email', 'product__title']
+    search_fields = ['student__username', 'student__email', 'student__first_name', 'student__last_name', 'student__profile__name', 'product__title']
     readonly_fields = ['enrollment_date', 'last_accessed']
     date_hierarchy = 'enrollment_date'
+    autocomplete_fields = ['student']
     
     fieldsets = (
         ('Enrollment Info', {
@@ -512,6 +570,59 @@ class FlashcardProductEnrollmentAdmin(admin.ModelAdmin):
             'fields': ('is_paid', 'payment_amount', 'payment_date', 'transaction_id')
         })
     )
+    
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.select_related('student', 'student__profile', 'product')
+    
+    def get_form(self, request, obj=None, **kwargs):
+        """Filter student field to show only students"""
+        form = super().get_form(request, obj, **kwargs)
+        if 'student' in form.base_fields:
+            # Filter to show only users with Student status
+            form.base_fields['student'].queryset = User.objects.filter(profile__status='Student')
+            form.base_fields['student'].help_text = "اكتب للبحث عن طالب - يتم عرض الطلاب فقط"
+        return form
+    
+    def student_name(self, obj):
+        """Display student name with profile info"""
+        if obj.student.profile:
+            return f"{obj.student.profile.name} ({obj.student.username})"
+        return f"{obj.student.get_full_name() or obj.student.username}"
+    student_name.short_description = 'الطالب'
+    
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('student-autocomplete/', self.student_autocomplete, name='flashcard_student_autocomplete'),
+        ]
+        return custom_urls + urls
+    
+    def student_autocomplete(self, request):
+        """AJAX endpoint for student autocomplete search"""
+        query = request.GET.get('q', '')
+        if len(query) < 2:
+            return JsonResponse({'results': []})
+        
+        # Search in username, first_name, last_name, and profile name
+        students = User.objects.filter(
+            profile__status='Student'
+        ).filter(
+            Q(username__icontains=query) |
+            Q(first_name__icontains=query) |
+            Q(last_name__icontains=query) |
+            Q(profile__name__icontains=query)
+        ).select_related('profile')[:20]
+        
+        results = []
+        for student in students:
+            display_name = student.profile.name if student.profile and student.profile.name else f"{student.get_full_name() or student.username}"
+            results.append({
+                'id': student.id,
+                'text': f"{display_name} ({student.username})"
+            })
+        
+        return JsonResponse({'results': results})
     
     class Media:
         js = ('admin/js/admin.js',)

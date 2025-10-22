@@ -141,6 +141,24 @@ export const courseAPI = {
     }
   },
 
+  // Get instructors
+  getInstructors: async () => {
+    try {
+      console.log('CourseService: Fetching instructors from /api/users/instructors/');
+      console.log('CourseService: Token exists:', !!localStorage.getItem('token'));
+      const response = await api.get('/api/users/instructors/');
+      console.log('CourseService: Instructors response:', response);
+      console.log('CourseService: Instructors data:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('CourseService: Error fetching instructors:', error);
+      console.error('CourseService: Error response:', error.response);
+      console.error('CourseService: Error status:', error.response?.status);
+      console.error('CourseService: Error data:', error.response?.data);
+      return [];
+    }
+  },
+
   // Enroll in a course
   enrollInCourse: async (courseId) => {
     try {

@@ -769,7 +769,14 @@ const Courses = () => {
 
   const getInstructorName = (instructors) => {
     if (!instructors || instructors.length === 0) return 'غير محدد';
-    return instructors[0].name || 'غير محدد';
+    if (instructors.length === 1) {
+      return instructors[0].name || 'غير محدد';
+    }
+    // For multiple instructors, show first two and count
+    const firstTwo = instructors.slice(0, 2).map(inst => inst.name || 'مدرب').join('، ');
+    return instructors.length > 2 
+      ? `${firstTwo} و ${instructors.length - 2} آخرين`
+      : firstTwo;
   };
 
   const getInstructorAvatar = (instructors) => {
@@ -1402,37 +1409,144 @@ const Courses = () => {
                         </Box>
 
                         <InstructorInfo sx={{
-                          pt: 0.5
+                          pt: 0.5,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between'
                         }}>
-                          <Avatar
-                            src={getInstructorAvatar(course.instructors)}
-                            alt={getInstructorName(course.instructors)}
-                            sx={{ 
-                              width: { xs: 28, sm: 32 }, 
-                              height: { xs: 28, sm: 32 }, 
-                              ml: { xs: 1, sm: 1.5 } 
-                            }}
-                          />
-                          <Box sx={{ flexGrow: 1 }}>
+                          {/* دوائر المدربين مع الأسماء */}
+                          <Box sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: 0.5
+                          }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Box sx={{ display: 'flex' }}>
+                                {course.instructors && course.instructors.length > 0 ? (
+                                  course.instructors.slice(0, 3).map((instructor, index) => (
+                                    <Box
+                                      key={instructor.id || index}
+                                      sx={{
+                                        width: 28,
+                                        height: 28,
+                                        borderRadius: '50%',
+                                        border: '2px solid white',
+                                        marginLeft: index > 0 ? '-6px' : '0',
+                                        backgroundColor: '#6A5ACD',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        color: 'white',
+                                        fontSize: '0.7rem',
+                                        fontWeight: 700,
+                                        boxShadow: '0 2px 8px rgba(106, 90, 205, 0.3)',
+                                        cursor: 'pointer',
+                                        position: 'relative',
+                                        zIndex: 3 - index,
+                                        '&:hover': {
+                                          zIndex: 10,
+                                          transform: 'scale(1.1)',
+                                          transition: 'all 0.3s ease',
+                                          boxShadow: '0 4px 12px rgba(106, 90, 205, 0.4)'
+                                        }
+                                      }}
+                                    >
+                                      {instructor.first_name ? instructor.first_name.charAt(0).toUpperCase() : 
+                                       instructor.username ? instructor.username.charAt(0).toUpperCase() : 
+                                       instructor.name ? instructor.name.charAt(0).toUpperCase() : 'م'}
+                                    </Box>
+                                  ))
+                                ) : (
+                                  <>
+                                    <Box sx={{
+                                      width: 28,
+                                      height: 28,
+                                      borderRadius: '50%',
+                                      border: '2px solid white',
+                                      marginLeft: '0',
+                                      backgroundColor: '#6A5ACD',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      color: 'white',
+                                      fontSize: '0.7rem',
+                                      fontWeight: 700,
+                                      boxShadow: '0 2px 8px rgba(106, 90, 205, 0.3)',
+                                      position: 'relative',
+                                      zIndex: 3
+                                    }}>
+                                      م
+                                    </Box>
+                                    <Box sx={{
+                                      width: 28,
+                                      height: 28,
+                                      borderRadius: '50%',
+                                      border: '2px solid white',
+                                      marginLeft: '-6px',
+                                      backgroundColor: '#6A5ACD',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      color: 'white',
+                                      fontSize: '0.7rem',
+                                      fontWeight: 700,
+                                      boxShadow: '0 2px 8px rgba(106, 90, 205, 0.3)',
+                                      position: 'relative',
+                                      zIndex: 2
+                                    }}>
+                                      د
+                                    </Box>
+                                    <Box sx={{
+                                      width: 28,
+                                      height: 28,
+                                      borderRadius: '50%',
+                                      border: '2px solid white',
+                                      marginLeft: '-6px',
+                                      backgroundColor: '#6A5ACD',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      color: 'white',
+                                      fontSize: '0.7rem',
+                                      fontWeight: 700,
+                                      boxShadow: '0 2px 8px rgba(106, 90, 205, 0.3)',
+                                      position: 'relative',
+                                      zIndex: 1
+                                    }}>
+                                      ر
+                                    </Box>
+                                  </>
+                                )}
+                              </Box>
+                              <Box sx={{ color: '#ccc', fontSize: '0.7rem' }}>
+                                →
+                              </Box>
+                            </Box>
+                            
+                            {/* أسماء المدربين تحت الدوائر */}
                             <Typography 
-                              variant="body2" 
-                              color="text.secondary" 
-                              sx={{ 
-                                fontSize: { xs: '0.65rem', sm: '0.75rem' } 
-                              }}
-                            >
-                              {t('coursesInstructor')}
-                            </Typography>
-                            <Typography 
-                              variant="subtitle2" 
-                              fontWeight={500}
+                              variant="caption" 
                               sx={{
-                                fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                                fontSize: '0.6rem',
+                                color: 'text.secondary',
+                                textAlign: 'center',
+                                maxWidth: '80px',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap'
                               }}
                             >
-                              {getInstructorName(course.instructors)}
+                              {course.instructors && course.instructors.length > 0 ? 
+                                course.instructors.slice(0, 2).map(instructor => 
+                                  instructor.first_name || instructor.username || instructor.name || 'مدرب'
+                                ).join(', ') + (course.instructors.length > 2 ? ' +' + (course.instructors.length - 2) : '') :
+                                'مدربين'
+                              }
                             </Typography>
                           </Box>
+
+                          {/* التقييم */}
                           <Box sx={{ textAlign: 'left' }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
                               <Star 

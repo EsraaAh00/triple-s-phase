@@ -153,6 +153,7 @@ const EditCourse = () => {
   const [success, setSuccess] = useState(null);
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState([]);
+  const [instructors, setInstructors] = useState([]);
   
   // Form state - initialize with empty values
   const [courseData, setCourseData] = useState({
@@ -165,6 +166,7 @@ const EditCourse = () => {
     language: 'ar',
     category: '',
     tags: [],
+    instructors: [],
     isFree: false,
     price: 0,
     discountPrice: null,
@@ -195,6 +197,19 @@ const EditCourse = () => {
                                categoriesResponse.results ? categoriesResponse.results : 
                                categoriesResponse.data ? categoriesResponse.data : [];
         setCategories(categoriesArray);
+
+        // Fetch instructors
+        console.log('Fetching instructors...');
+        try {
+          const instructorsData = await courseAPI.getInstructors();
+          console.log('Instructors API response:', instructorsData);
+          console.log('Instructors data type:', typeof instructorsData);
+          console.log('Instructors is array:', Array.isArray(instructorsData));
+          setInstructors(instructorsData);
+        } catch (instructorError) {
+          console.error('Error fetching instructors:', instructorError);
+          setInstructors([]);
+        }
         
         // Fetch course data
         if (id) {
@@ -212,6 +227,7 @@ const EditCourse = () => {
             language: course.language || 'ar',
             category: course.category?.id || '',
             tags: course.tags?.map(tag => tag.name) || [],
+            instructors: course.instructors?.map(instructor => instructor.id) || [],
             isFree: course.is_free || false,
             price: course.price || 0,
             discountPrice: course.discount_price || null,
@@ -282,6 +298,10 @@ const EditCourse = () => {
   
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    console.log('HandleChange called:', { name, value, type, checked });
+    if (name === 'instructors') {
+      console.log('Instructors changed:', value);
+    }
     setCourseData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
@@ -364,6 +384,10 @@ const EditCourse = () => {
         
         
         // Prepare data for API
+        console.log('Preparing API data for course update...');
+        console.log('Course data instructors:', courseData.instructors);
+        console.log('Instructors type:', typeof courseData.instructors);
+        console.log('Instructors is array:', Array.isArray(courseData.instructors));
         const apiData = {
           title: courseData.title.trim(),
           subtitle: courseData.subtitle.trim(),
@@ -373,6 +397,7 @@ const EditCourse = () => {
           language: courseData.language,
           category: courseData.category || null,
           tags: courseData.tags,
+          instructors: courseData.instructors,
           is_free: courseData.isFree,
           price: courseData.isFree ? 0 : courseData.price,
           discount_price: courseData.isFree ? null : courseData.discountPrice,
@@ -383,6 +408,9 @@ const EditCourse = () => {
           bunny_promotional_video_id: courseData.bunnyPromotionalVideoId.trim(),
           bunny_promotional_video_url: courseData.bunnyPromotionalVideoUrl.trim(),
         };
+        
+        console.log('Final API data:', apiData);
+        console.log('API data instructors:', apiData.instructors);
         
         // Add files if they exist
         if (courseData.image instanceof File) {
@@ -570,6 +598,62 @@ const EditCourse = () => {
                     </MenuItem>
                   ))}
                 </Select>
+              </FormControl>
+
+              <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
+                <InputLabel>المدربين</InputLabel>
+                <Select
+                  name="instructors"
+                  multiple
+                  value={courseData.instructors}
+                  onChange={handleChange}
+                  label="المدربين"
+                  sx={{ textAlign: 'right' }}
+                  disabled={instructors.length === 0}
+                  renderValue={(selected) => {
+                    if (!selected || selected.length === 0) {
+                      return <em>اختر المدربين</em>;
+                    }
+                    return (
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                        {selected.map((value) => {
+                          const instructor = instructors.find(inst => inst.id === value);
+                          return (
+                            <Chip 
+                              key={value} 
+                              label={instructor?.name || `Instructor ${value}`} 
+                              size="small"
+                              sx={{ 
+                                backgroundColor: theme.palette.primary.light,
+                                color: theme.palette.primary.contrastText,
+                              }}
+                            />
+                          );
+                        })}
+                      </Box>
+                    );
+                  }}
+                >
+                  {instructors && instructors.length > 0 ? (
+                    instructors.map((instructor) => {
+                      console.log('Rendering instructor:', instructor);
+                      return (
+                        <MenuItem key={instructor.id} value={instructor.id}>
+                          {instructor.name || `Instructor ${instructor.id}`}
+                        </MenuItem>
+                      );
+                    })
+                  ) : (
+                    <MenuItem disabled>
+                      لا يوجد مدربين متاحين
+                    </MenuItem>
+                  )}
+                </Select>
+                {instructors.length === 0 && (
+                  <Typography variant="caption" color="textSecondary" sx={{ mt: 1, display: 'block' }}>
+                    لا يمكن تحميل قائمة المدربين. تأكد من تسجيل الدخول.
+                  </Typography>
+                )}
               </FormControl>
               
               

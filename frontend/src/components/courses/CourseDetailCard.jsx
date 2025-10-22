@@ -615,7 +615,18 @@ const CourseDetailCard = ({
                                                     wordBreak: 'break-word',
                                                     fontWeight: 500
                                                 }}>
-                                                    <span style={{ color: '#666' }}>المدرب:</span> <span style={{ color: '#333679', fontWeight: 'bold' }}>{course?.instructor || 'إليانور فانت'}</span>
+                                                    <span style={{ color: '#666' }}>المدرب:</span> 
+                                                    <Box component="span" sx={{ color: '#333679', fontWeight: 'bold', mr: 0.5 }}>
+                                                        {course?.instructors && course.instructors.length > 0 
+                                                            ? course.instructors.map((instructor, index) => (
+                                                                <span key={instructor.id}>
+                                                                    {instructor.name || 'مدرب'}
+                                                                    {index < course.instructors.length - 1 && '، '}
+                                                                </span>
+                                                            ))
+                                                            : course?.instructor || 'إليانور فانت'
+                                                        }
+                                                    </Box>
                                                 </Typography>
                                             </Box>
 

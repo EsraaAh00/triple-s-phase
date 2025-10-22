@@ -51,6 +51,7 @@ urlpatterns = [
     
     # Lists
     path('students/', views.students_list, name='students_list'),
+    path('instructors/', views.instructors_list, name='instructors_list'),
     
     # Dashboard
     path('dashboard/stats/', views.dashboard_stats, name='dashboard_stats'),

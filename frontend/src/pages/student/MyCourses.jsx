@@ -55,7 +55,24 @@ import {
 } from '@mui/icons-material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { styled, keyframes } from '@mui/system';
+
+// Keyframes for animations
+const pulse = keyframes`
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+`;
 import { courseAPI } from '../../services/api.service';
+import { courseAPI as courseService } from '../../services/courseService';
 import { contentAPI } from '../../services/content.service';
 // import { quizAPI } from '../../services/quiz.service';
 
@@ -350,6 +367,7 @@ const ModuleLessons = ({ moduleId, lessons = [], course = null }) => {
 const CourseDetailPage = ({ course, onBack }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(0);
   const [modules, setModules] = useState([]);
   const [expandedModules, setExpandedModules] = useState({});
@@ -358,10 +376,50 @@ const CourseDetailPage = ({ course, onBack }) => {
   const [loading, setLoading] = useState(true);
   const [questions, setQuestions] = useState([]);
   const [flashcards, setFlashcards] = useState([]);
+  const [selectedModuleId, setSelectedModuleId] = useState(null);
+  const [courseInstructors, setCourseInstructors] = useState([]);
 
   useEffect(() => {
     fetchCourseContent();
+    fetchCourseInstructors();
   }, [course.id]);
+
+  // Handle module filtering from URL parameter
+  useEffect(() => {
+    const moduleId = searchParams.get('moduleId');
+    if (moduleId) {
+      setSelectedModuleId(moduleId);
+      // Auto-expand the selected module
+      setExpandedModules(prev => ({
+        ...prev,
+        [moduleId]: true
+      }));
+    } else {
+      setSelectedModuleId(null);
+    }
+  }, [searchParams]);
+
+  const fetchCourseInstructors = async () => {
+    try {
+      // Try to load instructors similarly to dashboard
+      const courseData = await courseService.getCourseById(course.id);
+      let instructors = [];
+      if (courseData?.instructors && Array.isArray(courseData.instructors)) {
+        instructors = courseData.instructors;
+      } else if (courseData?.teachers && Array.isArray(courseData.teachers)) {
+        instructors = courseData.teachers;
+      } else if (courseData?.instructor) {
+        instructors = Array.isArray(courseData.instructor) ? courseData.instructor : [courseData.instructor];
+      }
+      setCourseInstructors(instructors);
+    } catch (error) {
+      // fallback to what exists on the course prop
+      const fallback = Array.isArray(course.instructors) ? course.instructors
+        : Array.isArray(course.teachers) ? course.teachers
+        : (course.instructor ? [{ name: course.instructor }] : []);
+      setCourseInstructors(fallback);
+    }
+  };
 
   const fetchCourseContent = async () => {
     try {
@@ -462,16 +520,37 @@ const CourseDetailPage = ({ course, onBack }) => {
 
   const filteredModules = modules.filter(module => {
     if (!module || !module.title) return false;
+    
+    // If a specific module is selected, only show that module
+    if (selectedModuleId) {
+      return module.id == selectedModuleId;
+    }
+    
+    // Otherwise, apply search filter
     return module.title.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
   const filteredQuestions = questions.filter(question => {
     if (!question || !question.question) return false;
+    
+    // If a specific module is selected, only show questions from that module
+    if (selectedModuleId) {
+      return question.module_id == selectedModuleId;
+    }
+    
+    // Otherwise, apply search filter
     return question.question.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
   const filteredFlashcards = flashcards.filter(flashcard => {
     if (!flashcard) return false;
+    
+    // If a specific module is selected, only show flashcards from that module
+    if (selectedModuleId) {
+      return flashcard.module_id == selectedModuleId;
+    }
+    
+    // Otherwise, apply search filter
     const front = flashcard.front?.toLowerCase() || '';
     const back = flashcard.back?.toLowerCase() || '';
     const search = searchTerm.toLowerCase();
@@ -547,6 +626,8 @@ const CourseDetailPage = ({ course, onBack }) => {
             </Typography>
           </Breadcrumbs>
 
+          {/* Module Filter Inline with Title (chip next to course title) */}
+
           {/* Course Title and Stats */}
           <Box sx={{ 
             display: 'flex', 
@@ -584,21 +665,43 @@ const CourseDetailPage = ({ course, onBack }) => {
               <SchoolIcon sx={{ fontSize: 24, filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }} />
             </Box>
             <Box sx={{ flex: 1 }}>
-              <Typography 
-                variant="h5" 
-                fontWeight={800} 
-                sx={{ 
-                  mb: 0.5,
-                  background: 'linear-gradient(45deg, #ffffff 0%, #f0f9ff 100%)',
-                  backgroundClip: 'text',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  textShadow: '0 1px 2px rgba(0,0,0,0.1)',
-                  fontSize: { xs: '1.25rem', md: '1.5rem' }
-                }}
-              >
-                {course.title}
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+                <Typography 
+                  variant="h5" 
+                  fontWeight={800} 
+                  sx={{ 
+                    mb: 0.5,
+                    background: 'linear-gradient(45deg, #ffffff 0%, #f0f9ff 100%)',
+                    backgroundClip: 'text',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    textShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                    fontSize: { xs: '1.25rem', md: '1.5rem' }
+                  }}
+                >
+                  {course.title}
+                </Typography>
+                {selectedModuleId && (
+                  <Chip
+                    size="small"
+                    label={(() => {
+                      const selectedModule = modules.find(m => m.id == selectedModuleId);
+                      return selectedModule ? (selectedModule.title || selectedModule.name) : t('commonModule');
+                    })()}
+                    onDelete={() => {
+                      setSelectedModuleId(null);
+                      navigate(`/student/my-courses?courseId=${course.id}`);
+                    }}
+                    sx={{
+                      height: 24,
+                      color: 'white',
+                      background: 'linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.15) 100%)',
+                      border: '1px solid rgba(255,255,255,0.3)',
+                      '& .MuiChip-deleteIcon': { color: 'rgba(255,255,255,0.8)' }
+                    }}
+                  />
+                )}
+              </Box>
               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                 {questions.length > 0 && (
                   <Chip 
@@ -667,8 +770,19 @@ const CourseDetailPage = ({ course, onBack }) => {
             </Box>
           </Box>
 
-          {/* Course Instructor */}
-          {course.instructor && (
+          {/* Course Instructors */}
+          {(() => {
+            const instructorList = courseInstructors.length > 0 ? courseInstructors
+              : Array.isArray(course.instructors) ? course.instructors
+              : Array.isArray(course.teachers) ? course.teachers
+              : (course.instructor ? [{ name: course.instructor }] : []);
+            const firstInstructor = instructorList[0];
+            const firstInitial = firstInstructor ? (firstInstructor.first_name ? firstInstructor.first_name.charAt(0) : (firstInstructor.name || firstInstructor.username || '').charAt(0)) : '';
+            const names = instructorList.map(ins => {
+              if (ins.first_name || ins.last_name) return `${ins.first_name || ''} ${ins.last_name || ''}`.trim();
+              return ins.name || ins.username || ins.email || '';
+            }).filter(Boolean);
+            return names.length > 0 ? (
             <Box sx={{ 
               mb: 1,
               display: 'flex',
@@ -704,7 +818,7 @@ const CourseDetailPage = ({ course, onBack }) => {
                       textShadow: '0 1px 2px rgba(0,0,0,0.3)'
                     }}
                   >
-                    {course.instructor.charAt(0).toUpperCase()}
+                    {(firstInitial || 'I').toString().toUpperCase()}
                   </Typography>
                 </Box>
               </Box>
@@ -720,11 +834,12 @@ const CourseDetailPage = ({ course, onBack }) => {
                     textShadow: '0 1px 2px rgba(0,0,0,0.2)'
                   }}
                 >
-                  {course.instructor}
+                  {names.join(', ')}
                 </Typography>
               </Box>
             </Box>
-          )}
+            ) : null;
+          })()}
 
         </Container>
       </Box>
@@ -1659,10 +1774,13 @@ const MyCourses = () => {
   // Handle course selection from URL parameter
   useEffect(() => {
     const courseId = searchParams.get('courseId');
+    const moduleId = searchParams.get('moduleId');
+    
     if (courseId && (enrolledCourses.length > 0 || completedCourses.length > 0)) {
       const course = [...enrolledCourses, ...completedCourses].find(c => c.id == courseId);
       if (course) {
         setSelectedCourse(course);
+        // If moduleId is provided, we'll handle filtering in CourseDetailPage
       }
     } else if (!courseId && selectedCourse) {
       // If no courseId in URL but we have a selected course, clear it

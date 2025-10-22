@@ -145,6 +145,7 @@ const CreateCourse = () => {
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState([]);
+  const [instructors, setInstructors] = useState([]);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   
   // Form state
@@ -160,6 +161,7 @@ const CreateCourse = () => {
     language: 'ar',
     category: '',
     tags: [],
+    instructors: [],
     
     // Pricing
     is_free: false,
@@ -182,10 +184,11 @@ const CreateCourse = () => {
   
   const [newTag, setNewTag] = useState('');
 
-  // Fetch categories on component mount
+  // Fetch categories and instructors on component mount
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchData = async () => {
       try {
+        // Fetch categories
         const categoriesData = await courseAPI.getCategories();
         console.log('Categories API response:', categoriesData);
         // Ensure categoriesData is an array
@@ -194,19 +197,33 @@ const CreateCourse = () => {
                                categoriesData.data ? categoriesData.data : [];
         console.log('Processed categories array:', categoriesArray);
         setCategories(categoriesArray);
+
+        // Fetch instructors
+        console.log('Fetching instructors...');
+        try {
+          const instructorsData = await courseAPI.getInstructors();
+          console.log('Instructors API response:', instructorsData);
+          console.log('Instructors data type:', typeof instructorsData);
+          console.log('Instructors is array:', Array.isArray(instructorsData));
+          setInstructors(instructorsData);
+        } catch (instructorError) {
+          console.error('Error fetching instructors:', instructorError);
+          setInstructors([]);
+        }
       } catch (error) {
-        console.error('Error fetching categories:', error);
+        console.error('Error fetching data:', error);
         setSnackbar({
           open: true,
-          message: 'خطأ في تحميل التصنيفات',
+          message: 'خطأ في تحميل البيانات',
           severity: 'error'
         });
-        // Set empty array as fallback
+        // Set empty arrays as fallback
         setCategories([]);
+        setInstructors([]);
       }
     };
 
-    fetchCategories();
+    fetchData();
   }, []);
 
   // Fetch subcategories when category changes
@@ -231,6 +248,10 @@ const CreateCourse = () => {
   
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    console.log('HandleChange called:', { name, value, type, checked });
+    if (name === 'instructors') {
+      console.log('Instructors changed:', value);
+    }
     setCourseData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
@@ -281,6 +302,9 @@ const CreateCourse = () => {
       try {
 
         console.log('Submitting course data:', courseData);
+        console.log('Instructors data:', courseData.instructors);
+        console.log('Instructors type:', typeof courseData.instructors);
+        console.log('Instructors is array:', Array.isArray(courseData.instructors));
         const response = await courseAPI.createCourse(courseData);
         console.log('Course created successfully:', response);
         
@@ -453,6 +477,62 @@ const CreateCourse = () => {
                   </Select>
                 </FormControl>
               </Box>
+
+              <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
+                <InputLabel>المدربين</InputLabel>
+                <Select
+                  name="instructors"
+                  multiple
+                  value={courseData.instructors}
+                  onChange={handleChange}
+                  label="المدربين"
+                  sx={{ textAlign: 'right' }}
+                  disabled={instructors.length === 0}
+                  renderValue={(selected) => {
+                    if (!selected || selected.length === 0) {
+                      return <em>اختر المدربين</em>;
+                    }
+                    return (
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                        {selected.map((value) => {
+                          const instructor = instructors.find(inst => inst.id === value);
+                          return (
+                            <Chip 
+                              key={value} 
+                              label={instructor?.name || `Instructor ${value}`} 
+                              size="small"
+                              sx={{ 
+                                backgroundColor: theme.palette.primary.light,
+                                color: theme.palette.primary.contrastText,
+                              }}
+                            />
+                          );
+                        })}
+                      </Box>
+                    );
+                  }}
+                >
+                  {instructors && instructors.length > 0 ? (
+                    instructors.map((instructor) => {
+                      console.log('Rendering instructor:', instructor);
+                      return (
+                        <MenuItem key={instructor.id} value={instructor.id}>
+                          {instructor.name || `Instructor ${instructor.id}`}
+                        </MenuItem>
+                      );
+                    })
+                  ) : (
+                    <MenuItem disabled>
+                      لا يوجد مدربين متاحين
+                    </MenuItem>
+                  )}
+                </Select>
+                {instructors.length === 0 && (
+                  <Typography variant="caption" color="textSecondary" sx={{ mt: 1, display: 'block' }}>
+                    لا يمكن تحميل قائمة المدربين. تأكد من تسجيل الدخول.
+                  </Typography>
+                )}
+              </FormControl>
             </Box>
           </>
         );

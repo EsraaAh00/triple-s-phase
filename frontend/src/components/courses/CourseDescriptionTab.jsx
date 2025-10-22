@@ -70,6 +70,19 @@ const SoftDivider = styled(Box)(({ theme }) => ({
 const CourseDescriptionTab = ({ course, totalLessons }) => {
     const { t } = useTranslation();
     const [overviewSubTab, setOverviewSubTab] = useState(0);
+    
+    console.log('CourseDescriptionTab - totalLessons received:', totalLessons);
+    console.log('CourseDescriptionTab - course:', course);
+    console.log('CourseDescriptionTab - course.modules:', course?.modules);
+    
+    // Calculate total lessons if not provided or is 0
+    const calculatedTotalLessons = totalLessons || (Array.isArray(course?.modules) ? course.modules.reduce((total, module) => {
+        const lessonCount = Array.isArray(module.lessons) ? module.lessons.length : 0;
+        console.log('Calculating lessons for module:', module.title, 'lessons:', lessonCount);
+        return total + lessonCount;
+    }, 0) : 0);
+    
+    console.log('CourseDescriptionTab - calculatedTotalLessons:', calculatedTotalLessons);
 
     const handleOverviewSubTabChange = (e, v) => setOverviewSubTab(v);
 
@@ -129,31 +142,170 @@ const CourseDescriptionTab = ({ course, totalLessons }) => {
 
                     {/* {t('courses.quickInfoCard')} */}
                     <Grid container spacing={{ xs: 1, sm: 2 }} sx={{ mt: 1 }}>
-                        <Grid xs={6} md={3}>
+                        <Grid xs={6} md={4}>
                             <FeatureItem>
                                 <ScheduleIcon />
                                 <Typography variant="body2">{t('coursesDuration')}: {course.duration}</Typography>
                             </FeatureItem>
                         </Grid>
-                        <Grid xs={6} md={3}>
+                        <Grid xs={6} md={4}>
                             <FeatureItem>
                                 <VideoLibraryIcon />
-                                <Typography variant="body2">{t('coursesLectures')}: {totalLessons}</Typography>
+                                <Typography variant="body2">{t('coursesLectures')}: {calculatedTotalLessons}</Typography>
                             </FeatureItem>
                         </Grid>
-                        <Grid xs={6} md={3}>
+                        <Grid xs={6} md={4}>
                             <FeatureItem>
-                                <LanguageIcon />
-                                <Typography variant="body2">{t('coursesLanguage')}: {course.language}</Typography>
-                            </FeatureItem>
-                        </Grid>
-                        <Grid xs={6} md={3}>
-                            <FeatureItem>
-                                <WorkspacePremiumIcon />
-                                <Typography variant="body2">{t('coursesCertificate')}: {t('commonYes')}</Typography>
+                                <VideoLibraryIcon />
+                                <Typography variant="body2">الوحدات: {course.modules?.length || 0}</Typography>
                             </FeatureItem>
                         </Grid>
                     </Grid>
+
+                    {/* المدربين */}
+                    {course.instructors && course.instructors.length > 0 && (
+                        <Box sx={{ 
+                            mt: 3, 
+                            p: 2, 
+                            borderRadius: 2, 
+                            background: 'rgba(77, 191, 179, 0.05)',
+                            border: '1px solid rgba(77, 191, 179, 0.1)'
+                        }}>
+                            <Typography variant="subtitle2" sx={{ 
+                                mb: 1.5, 
+                                color: '#4DBFB3', 
+                                fontWeight: 600,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 0.5
+                            }}>
+                                👨‍🏫 المدربين
+                            </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                                {course.instructors.slice(0, 5).map((instructor, index) => (
+                                    <Box
+                                        key={instructor.id || index}
+                                        sx={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 0.5,
+                                            p: 1,
+                                            borderRadius: 1.5,
+                                            background: 'rgba(255, 255, 255, 0.7)',
+                                            border: '1px solid rgba(77, 191, 179, 0.2)',
+                                            minWidth: 'fit-content'
+                                        }}
+                                    >
+                                        <Box
+                                            sx={{
+                                                width: 32,
+                                                height: 32,
+                                                borderRadius: '50%',
+                                                background: instructor.profile_pic 
+                                                    ? `url(${instructor.profile_pic})` 
+                                                    : 'linear-gradient(135deg, #4DBFB3 0%, #333679 100%)',
+                                                backgroundSize: 'cover',
+                                                backgroundPosition: 'center',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                color: 'white',
+                                                fontSize: '0.9rem',
+                                                fontWeight: 'bold',
+                                                textShadow: '0 2px 4px rgba(0,0,0,0.5)',
+                                                border: '2px solid #fff',
+                                                boxShadow: '0 3px 6px rgba(0,0,0,0.2)',
+                                                position: 'relative',
+                                                '&::after': {
+                                                    content: '""',
+                                                    position: 'absolute',
+                                                    top: 0,
+                                                    left: 0,
+                                                    right: 0,
+                                                    bottom: 0,
+                                                    borderRadius: '50%',
+                                                    background: instructor.profile_pic 
+                                                        ? 'rgba(0, 0, 0, 0.3)' 
+                                                        : 'transparent',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    zIndex: 1
+                                                }
+                                            }}
+                                            title={instructor.name || 'مدرب'}
+                                        >
+                                            <Box sx={{
+                                                position: 'relative',
+                                                zIndex: 2,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                width: '100%',
+                                                height: '100%',
+                                                color: 'white',
+                                                fontSize: '0.9rem',
+                                                fontWeight: 'bold',
+                                                textShadow: '0 2px 4px rgba(0,0,0,0.8)',
+                                                letterSpacing: '0.5px'
+                                            }}>
+                                                {instructor.name ? instructor.name.charAt(0).toUpperCase() : 'م'}
+                                            </Box>
+                                        </Box>
+                                        <Typography variant="caption" sx={{ 
+                                            color: '#333679', 
+                                            fontWeight: 500,
+                                            fontSize: '0.75rem'
+                                        }}>
+                                            {instructor.name || 'مدرب'}
+                                        </Typography>
+                                    </Box>
+                                ))}
+                                {course.instructors.length > 5 && (
+                                    <Box
+                                        sx={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 0.5,
+                                            p: 1,
+                                            borderRadius: 1.5,
+                                            background: 'rgba(224, 224, 224, 0.7)',
+                                            border: '1px solid rgba(189, 189, 189, 0.3)',
+                                            minWidth: 'fit-content'
+                                        }}
+                                    >
+                                        <Box
+                                            sx={{
+                                                width: 32,
+                                                height: 32,
+                                                borderRadius: '50%',
+                                                background: 'linear-gradient(135deg, #e0e0e0 0%, #bdbdbd 100%)',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                color: '#666',
+                                                fontSize: '0.8rem',
+                                                fontWeight: 'bold',
+                                                border: '2px solid #fff',
+                                                boxShadow: '0 3px 6px rgba(0,0,0,0.2)',
+                                                textShadow: '0 1px 2px rgba(0,0,0,0.3)'
+                                            }}
+                                            title={`و ${course.instructors.length - 5} مدربين آخرين`}
+                                        >
+                                            +{course.instructors.length - 5}
+                                        </Box>
+                                        <Typography variant="caption" sx={{ 
+                                            color: '#666', 
+                                            fontWeight: 500,
+                                            fontSize: '0.75rem'
+                                        }}>
+                                            آخرين
+                                        </Typography>
+                                    </Box>
+                                )}
+                            </Box>
+                        </Box>
+                    )}
 
                     <SoftDivider sx={{ my: 3 }} />
 

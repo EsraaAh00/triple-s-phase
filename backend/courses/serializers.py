@@ -257,12 +257,13 @@ class CourseCreateSerializer(serializers.ModelSerializer):
     syllabus_pdf = serializers.FileField(required=False, allow_null=True)
     materials_pdf = serializers.FileField(required=False, allow_null=True)
     tags = serializers.ListField(child=serializers.CharField(), required=False, write_only=True)
+    instructors = serializers.ListField(child=serializers.IntegerField(), required=False, write_only=True)
     
     class Meta:
         model = Course
         fields = [
             'title', 'subtitle', 'description', 'short_description', 'category',
-            'tags', 'level', 'status', 'language', 'price', 'discount_price', 'is_free', 
+            'tags', 'instructors', 'level', 'status', 'language', 'price', 'discount_price', 'is_free', 
             'is_complete_course', 'is_featured', 'is_certified', 'image', 
             'promotional_video', 'syllabus_pdf', 'materials_pdf'
         ]
@@ -289,6 +290,7 @@ class CourseCreateSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
         tags_data = validated_data.pop('tags', [])
+        instructors_data = validated_data.pop('instructors', [])
         
         # Set instructor from request user
         user = self.context['request'].user
@@ -321,8 +323,19 @@ class CourseCreateSerializer(serializers.ModelSerializer):
             # Create the course
             course = Course.objects.create(**validated_data)
             
-            # Add the instructor to the course if exists
-            if instructor:
+            # Add instructors from the form data
+            if instructors_data:
+                for instructor_id in instructors_data:
+                    try:
+                        instructor_obj = Instructor.objects.get(id=instructor_id)
+                        course.instructors.add(instructor_obj)
+                    except Instructor.DoesNotExist:
+                        import logging
+                        logger = logging.getLogger(__name__)
+                        logger.error(f"Instructor with id {instructor_id} not found")
+                        continue
+            # If no instructors from form, add the current user as instructor if they are one
+            elif instructor:
                 course.instructors.add(instructor)
             
             # Add tags if any
@@ -355,12 +368,13 @@ class CourseUpdateSerializer(serializers.ModelSerializer):
     syllabus_pdf = serializers.FileField(required=False, allow_null=True)
     materials_pdf = serializers.FileField(required=False, allow_null=True)
     tags = serializers.ListField(child=serializers.CharField(), required=False, write_only=True)
+    instructors = serializers.ListField(child=serializers.IntegerField(), required=False, write_only=True)
     
     class Meta:
         model = Course
         fields = [
             'title', 'subtitle', 'description', 'short_description', 'category', 
-            'tags', 'level', 'status', 'language', 'price', 'discount_price', 'is_free', 
+            'tags', 'instructors', 'level', 'status', 'language', 'price', 'discount_price', 'is_free', 
             'is_complete_course', 'is_featured', 'is_certified', 'image', 
             'promotional_video', 'syllabus_pdf', 'materials_pdf'
         ]
@@ -368,6 +382,7 @@ class CourseUpdateSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         try:
             tags_data = validated_data.pop('tags', None)
+            instructors_data = validated_data.pop('instructors', None)
             
             # Check if title changed and update slug accordingly
             if 'title' in validated_data and validated_data['title'] != instance.title:
@@ -382,6 +397,20 @@ class CourseUpdateSerializer(serializers.ModelSerializer):
             for attr, value in validated_data.items():
                 setattr(instance, attr, value)
             instance.save()
+            
+            # Update instructors if provided
+            if instructors_data is not None:
+                # Clear existing instructors and add new ones
+                instance.instructors.clear()
+                for instructor_id in instructors_data:
+                    try:
+                        instructor_obj = Instructor.objects.get(id=instructor_id)
+                        instance.instructors.add(instructor_obj)
+                    except Instructor.DoesNotExist:
+                        import logging
+                        logger = logging.getLogger(__name__)
+                        logger.error(f"Instructor with id {instructor_id} not found")
+                        continue
             
             if tags_data is not None:
                 # Clear existing tags and add new ones

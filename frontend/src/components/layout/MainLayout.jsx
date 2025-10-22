@@ -221,9 +221,14 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
                   // Extract modules from response - could be direct array or nested under 'modules' property
                   const modulesData = Array.isArray(modulesResponse) ? modulesResponse : (modulesResponse?.modules || []);
                   console.log(`Extracted modules for course ${course.id}:`, modulesData);
+                  
+                  // Filter to show only main modules (not submodules)
+                  const mainModules = modulesData.filter(module => !module.submodule);
+                  console.log(`Main modules for course ${course.id}:`, mainModules);
+                  
                   return {
                     ...course,
-                    modules: modulesData
+                    modules: mainModules
                   };
                 } catch (error) {
                   console.error(`Error fetching modules for course ${course.id}:`, error);

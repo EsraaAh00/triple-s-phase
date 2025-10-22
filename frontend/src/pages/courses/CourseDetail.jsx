@@ -53,7 +53,6 @@ import Footer from '../../components/layout/Footer';
 import CourseDetailCard from '../../components/courses/CourseDetailCard';
 import CourseDescriptionTab from '../../components/courses/CourseDescriptionTab';
 import CourseContentTab from '../../components/courses/CourseContentTab';
-import CourseDemoTab from '../../components/courses/CourseDemoTab';
 import CourseReviewsTab from '../../components/courses/CourseReviewsTab';
 import CoursePromotionalVideo from '../../components/courses/CoursePromotionalVideo';
 import { courseAPI, cartAPI } from '../../services/courseService';
@@ -748,6 +747,7 @@ const CourseDetail = () => {
             description: apiCourse.description || '',
             longDescription: apiCourse.description || apiCourse.long_description || apiCourse.content || '',
             instructor: apiCourse.instructors?.[0]?.name || apiCourse.instructor?.name || apiCourse.teacher?.name || '',
+            instructors: apiCourse.instructors || [],
             instructorTitle: apiCourse.instructors?.[0]?.bio || apiCourse.instructor?.title || apiCourse.teacher?.title || '',
             instructorBio: apiCourse.instructors?.[0]?.bio || apiCourse.instructor?.bio || apiCourse.teacher?.bio || '',
             instructorAvatar: getImageUrl(apiCourse.instructors?.[0]?.profile_pic || apiCourse.instructor?.profile_pic || apiCourse.teacher?.profile_pic),
@@ -1570,7 +1570,16 @@ const CourseDetail = () => {
         );
     }
 
-    const totalLessons = Array.isArray(course.modules) ? course.modules.reduce((total, module) => total + (Array.isArray(module.lessons) ? module.lessons.length : 0), 0) : 0;
+    const totalLessons = Array.isArray(course.modules) ? course.modules.reduce((total, module) => {
+        console.log('Module:', module);
+        console.log('Module lessons:', module.lessons);
+        const lessonCount = Array.isArray(module.lessons) ? module.lessons.length : 0;
+        console.log('Lesson count for this module:', lessonCount);
+        return total + lessonCount;
+    }, 0) : 0;
+    
+    console.log('Total lessons calculated:', totalLessons);
+    console.log('Course modules:', course.modules);
     const completedLessons = Array.isArray(course.modules) ? course.modules.flatMap(m => Array.isArray(m.lessons) ? m.lessons : []).filter(l => l.completed).length : 0;
     const progress = Math.round((completedLessons / totalLessons) * 100) || 0;
 
@@ -1752,11 +1761,6 @@ const CourseDetail = () => {
                                     iconPosition="start"
                                 />
                                 <Tab
-                                    label={t('courseDetail.demo')}
-                                    icon={<PlayCircleOutline sx={{ fontSize: { xs: 16, sm: 18, md: 20 }, ml: { xs: 0.5, sm: 1 } }} />}
-                                    iconPosition="start"
-                                />
-                                <Tab
                                     label={t('courseDetail.reviews')}
                                     icon={<StarIcon sx={{ fontSize: { xs: 16, sm: 18, md: 20 }, ml: { xs: 0.5, sm: 1 } }} />}
                                     iconPosition="start"
@@ -1788,12 +1792,6 @@ const CourseDetail = () => {
                             )}
 
                             {tabValue === 2 && (
-                                <CourseDemoTab
-                                    course={course}
-                                />
-                            )}
-
-                            {tabValue === 3 && (
                                 <CourseReviewsTab
                                     course={course}
                                     setShowReviewForm={setShowReviewForm}

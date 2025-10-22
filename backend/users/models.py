@@ -82,6 +82,7 @@ class Organization(models.Model):
 
 
 class Instructor(models.Model):
+    name = models.CharField(max_length=2000, blank=True, null=True, help_text="اسم المدرب - يمكن إدخاله مباشرة أو ربطه بملف شخصي")
     profile = models.OneToOneField(Profile, on_delete=models.CASCADE, null=True, blank=True, related_name='instructor')
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True)
     department = models.CharField(max_length=2000, blank=True, null=True)
@@ -95,7 +96,21 @@ class Instructor(models.Model):
         verbose_name_plural = 'Instructors'
     
     def __str__(self):
-        return self.profile.name if self.profile else 'Unnamed Instructor'
+        if self.name:
+            return self.name
+        elif self.profile:
+            return self.profile.name
+        else:
+            return 'Unnamed Instructor'
+    
+    def get_display_name(self):
+        """Get the display name, prioritizing direct name over profile name"""
+        if self.name:
+            return self.name
+        elif self.profile:
+            return self.profile.name
+        else:
+            return 'Unnamed Instructor'
 
 class Student(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True, blank=True)

@@ -151,12 +151,12 @@ class CourseViewSet(ModelViewSet):
                 logger.warning(f"User {user.id} is not authorized to create courses")
                 raise permissions.PermissionDenied("You are not authorized to create courses")
             
-            # Save the course
+            # Save the course (serializer will handle instructors from form data)
             course = serializer.save()
             logger.info(f"Course created with ID: {course.id}")
             
-            # Add the instructor to the course
-            if profile.status == 'Instructor':
+            # If no instructors were added from form data, add the current user as instructor
+            if course.instructors.count() == 0 and profile.status == 'Instructor':
                 try:
                     instructor = Instructor.objects.get(profile=profile)
                     course.instructors.add(instructor)
