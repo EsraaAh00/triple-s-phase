@@ -488,10 +488,10 @@ const StudentDashboard = () => {
                     </Box>
                       <Box>
                         <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500, mb: 0.5 }}>
-                          Flashcards
+                          {t('navFlashcards')}
             </Typography>
                         <Typography variant="caption" sx={{ color: '#666', fontSize: '0.75rem' }}>
-                          Study with flashcards
+                          {t('dashboardStudyWithFlashcards')}
                     </Typography>
                   </Box>
                 </Box>
@@ -541,10 +541,10 @@ const StudentDashboard = () => {
                       </Box>
                       <Box>
                         <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500, mb: 0.5 }}>
-                          Questions Bank
+                          {t('navQuestionBank')}
                         </Typography>
                         <Typography variant="caption" sx={{ color: '#666', fontSize: '0.75rem' }}>
-                          Practice questions
+                          {t('dashboardPracticeQuestions')}
                       </Typography>
                     </Box>
                   </Box>
@@ -594,10 +594,10 @@ const StudentDashboard = () => {
                       </Box>
                   <Box>
                         <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500, mb: 0.5 }}>
-                          Self Assessment
+                          {t('dashboardSelfAssessment')}
                     </Typography>
                         <Typography variant="caption" sx={{ color: '#666', fontSize: '0.75rem' }}>
-                          Test your knowledge
+                          {t('dashboardTestYourKnowledge')}
                       </Typography>
                     </Box>
                   </Box>
@@ -650,10 +650,10 @@ const StudentDashboard = () => {
                     </Box>
                       <Box>
                         <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500, mb: 0.5 }}>
-                          Schedule
+                          {t('dashboardSchedule')}
                         </Typography>
                         <Typography variant="caption" sx={{ color: '#666', fontSize: '0.75rem' }}>
-                          Manage your time
+                          {t('dashboardManageYourTime')}
                     </Typography>
                   </Box>
                 </Box>
@@ -703,10 +703,10 @@ const StudentDashboard = () => {
                       </Box>
                       <Box>
                         <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500, mb: 0.5 }}>
-                          Performance
+                          {t('dashboardPerformance')}
                         </Typography>
                         <Typography variant="caption" sx={{ color: '#666', fontSize: '0.75rem' }}>
-                          Track progress
+                          {t('dashboardTrackProgress')}
                       </Typography>
                     </Box>
                   </Box>
@@ -756,10 +756,10 @@ const StudentDashboard = () => {
                       </Box>
                   <Box>
                         <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500, mb: 0.5 }}>
-                          Freeze
+                          {t('dashboardFreeze')}
                     </Typography>
                         <Typography variant="caption" sx={{ color: '#666', fontSize: '0.75rem' }}>
-                          Pause subscription
+                          {t('dashboardPauseSubscription')}
                       </Typography>
                     </Box>
                   </Box>
@@ -951,7 +951,7 @@ const StudentDashboard = () => {
                                   }} />
                                 </Box>
                                 <Typography variant="caption" sx={{ color: '#666', fontSize: '0.75rem' }}>
-                                  0 questions tagged
+                                  {t('dashboardQuestionsTagged', { count: 0 })}
                                 </Typography>
                               </Box>
                             </Box>
@@ -975,7 +975,7 @@ const StudentDashboard = () => {
                                   }} />
                                 </Box>
                                 <Typography variant="caption" sx={{ color: '#666', fontSize: '0.75rem' }}>
-                                  0 lessons completed
+                                  {t('dashboardLessonsCompleted', { count: 0 })}
                                 </Typography>
                                   </Box>
                             </Box>
@@ -997,7 +997,7 @@ const StudentDashboard = () => {
                           textTransform: 'uppercase',
                           mb: 1
                         }}>
-                          CONTENT EXPERTS
+                          {t('dashboardContentExperts')}
                         </Typography>
                         
                         {/* Instructor Avatars and Arrow */}
@@ -1006,7 +1006,7 @@ const StudentDashboard = () => {
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                               <Box sx={{ width: 32, height: 32, borderRadius: '50%', backgroundColor: '#f0f0f0' }} />
                               <Typography variant="caption" sx={{ color: '#666' }}>
-                                Loading...
+                                {t('commonLoading')}
                               </Typography>
                             </Box>
                           ) : (
@@ -1069,13 +1069,13 @@ const StudentDashboard = () => {
                           fontWeight: 500
                         }}>
                           {instructorsLoading ? (
-                            'Loading instructors...'
+                            t('dashboardLoadingInstructors')
                           ) : instructors && instructors.length > 0 ? 
                             instructors.slice(0, 3).map(instructor => {
-                              const name = instructor.first_name || instructor.username || instructor.name || 'Instructor';
+                              const name = instructor.first_name || instructor.username || instructor.name || t('commonInstructor');
                               return name;
-                            }).join(', ') + (instructors.length > 3 ? ' & more' : '') :
-                            'Instructors'
+                            }).join(', ') + (instructors.length > 3 ? ` ${t('commonAnd')} ${t('commonMore')}` : '') :
+                            t('commonInstructors')
                           }
                         </Typography>
                       </Box>
@@ -1098,10 +1098,10 @@ const StudentDashboard = () => {
                       opacity: 0.6
                     }} />
                     <Typography variant="h6" color="text.secondary" sx={{ mb: 1, fontWeight: 600 }}>
-                        No Modules Available
+                        {t('dashboardNoModulesAvailable')}
                                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                        This course doesn't have any modules yet
+                        {t('dashboardNoModulesDescription')}
                                     </Typography>
                                   </Box>
                   )}

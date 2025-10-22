@@ -74,13 +74,13 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
     { text: t('navHome'), icon: <HomeIcon />, path: '/', exact: true },
     { text: t('navDashboard'), icon: <DashboardIcon />, path: '/student/dashboard' },
     // Courses will be dynamically added below
-    { text: 'Flashcards', icon: <FlashcardsIcon /> },
-    { text: 'Q.B', icon: <QBIcon /> },
-    { text: 'Performance', icon: <PerformanceIcon /> },
-    { text: 'Freeze', icon: <FreezeIcon /> },
-    { text: 'FAQs', icon: <FAQsIcon /> },
-    { text: 'Review', icon: <ReviewIcon /> },
-    { text: 'Contact us', icon: <ContactUsIcon /> },
+    { text: t('navFlashcards'), icon: <FlashcardsIcon /> },
+    { text: t('navQuestionBank'), icon: <QBIcon /> },
+    { text: t('dashboardPerformance'), icon: <PerformanceIcon /> },
+    { text: t('dashboardFreeze'), icon: <FreezeIcon /> },
+    { text: t('navFAQ'), icon: <FAQsIcon /> },
+    { text: t('navReview'), icon: <ReviewIcon /> },
+    { text: t('navContact'), icon: <ContactUsIcon /> },
     // { text: t('navMyMeetings'), icon: <VideoCallIcon />, path: '/student/meetings' },
     { text: t('navSettings'), icon: <SettingsIcon />, path: '/student/settings' },
   ];
@@ -508,7 +508,7 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
                     ) : (
                       <ListItemButton disabled sx={{ py: { xs: 0.5, sm: 1 } }}>
                         <ListItemText 
-                          primary="No modules available" 
+                          primary={t('dashboardNoModulesAvailable')} 
                           sx={{ 
                             fontSize: { xs: '12px', sm: '14px' }, 
                             color: '#999' 

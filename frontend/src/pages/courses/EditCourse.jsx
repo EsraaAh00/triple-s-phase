@@ -138,7 +138,12 @@ const LANGUAGE_OPTIONS = [
   { value: 'fr', label: 'Français' },
 ];
 
-const steps = ['المعلومات الأساسية', 'الوسائط والمحتوى', 'الأسعار والخصومات', 'المراجعة والنشر'];
+const steps = [
+  'courseBasicInformation',
+  'courseMediaAndContent', 
+  'coursePricingAndDiscounts',
+  'courseReviewInformation'
+];
 
 const EditCourse = () => {
   const theme = useTheme();
@@ -505,12 +510,12 @@ const EditCourse = () => {
         return (
           <>
             <Typography variant="h6" gutterBottom sx={{ mb: 3, fontWeight: 600, color: theme.palette.primary.main }}>
-              المعلومات الأساسية
+              {t('courseBasicInformation')}
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
               <StyledTextField
                 fullWidth
-                label="عنوان الدورة"
+                label={t('courseTitle')}
                 name="title"
                 value={courseData.title}
                 onChange={handleChange}
@@ -522,7 +527,7 @@ const EditCourse = () => {
               
               <StyledTextField
                 fullWidth
-                label="وصف قصير"
+                label={t('courseShortDescription')}
                 name="subtitle"
                 value={courseData.subtitle}
                 onChange={handleChange}
@@ -534,7 +539,7 @@ const EditCourse = () => {
               
               <StyledTextField
                 fullWidth
-                label="الوصف الكامل"
+                label={t('courseFullDescription')}
                 name="description"
                 value={courseData.description}
                 onChange={handleChange}
@@ -546,12 +551,12 @@ const EditCourse = () => {
               
               <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', sm: 'row' } }}>
                 <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
-                  <InputLabel>مستوى الصعوبة</InputLabel>
+                  <InputLabel>{t('courseDifficultyLevel')}</InputLabel>
                   <Select
                     name="level"
                     value={courseData.level}
                     onChange={handleChange}
-                    label="مستوى الصعوبة"
+                    label={t('courseDifficultyLevel')}
                     sx={{ textAlign: 'right' }}
                   >
                     {LEVEL_OPTIONS.map((option) => (
@@ -563,12 +568,12 @@ const EditCourse = () => {
                 </FormControl>
                 
                 <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
-                  <InputLabel>اللغة</InputLabel>
+                  <InputLabel>{t('courseLanguage')}</InputLabel>
                   <Select
                     name="language"
                     value={courseData.language}
                     onChange={handleChange}
-                    label="اللغة"
+                    label={t('courseLanguage')}
                     sx={{ textAlign: 'right' }}
                   >
                     {LANGUAGE_OPTIONS.map((option) => (
@@ -581,16 +586,16 @@ const EditCourse = () => {
               </Box>
               
               <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
-                <InputLabel>التصنيف</InputLabel>
+                <InputLabel>{t('courseCategory')}</InputLabel>
                 <Select
                   name="category"
                   value={courseData.category}
                   onChange={handleChange}
-                  label="التصنيف"
+                  label={t('courseCategory')}
                   sx={{ textAlign: 'right' }}
                 >
                   <MenuItem value="">
-                    <em>اختر تصنيف</em>
+                    <em>{t('courseSelectCategory')}</em>
                   </MenuItem>
                   {Array.isArray(categories) && categories.map((category) => (
                     <MenuItem key={category.id} value={category.id}>
@@ -601,18 +606,18 @@ const EditCourse = () => {
               </FormControl>
 
               <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
-                <InputLabel>المدربين</InputLabel>
+                <InputLabel>{t('courseInstructors')}</InputLabel>
                 <Select
                   name="instructors"
                   multiple
                   value={courseData.instructors}
                   onChange={handleChange}
-                  label="المدربين"
+                  label={t('courseInstructors')}
                   sx={{ textAlign: 'right' }}
                   disabled={instructors.length === 0}
                   renderValue={(selected) => {
                     if (!selected || selected.length === 0) {
-                      return <em>اختر المدربين</em>;
+                      return <em>{t('courseSelectInstructors')}</em>;
                     }
                     return (
                       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
@@ -645,24 +650,24 @@ const EditCourse = () => {
                     })
                   ) : (
                     <MenuItem disabled>
-                      لا يوجد مدربين متاحين
+                      {t('courseNoInstructorsAvailable')}
                     </MenuItem>
                   )}
                 </Select>
                 {instructors.length === 0 && (
                   <Typography variant="caption" color="textSecondary" sx={{ mt: 1, display: 'block' }}>
-                    لا يمكن تحميل قائمة المدربين. تأكد من تسجيل الدخول.
+                    {t('courseCannotLoadInstructors')}
                   </Typography>
                 )}
               </FormControl>
               
               
               <Box sx={{ mb: 2 }}>
-                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>الكلمات المفتاحية</Typography>
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>{t('courseKeywords')}</Typography>
                 <Box sx={{ display: 'flex', gap: 1, mb: 1, flexDirection: 'row-reverse' }}>
                   <StyledTextField
                     fullWidth
-                    placeholder="أضف كلمة مفتاحية"
+                    placeholder={t('courseAddKeyword')}
                     value={newTag}
                     onChange={(e) => setNewTag(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
@@ -676,7 +681,7 @@ const EditCourse = () => {
                     startIcon={<AddIcon />}
                     sx={{ minWidth: '120px' }}
                   >
-                    إضافة
+                    {t('commonAdd')}
                   </Button>
                 </Box>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
@@ -707,11 +712,11 @@ const EditCourse = () => {
         return (
           <>
             <Typography variant="h6" gutterBottom sx={{ mb: 3, fontWeight: 600, color: theme.palette.primary.main }}>
-              الوسائط والمحتوى
+              {t('courseMediaAndContent')}
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
               <Box sx={{ mb: 2 }}>
-                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>صورة الغلاف</Typography>
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>{t('courseCoverImage')}</Typography>
                 <UploadArea 
                   isDragActive={isDragging}
                   onDragOver={handleDragOver}
@@ -741,7 +746,7 @@ const EditCourse = () => {
                         }} 
                       />
                       <Typography variant="body2" color="textSecondary">
-                        انقر لتغيير الصورة أو اسحب صورة جديدة
+                        {t('courseClickToChangeImage')}
                       </Typography>
                     </Box>
                   ) : courseData.imageUrl ? (
@@ -758,17 +763,17 @@ const EditCourse = () => {
                         }} 
                       />
                       <Typography variant="body2" color="textSecondary">
-                        انقر لتغيير الصورة أو اسحب صورة جديدة
+                        {t('courseClickToChangeImage')}
                       </Typography>
                     </Box>
                   ) : (
                     <Box textAlign="center" p={3}>
                       <ImageIcon color="action" fontSize="large" sx={{ fontSize: 48, mb: 1 }} />
                       <Typography variant="body1" sx={{ mt: 1, mb: 1, fontWeight: 500 }}>
-                        اسحب صورة الدورة هنا أو انقر للاختيار
+                        {t('courseDragImageHere')}
                       </Typography>
                       <Typography variant="body2" color="textSecondary">
-                        يوصى بصورة بدقة 1280x720 بكسل
+                        {t('courseRecommendedImageSize')}
                       </Typography>
                     </Box>
                   )}
@@ -777,7 +782,7 @@ const EditCourse = () => {
               
               <Box sx={{ mb: 2 }}>
                 <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-                  الفيديو التعريفي
+                  {t('coursePromotionalVideo')}
                 </Typography>
                 
                 {/* Bunny CDN Video Selector */}
@@ -785,7 +790,7 @@ const EditCourse = () => {
                   value={courseData.bunnyPromotionalVideoId}
                   onChange={(value) => setCourseData(prev => ({ ...prev, bunnyPromotionalVideoId: value }))}
                   label="Bunny Video ID"
-                  placeholder="أدخل Bunny Video ID"
+                  placeholder={t('courseEnterBunnyVideoId')}
                   onVideoSelect={handleBunnyVideoSelect}
                   showPreview={true}
                 />
@@ -793,7 +798,7 @@ const EditCourse = () => {
                 {/* Fallback: External Video URL */}
                 <StyledTextField
                   fullWidth
-                  label="رابط الفيديو التعريفي الخارجي (اختياري)"
+                  label={t('courseExternalVideoUrl')}
                   name="promotionalVideo"
                   value={courseData.promotionalVideo}
                   onChange={handleChange}
@@ -807,7 +812,7 @@ const EditCourse = () => {
               </Box>
               
               <Box sx={{ mb: 2 }}>
-                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>الملفات المرفقة</Typography>
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>{t('courseAttachedFiles')}</Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   <Box>
                     <input
@@ -825,7 +830,7 @@ const EditCourse = () => {
                       sx={{ width: '100%', justifyContent: 'flex-start' }}
                     >
                       {courseData.syllabusPdf ? courseData.syllabusPdf.name : 
-                       courseData.syllabusPdfUrl ? 'منهج الدورة (تم رفعه مسبقاً)' : 'رفع منهج الدورة (PDF)'}
+                       courseData.syllabusPdfUrl ? t('courseSyllabusUploaded') : t('courseUploadSyllabus')}
                     </Button>
                   </Box>
                   
@@ -845,7 +850,7 @@ const EditCourse = () => {
                       sx={{ width: '100%', justifyContent: 'flex-start' }}
                     >
                       {courseData.materialsPdf ? courseData.materialsPdf.name : 
-                       courseData.materialsPdfUrl ? 'المواد التعليمية (تم رفعها مسبقاً)' : 'رفع المواد التعليمية (PDF)'}
+                       courseData.materialsPdfUrl ? t('courseMaterialsUploaded') : t('courseUploadMaterials')}
                     </Button>
                   </Box>
                 </Box>
@@ -858,7 +863,7 @@ const EditCourse = () => {
         return (
           <>
             <Typography variant="h6" gutterBottom sx={{ mb: 3, fontWeight: 600, color: theme.palette.primary.main }}>
-              الأسعار والخصومات
+              {t('coursePricingAndDiscounts')}
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
               <FormControlLabel
@@ -870,7 +875,7 @@ const EditCourse = () => {
                     color="primary"
                   />
                 }
-                label="هذه الدورة مجانية"
+                label={t('courseIsFree')}
                 sx={{ mb: 2 }}
               />
               
@@ -878,7 +883,7 @@ const EditCourse = () => {
                 <>
                   <StyledTextField
                     fullWidth
-                    label="سعر الدورة (بالدولار)"
+                    label={t('coursePriceInDollars')}
                     name="price"
                     type="number"
                     value={courseData.price}
@@ -893,7 +898,7 @@ const EditCourse = () => {
                   
                   <StyledTextField
                     fullWidth
-                    label="سعر مخفض (اختياري)"
+                    label={t('courseDiscountPrice')}
                     name="discountPrice"
                     type="number"
                     value={courseData.discountPrice || ''}
@@ -903,23 +908,11 @@ const EditCourse = () => {
                     InputProps={{
                       startAdornment: '$‎',
                     }}
-                    helperText="سيتم عرض السعر الأصلي مشطوبًا بجانب السعر المخفض"
+                    helperText={t('courseDiscountPriceHelper')}
                   />
                 </>
               )}
               
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={courseData.isCertified}
-                    onChange={handleChange}
-                    name="isCertified"
-                    color="primary"
-                  />
-                }
-                label="منح شهادة إكمال للدورة"
-                sx={{ mb: 2 }}
-              />
               
               <FormControlLabel
                 control={
@@ -930,7 +923,7 @@ const EditCourse = () => {
                     color="primary"
                   />
                 }
-                label="إظهار الدورة في الصفحة الرئيسية"
+                label={t('courseShowOnHomepage')}
                 sx={{ mb: 2 }}
               />
             </Box>
@@ -941,33 +934,33 @@ const EditCourse = () => {
         return (
           <>
             <Typography variant="h6" gutterBottom sx={{ mb: 3, fontWeight: 600, color: theme.palette.primary.main }}>
-              مراجعة المعلومات
+              {t('courseReviewInformation')}
             </Typography>
             <Box sx={{ mb: 4 }}>
               <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600, color: theme.palette.text.primary }}>
-                معلومات الدورة
+                {t('courseInformation')}
               </Typography>
               <Box sx={{ backgroundColor: theme.palette.background.paper, p: 3, borderRadius: 2, mb: 3 }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', pb: 1, borderBottom: `1px solid ${theme.palette.divider}` }}>
-                    <Typography variant="body2" color="textSecondary">العنوان:</Typography>
+                    <Typography variant="body2" color="textSecondary">{t('courseTitle')}:</Typography>
                     <Typography variant="body1" fontWeight={500}>{courseData.title}</Typography>
                   </Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', pb: 1, borderBottom: `1px solid ${theme.palette.divider}` }}>
-                    <Typography variant="body2" color="textSecondary">الوصف القصير:</Typography>
+                    <Typography variant="body2" color="textSecondary">{t('courseShortDescription')}:</Typography>
                     <Typography variant="body1" fontWeight={500} sx={{ maxWidth: '60%', textAlign: 'left' }}>{courseData.subtitle}</Typography>
                   </Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', pb: 1, borderBottom: `1px solid ${theme.palette.divider}` }}>
-                    <Typography variant="body2" color="textSecondary">المستوى:</Typography>
+                    <Typography variant="body2" color="textSecondary">{t('courseLevel')}:</Typography>
                     <Typography variant="body1" fontWeight={500}>
                       {LEVEL_OPTIONS.find(level => level.value === courseData.level)?.label}
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="body2" color="textSecondary">السعر:</Typography>
+                    <Typography variant="body2" color="textSecondary">{t('coursePrice')}:</Typography>
                     <Typography variant="body1" fontWeight={500}>
                       {courseData.isFree 
-                        ? 'مجاناً' 
+                        ? t('courseFree') 
                         : courseData.discountPrice 
                           ? `$${courseData.discountPrice} (بعد الخصم من $${courseData.price})` 
                           : `$${courseData.price}`}
@@ -983,7 +976,7 @@ const EditCourse = () => {
                   onClick={() => setActiveStep(0)}
                   startIcon={<EditIcon />}
                 >
-                  تعديل المعلومات
+                  {t('courseEditInformation')}
                 </Button>
               </Box>
             </Box>
@@ -991,20 +984,20 @@ const EditCourse = () => {
         );
       
       default:
-        return 'خطأ في تحميل الخطوة';
+        return t('courseStepLoadError');
     }
   };
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-        <Tooltip title="رجوع">
+        <Tooltip title={t('commonBack')}>
           <IconButton onClick={() => navigate(-1)} sx={{ ml: 2 }}>
             <ArrowBackIcon />
           </IconButton>
         </Tooltip>
         <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
-          تعديل الدورة
+          {t('courseEditCourse')}
         </Typography>
       </Box>
       
@@ -1091,7 +1084,7 @@ const EditCourse = () => {
                         px: 1,
                       }}
                     >
-                      {label}
+                      {t(label)}
                     </Typography>
                   </Box>
                 ))}
@@ -1111,7 +1104,7 @@ const EditCourse = () => {
                 sx={{ mr: 1 }}
                 startIcon={<ArrowBackIcon />}
               >
-                السابق
+                {t('commonPrevious')}
               </Button>
               
               <Box sx={{ flex: '1 1 auto' }} />
@@ -1124,7 +1117,7 @@ const EditCourse = () => {
                 disabled={isSubmitting}
                 sx={{ minWidth: '150px' }}
               >
-                {activeStep === steps.length - 1 ? (isSubmitting ? 'جاري الحفظ...' : 'حفظ التغييرات') : 'التالي'}
+                {activeStep === steps.length - 1 ? (isSubmitting ? t('courseSaving') : t('courseSaveChanges')) : t('commonNext')}
               </Button>
             </Box>
           </StyledPaper>
