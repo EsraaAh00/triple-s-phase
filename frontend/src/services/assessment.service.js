@@ -45,6 +45,9 @@ const ASSESSMENT_API = {
   FLASHCARD_CHAPTER_DETAIL: (id) => `/api/assessment/flashcard-chapters/${id}/`,
   FLASHCARD_TOPICS: '/api/assessment/flashcard-topics/',
   FLASHCARD_TOPIC_DETAIL: (id) => `/api/assessment/flashcard-topics/${id}/`,
+  
+  // Enrollment Status API
+  ENROLLMENT_STATUS: '/api/assessment/enrollment-status/',
 };
 
 class AssessmentService {
@@ -1220,6 +1223,32 @@ class AssessmentService {
       return {
         success: false,
         error: error.response?.data?.message || 'Failed to delete topic'
+      };
+    }
+  }
+
+  // ==================== ENROLLMENT STATUS ====================
+  
+  /**
+   * Check enrollment status for Question Bank and Flashcards
+   * @returns {Promise<Object>} Enrollment status data
+   */
+  async checkEnrollmentStatus() {
+    try {
+      const response = await api.get(ASSESSMENT_API.ENROLLMENT_STATUS);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      console.error('Error checking enrollment status:', error);
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Failed to check enrollment status',
+        data: {
+          questionBank: { is_enrolled: false, enrollments_count: 0 },
+          flashcards: { is_enrolled: false, enrollments_count: 0 }
+        }
       };
     }
   }

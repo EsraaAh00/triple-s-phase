@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
+from django_filters import rest_framework as filters
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django.db.models import Q, Count, Avg, Sum
 from django.utils import timezone
@@ -35,6 +36,57 @@ class StandardResultsSetPagination(PageNumberPagination):
     page_size = 20
     page_size_query_param = 'page_size'
     max_page_size = 100
+
+
+class QuestionBankFilter(filters.FilterSet):
+    """Custom filter for QuestionBank to support multiple product and topic filtering"""
+    product__in = filters.BaseInFilter(field_name='product', lookup_expr='in')
+    topic__in = filters.BaseInFilter(field_name='topic', lookup_expr='in')
+    chapter__in = filters.BaseInFilter(field_name='topic__chapter', lookup_expr='in')
+    random = filters.BooleanFilter(method='filter_random')
+    
+    class Meta:
+        model = QuestionBank
+        fields = ['question_type', 'difficulty_level', 'product', 'topic', 'created_by', 'product__in', 'topic__in', 'chapter__in', 'random']
+    
+    def __init__(self, data=None, queryset=None, *, request=None, prefix=None):
+        super().__init__(data, queryset, request=request, prefix=prefix)
+        print(f"=== QuestionBankFilter __init__ ===")
+        print(f"Data: {data}")
+        print(f"Initial queryset count: {queryset.count() if queryset else 'None'}")
+    
+    def filter_random(self, queryset, name, value):
+        """Filter for random ordering"""
+        print(f"=== QuestionBankFilter filter_random ===")
+        print(f"Random value: {value}")
+        print(f"Queryset count before random: {queryset.count()}")
+        if value:
+            result = queryset.order_by('?')
+            print(f"Queryset count after random: {result.count()}")
+            return result
+        return queryset
+    
+    def filter_product__in(self, queryset, name, value):
+        """Filter for multiple products"""
+        print(f"=== QuestionBankFilter filter_product__in ===")
+        print(f"Product IDs: {value}")
+        print(f"Queryset count before product filter: {queryset.count()}")
+        if value:
+            result = queryset.filter(product__in=value)
+            print(f"Queryset count after product filter: {result.count()}")
+            return result
+        return queryset
+    
+    def filter_topic__in(self, queryset, name, value):
+        """Filter for multiple topics"""
+        print(f"=== QuestionBankFilter filter_topic__in ===")
+        print(f"Topic IDs: {value}")
+        print(f"Queryset count before topic filter: {queryset.count()}")
+        if value:
+            result = queryset.filter(topic__in=value)
+            print(f"Queryset count after topic filter: {result.count()}")
+            return result
+        return queryset
 
 
 class AssessmentViewSet(viewsets.ModelViewSet):
@@ -217,7 +269,7 @@ class QuestionBankViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['question_type', 'difficulty_level', 'product', 'topic', 'created_by']
+    filterset_class = QuestionBankFilter
     search_fields = ['question_text', 'tags', 'product__title', 'topic__title']
     ordering_fields = ['created_at', 'difficulty_level']
     ordering = ['-created_at']
@@ -227,14 +279,34 @@ class QuestionBankViewSet(viewsets.ModelViewSet):
         queryset = super().get_queryset()
         user = self.request.user
         
-        # Students can only see questions from published assessments
-        if hasattr(user, 'profile') and user.profile.status == 'Student':
-            # Only show questions that are part of published assessments
-            queryset = queryset.filter(
-                assessment_questions__assessment__status='published'
-            ).distinct()
+        print(f"=== QuestionBankViewSet get_queryset ===")
+        print(f"Request params: {self.request.query_params}")
+        print(f"User: {user}")
+        print(f"User ID: {user.id}")
+        print(f"User username: {user.username}")
+        print(f"User has profile: {hasattr(user, 'profile')}")
+        if hasattr(user, 'profile'):
+            print(f"Profile status: {user.profile.status}")
+        print(f"Initial queryset count: {queryset.count()}")
         
-        return queryset.select_related('created_by')
+        # Students can see questions from published products OR from published assessments
+        if hasattr(user, 'profile') and user.profile.status == 'Student':
+            # Show questions from published products OR from published assessments
+            queryset = queryset.filter(
+                Q(product__status='published') | 
+                Q(assessment_questions__assessment__status='published')
+            ).distinct()
+            print(f"After student filter count: {queryset.count()}")
+        else:
+            # For teachers/admins, show all questions
+            print(f"Teacher/Admin access - showing all questions")
+            print(f"User has profile: {hasattr(user, 'profile')}")
+            if hasattr(user, 'profile'):
+                print(f"Profile status: {user.profile.status}")
+        
+        final_queryset = queryset.select_related('created_by', 'product', 'topic')
+        print(f"Final queryset count: {final_queryset.count()}")
+        return final_queryset
     
     def perform_create(self, serializer):
         """Set the creator when creating a question"""
@@ -469,7 +541,7 @@ class FlashcardViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['created_by', 'product', 'topic']
+    filterset_fields = ['created_by', 'product', 'topic', 'product__status']
     search_fields = ['front_text', 'back_text']
     ordering_fields = ['created_at']
     ordering = ['-created_at']
@@ -479,11 +551,27 @@ class FlashcardViewSet(viewsets.ModelViewSet):
         queryset = super().get_queryset()
         user = self.request.user
         
-        # Students can see flashcards from published assessments
+        # Students can see flashcards from published products or assessments
         if hasattr(user, 'profile') and user.profile.status == 'Student':
+            # Show flashcards from published products OR from published assessments
             queryset = queryset.filter(
-                related_question__assessment_questions__assessment__status='published'
+                Q(product__status='published') | 
+                Q(related_question__assessment_questions__assessment__status='published')
             ).distinct()
+        else:
+            # For users without profile or non-students, show all flashcards
+            # This ensures the API works for testing and development
+            pass
+        
+        # Apply additional filtering based on query parameters
+        product_ids = self.request.query_params.getlist('product')
+        topic_ids = self.request.query_params.getlist('topic')
+        
+        if product_ids:
+            queryset = queryset.filter(product__id__in=product_ids)
+        
+        if topic_ids:
+            queryset = queryset.filter(topic__id__in=topic_ids)
         
         return queryset.select_related('created_by', 'related_question', 'product', 'topic', 'topic__chapter')
     
@@ -673,6 +761,39 @@ class QuestionBankTopicViewSet(viewsets.ModelViewSet):
         
         serializer = self.get_serializer(topics, many=True)
         return Response(serializer.data)
+
+
+# Enrollment Status API
+from rest_framework.decorators import api_view, permission_classes
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def check_enrollment_status(request):
+    """Check enrollment status for Question Bank and Flashcards"""
+    user = request.user
+    
+    # Check Question Bank enrollment
+    question_bank_enrollments = QuestionBankProductEnrollment.objects.filter(
+        student=user,
+        status__in=['active', 'completed']
+    )
+    
+    # Check Flashcard enrollment
+    flashcard_enrollments = FlashcardProductEnrollment.objects.filter(
+        student=user,
+        status__in=['active', 'completed']
+    )
+    
+    return Response({
+        'questionBank': {
+            'is_enrolled': question_bank_enrollments.exists(),
+            'enrollments_count': question_bank_enrollments.count()
+        },
+        'flashcards': {
+            'is_enrolled': flashcard_enrollments.exists(),
+            'enrollments_count': flashcard_enrollments.count()
+        }
+    })
     
     @action(detail=False, methods=['get'])
     def by_product(self, request):
@@ -685,6 +806,39 @@ class QuestionBankTopicViewSet(viewsets.ModelViewSet):
         
         serializer = self.get_serializer(topics, many=True)
         return Response(serializer.data)
+
+
+# Enrollment Status API
+from rest_framework.decorators import api_view, permission_classes
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def check_enrollment_status(request):
+    """Check enrollment status for Question Bank and Flashcards"""
+    user = request.user
+    
+    # Check Question Bank enrollment
+    question_bank_enrollments = QuestionBankProductEnrollment.objects.filter(
+        student=user,
+        status__in=['active', 'completed']
+    )
+    
+    # Check Flashcard enrollment
+    flashcard_enrollments = FlashcardProductEnrollment.objects.filter(
+        student=user,
+        status__in=['active', 'completed']
+    )
+    
+    return Response({
+        'questionBank': {
+            'is_enrolled': question_bank_enrollments.exists(),
+            'enrollments_count': question_bank_enrollments.count()
+        },
+        'flashcards': {
+            'is_enrolled': flashcard_enrollments.exists(),
+            'enrollments_count': flashcard_enrollments.count()
+        }
+    })
 
 
 class FlashcardChapterViewSet(viewsets.ModelViewSet):
@@ -785,6 +939,39 @@ class FlashcardTopicViewSet(viewsets.ModelViewSet):
         
         serializer = self.get_serializer(topics, many=True)
         return Response(serializer.data)
+
+
+# Enrollment Status API
+from rest_framework.decorators import api_view, permission_classes
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def check_enrollment_status(request):
+    """Check enrollment status for Question Bank and Flashcards"""
+    user = request.user
+    
+    # Check Question Bank enrollment
+    question_bank_enrollments = QuestionBankProductEnrollment.objects.filter(
+        student=user,
+        status__in=['active', 'completed']
+    )
+    
+    # Check Flashcard enrollment
+    flashcard_enrollments = FlashcardProductEnrollment.objects.filter(
+        student=user,
+        status__in=['active', 'completed']
+    )
+    
+    return Response({
+        'questionBank': {
+            'is_enrolled': question_bank_enrollments.exists(),
+            'enrollments_count': question_bank_enrollments.count()
+        },
+        'flashcards': {
+            'is_enrolled': flashcard_enrollments.exists(),
+            'enrollments_count': flashcard_enrollments.count()
+        }
+    })
     
     @action(detail=False, methods=['get'])
     def by_product(self, request):
@@ -797,3 +984,36 @@ class FlashcardTopicViewSet(viewsets.ModelViewSet):
         
         serializer = self.get_serializer(topics, many=True)
         return Response(serializer.data)
+
+
+# Enrollment Status API
+from rest_framework.decorators import api_view, permission_classes
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def check_enrollment_status(request):
+    """Check enrollment status for Question Bank and Flashcards"""
+    user = request.user
+    
+    # Check Question Bank enrollment
+    question_bank_enrollments = QuestionBankProductEnrollment.objects.filter(
+        student=user,
+        status__in=['active', 'completed']
+    )
+    
+    # Check Flashcard enrollment
+    flashcard_enrollments = FlashcardProductEnrollment.objects.filter(
+        student=user,
+        status__in=['active', 'completed']
+    )
+    
+    return Response({
+        'questionBank': {
+            'is_enrolled': question_bank_enrollments.exists(),
+            'enrollments_count': question_bank_enrollments.count()
+        },
+        'flashcards': {
+            'is_enrolled': flashcard_enrollments.exists(),
+            'enrollments_count': flashcard_enrollments.count()
+        }
+    })

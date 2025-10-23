@@ -79,10 +79,30 @@ class QuestionBankProductEnrollmentViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['is_active', 'product', 'student']
+    filterset_fields = ['status', 'product', 'student']
     search_fields = ['student__username', 'student__email', 'product__title']
-    ordering_fields = ['enrolled_at']
-    ordering = ['-enrolled_at']
+    ordering_fields = ['enrollment_date']
+    ordering = ['-enrollment_date']
+    
+    @action(detail=False, methods=['get'])
+    def check_enrollment(self, request):
+        """Check if current user is enrolled in any question bank products"""
+        user = request.user
+        enrollments = self.get_queryset().filter(
+            student=user,
+            status__in=['active', 'completed']
+        )
+        
+        if enrollments.exists():
+            return Response({
+                'is_enrolled': True,
+                'enrollments': self.get_serializer(enrollments, many=True).data
+            })
+        else:
+            return Response({
+                'is_enrolled': False,
+                'enrollments': []
+            })
 
 
 class FlashcardProductViewSet(viewsets.ModelViewSet):
@@ -142,7 +162,27 @@ class FlashcardProductEnrollmentViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['is_active', 'product', 'student']
+    filterset_fields = ['status', 'product', 'student']
     search_fields = ['student__username', 'student__email', 'product__title']
-    ordering_fields = ['enrolled_at']
-    ordering = ['-enrolled_at']
+    ordering_fields = ['enrollment_date']
+    ordering = ['-enrollment_date']
+    
+    @action(detail=False, methods=['get'])
+    def check_enrollment(self, request):
+        """Check if current user is enrolled in any flashcard products"""
+        user = request.user
+        enrollments = self.get_queryset().filter(
+            student=user,
+            status__in=['active', 'completed']
+        )
+        
+        if enrollments.exists():
+            return Response({
+                'is_enrolled': True,
+                'enrollments': self.get_serializer(enrollments, many=True).data
+            })
+        else:
+            return Response({
+                'is_enrolled': False,
+                'enrollments': []
+            })

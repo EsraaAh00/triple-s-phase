@@ -18,6 +18,7 @@ import {
   Lock as LockIcon,
   Style as FlashcardsIcon,
   Quiz as QBIcon,
+  OpenInNew as OpenIcon,
   Assessment as PerformanceIcon,
   Pause as FreezeIcon,
   Assignment as SelfAssessmentIcon,
@@ -28,6 +29,7 @@ import { useNavigate } from 'react-router-dom';
 import dashboardService from '../../services/dashboard.service';
 import { contentAPI } from '../../services/content.service';
 import { courseAPI } from '../../services/courseService';
+import assessmentService from '../../services/assessment.service';
 // Animation variants
 const container = {
   hidden: { opacity: 0 },
@@ -64,10 +66,39 @@ const StudentDashboard = () => {
   const [modulesLoading, setModulesLoading] = useState(false);
   const [instructorsLoading, setInstructorsLoading] = useState(false);
   const [userName, setUserName] = useState('');
+  const [enrollmentStatus, setEnrollmentStatus] = useState({
+    questionBank: false,
+    flashcards: false
+  });
   useEffect(() => {
     loadDashboardData();
     loadUserName();
+    checkEnrollmentStatus();
   }, []);
+
+  const checkEnrollmentStatus = async () => {
+    try {
+      const response = await assessmentService.checkEnrollmentStatus();
+      if (response.success) {
+        setEnrollmentStatus({
+          questionBank: response.data.questionBank.is_enrolled,
+          flashcards: response.data.flashcards.is_enrolled
+        });
+      } else {
+        console.error('Error checking enrollment status:', response.error);
+        setEnrollmentStatus({
+          questionBank: false,
+          flashcards: false
+        });
+      }
+    } catch (error) {
+      console.error('Error checking enrollment status:', error);
+      setEnrollmentStatus({
+        questionBank: false,
+        flashcards: false
+      });
+    }
+  };
   const loadUserName = () => {
     try {
       const userData = localStorage.getItem('user');
@@ -449,7 +480,7 @@ const StudentDashboard = () => {
           <Box>
             {/* Top row - first 3 cards */}
             <Grid container spacing={2} sx={{ mb: 0.25, '& .MuiGrid-root': { paddingTop: '0 !important' } }}>
-              {/* Create Test Card */}
+              {/* Flashcards Card */}
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <motion.div variants={item}>
             <Card
@@ -464,7 +495,12 @@ const StudentDashboard = () => {
                       boxShadow: '0 6px 20px rgba(0, 0, 0, 0.12)',
                 },
                 transition: 'all 0.3s ease',
-                cursor: 'pointer'
+                cursor: enrollmentStatus.flashcards ? 'pointer' : 'not-allowed'
+              }}
+              onClick={() => {
+                if (enrollmentStatus.flashcards) {
+                  navigate('/student/flashcards/filter');
+                }
               }}
             >
                   <CardContent sx={{ p: 2, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -495,14 +531,14 @@ const StudentDashboard = () => {
                     </Typography>
                   </Box>
                 </Box>
-                    <Box sx={{ color: '#ccc' }}>
-                      <LockIcon />
+                    <Box sx={{ color: enrollmentStatus.flashcards ? '#4caf50' : '#ccc' }}>
+                      {enrollmentStatus.flashcards ? <OpenIcon /> : <LockIcon />}
                     </Box>
                   </CardContent>
                 </Card>
           </motion.div>
             </Grid>
-            {/* Daily Warmup Card */}
+            {/* Question Bank Card */}
             <Grid size={{ xs: 12, sm: 6, md: 4 }}>
               <motion.div variants={item}>
                 <Card
@@ -517,7 +553,12 @@ const StudentDashboard = () => {
                       boxShadow: '0 6px 20px rgba(0, 0, 0, 0.12)',
                     },
                     transition: 'all 0.3s ease',
-                    cursor: 'pointer'
+                    cursor: enrollmentStatus.questionBank ? 'pointer' : 'not-allowed'
+                  }}
+                  onClick={() => {
+                    if (enrollmentStatus.questionBank) {
+                      navigate('/student/questionbank/filter');
+                    }
                   }}
                 >
                   <CardContent sx={{ p: 2, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -548,8 +589,8 @@ const StudentDashboard = () => {
                       </Typography>
                     </Box>
                   </Box>
-                    <Box sx={{ color: '#ccc' }}>
-                      <LockIcon />
+                    <Box sx={{ color: enrollmentStatus.questionBank ? '#4caf50' : '#ccc' }}>
+                      {enrollmentStatus.questionBank ? <OpenIcon /> : <LockIcon />}
                     </Box>
                   </CardContent>
                 </Card>

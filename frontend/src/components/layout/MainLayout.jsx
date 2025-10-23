@@ -37,10 +37,12 @@ import {
   Pause as FreezeIcon,
   Help as FAQsIcon,
   RateReview as ReviewIcon,
-  ContactSupport as ContactUsIcon
+  ContactSupport as ContactUsIcon,
+  Lock as LockIcon
 } from '@mui/icons-material';
 import { courseAPI } from '../../services/courseService';
 import { contentAPI } from '../../services/content.service';
+import assessmentService from '../../services/assessment.service';
 
 const drawerWidth = {
   xs: 180,
@@ -56,6 +58,12 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { getUserRole, user } = useAuth(); // Get user data from auth context
+  
+  // Enrollment status state
+  const [enrollmentStatus, setEnrollmentStatus] = useState({
+    questionBank: false,
+    flashcards: false
+  });
   
   // Navigation items for teacher
   const teacherNavItems = [
@@ -74,8 +82,20 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
     { text: t('navHome'), icon: <HomeIcon />, path: '/', exact: true },
     { text: t('navDashboard'), icon: <DashboardIcon />, path: '/student/dashboard' },
     // Courses will be dynamically added below
-    { text: t('navFlashcards'), icon: <FlashcardsIcon /> },
-    { text: t('navQuestionBank'), icon: <QBIcon /> },
+    { 
+      text: t('navFlashcards'), 
+      icon: <FlashcardsIcon />, 
+      path: enrollmentStatus.flashcards ? '/student/flashcards/filter' : null,
+      requiresEnrollment: true,
+      enrollmentStatus: enrollmentStatus.flashcards
+    },
+    { 
+      text: t('navQuestionBank'), 
+      icon: <QBIcon />, 
+      path: enrollmentStatus.questionBank ? '/student/questionbank/filter' : null,
+      requiresEnrollment: true,
+      enrollmentStatus: enrollmentStatus.questionBank
+    },
     { text: t('dashboardPerformance'), icon: <PerformanceIcon /> },
     { text: t('dashboardFreeze'), icon: <FreezeIcon /> },
     { text: t('navFAQ'), icon: <FAQsIcon /> },
@@ -161,6 +181,31 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
     document.documentElement.lang = newLang;
   };
 
+  // Check enrollment status for Question Bank and Flashcards
+  const checkEnrollmentStatus = async () => {
+    try {
+      const response = await assessmentService.checkEnrollmentStatus();
+      if (response.success) {
+        setEnrollmentStatus({
+          questionBank: response.data.questionBank.is_enrolled,
+          flashcards: response.data.flashcards.is_enrolled
+        });
+      } else {
+        console.error('Error checking enrollment status:', response.error);
+        setEnrollmentStatus({
+          questionBank: false,
+          flashcards: false
+        });
+      }
+    } catch (error) {
+      console.error('Error checking enrollment status:', error);
+      setEnrollmentStatus({
+        questionBank: false,
+        flashcards: false
+      });
+    }
+  };
+
   // Handle courses dropdown toggle
   const handleCoursesDropdownToggle = () => {
     console.log('Courses dropdown toggled:', !coursesDropdownOpen);
@@ -184,6 +229,11 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
     document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = currentLang;
   }, [i18n.language]);
+
+  // Check enrollment status on component mount
+  useEffect(() => {
+    checkEnrollmentStatus();
+  }, []);
 
   // Listen for language changes
   useEffect(() => {
@@ -523,10 +573,61 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
           }
           
           // Regular navigation items
+          const handleNavClick = () => {
+            // Check enrollment for items that require it
+            if (item.requiresEnrollment && !item.enrollmentStatus) {
+              // Show enrollment modal or redirect to enrollment page
+              alert(t('enrollment.enrollmentRequired'));
+              return;
+            }
+            
+            // Close mobile drawer after navigation
+            if (isMobile) {
+              setMobileOpen(false);
+            }
+          };
+
+          // If item requires enrollment and user is not enrolled, show disabled state
+          if (item.requiresEnrollment && !item.enrollmentStatus) {
+            return (
+              <Box key={item.text} sx={{ position: 'relative' }}>
+                <ListItemButton
+                  disabled
+                  sx={{
+                    borderRadius: 1,
+                    color: '#ccc',
+                    py: { xs: 0.4, sm: 0.5 },
+                    px: { xs: 0.6, sm: 0.8 },
+                    minHeight: { xs: 28, sm: 32 },
+                    mb: 0,
+                    opacity: 0.6,
+                    cursor: 'not-allowed'
+                  }}
+                >
+                  <ListItemIcon sx={{
+                    minWidth: { xs: 24, sm: 28 },
+                    color: '#ccc',
+                    fontSize: { xs: 16, sm: 18 }
+                  }}>{item.icon}</ListItemIcon>
+                  <ListItemText 
+                    primary={item.text} 
+                    sx={{ 
+                      fontWeight: 500,
+                      '& .MuiListItemText-primary': {
+                        fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.8rem' }
+                      }
+                    }} 
+                  />
+                  <LockIcon sx={{ fontSize: 16, color: '#ccc' }} />
+                </ListItemButton>
+              </Box>
+            );
+          }
+
           return (
             <NavLink
               key={item.text}
-              to={item.path}
+              to={item.path || '#'}
               style={{
                 textDecoration: 'none',
                 color: 'inherit',
@@ -537,12 +638,7 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
                 boxShadow: 'none',
                 border: 'none',
               }}
-              onClick={() => {
-                // Close mobile drawer after navigation
-                if (isMobile) {
-                  setMobileOpen(false);
-                }
-              }}
+              onClick={handleNavClick}
             >
               <ListItemButton
                 sx={{

@@ -4,7 +4,7 @@ from .views import (
     AssessmentViewSet, QuestionBankViewSet, StudentSubmissionViewSet,
     StudentAnswerViewSet, FlashcardViewSet, StudentFlashcardProgressViewSet,
     QuestionBankChapterViewSet, QuestionBankTopicViewSet,
-    FlashcardChapterViewSet, FlashcardTopicViewSet
+    FlashcardChapterViewSet, FlashcardTopicViewSet, check_enrollment_status
 )
 from .product_views import (
     QuestionBankProductViewSet, QuestionBankProductEnrollmentViewSet,
@@ -34,4 +34,5 @@ router.register(r'flashcard-topics', FlashcardTopicViewSet, basename='flashcard-
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('enrollment-status/', check_enrollment_status, name='check-enrollment-status'),
 ]

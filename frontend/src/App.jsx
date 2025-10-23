@@ -97,6 +97,13 @@ import AboutUs from './pages/AboutUs';
 import QuestionBankPage from './pages/teacher/QuestionBankPage';
 import FlashcardsPage from './pages/teacher/FlashcardsPage';
 
+// Student Flashcard Components
+import FlashcardFilter from './pages/student/FlashcardFilter';
+import QuestionBankFilter from './pages/student/QuestionBankFilter';
+import QuestionBankQuiz from './pages/student/QuestionBankQuiz';
+import FlashcardStudy from './pages/student/FlashcardStudy';
+import FlashcardStatistics from './pages/student/FlashcardStatistics';
+
 // Public Home Page Component (accessible to all users)
 const PublicHomePage = ({ children }) => {
   return children; // Always show the home page regardless of auth status
@@ -318,6 +325,11 @@ const AppContent = () => {
                           <Route path="my-courses/:courseId/exam/result" element={<div style={{padding: '20px', textAlign: 'center'}}><h2>Exam functionality has been disabled</h2></div>} />
                           <Route path="meetings" element={<StudentMeetings />} />
                           <Route path="meetings/live/:meetingId" element={<StudentLiveMeeting />} />
+                          <Route path="flashcards/filter" element={<FlashcardFilter />} />
+                          <Route path="flashcards/study" element={<FlashcardStudy />} />
+                          <Route path="flashcards/statistics" element={<FlashcardStatistics />} />
+                          <Route path="questionbank/filter" element={<QuestionBankFilter />} />
+                          <Route path="questionbank/quiz" element={<QuestionBankQuiz />} />
                           <Route path="settings" element={<Profile />} />
                         </Routes>
                       </MainLayout>
