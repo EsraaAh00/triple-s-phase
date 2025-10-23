@@ -66,9 +66,9 @@ const QuestionBankQuiz = () => {
     setLoading(true);
     try {
       // Build query parameters for fetching questions
-      // Request more questions than needed to ensure we have enough after filtering
+      // Request exactly the count selected by user
       const params = {
-        page_size: Math.max(questionCount * 2, 50), // Request more than needed
+        page_size: questionCount, // Request exactly the count selected by user
         random: 'true'
       };
 
@@ -96,7 +96,7 @@ const QuestionBankQuiz = () => {
         // Use all available questions and shuffle them
         const shuffled = response.data.sort(() => Math.random() - 0.5);
         setQuestions(shuffled);
-        console.log(`Successfully loaded ${shuffled.length} questions (requested: ${questionCount}, available: ${response.data.length})`);
+        console.log(`Successfully loaded ${shuffled.length} questions (requested: ${questionCount})`);
         
         if (shuffled.length === 0) {
           setError('No questions found with the selected filters');

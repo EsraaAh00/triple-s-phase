@@ -75,7 +75,7 @@ const FlashcardStudy = () => {
         const accuracy = totalAnswered > 0 ? (correctCount / totalAnswered) * 100 : 0;
         
         const stats = {
-          totalCards: flashcards.length,
+          totalCards: count,
           correctCount,
           incorrectCount,
           flaggedCount: flaggedCards.size,
@@ -99,9 +99,9 @@ const FlashcardStudy = () => {
     setLoading(true);
     try {
       // Build parameters based on what's available
-      // Request more flashcards than needed to ensure we have enough after filtering
+      // Request exactly the count selected by user
       const params = {
-        page_size: Math.max(count * 2, 50), // Request more than needed
+        page_size: count, // Request exactly the count selected by user
         random: 'true' // Request random flashcards
       };
 
@@ -143,12 +143,12 @@ const FlashcardStudy = () => {
         const shuffled = response.data.sort(() => Math.random() - 0.5);
         setFlashcards(shuffled);
         setError(null);
-        console.log(`Successfully loaded ${shuffled.length} flashcards (requested: ${count}, available: ${response.data.length})`);
+        console.log(`Successfully loaded ${shuffled.length} flashcards (requested: ${count})`);
       } else {
         // If no flashcards found, try to get any flashcards without filters
         console.log('No flashcards found with filters, trying without filters...');
         const fallbackParams = {
-          page_size: Math.max(count * 2, 50), // Request more than needed
+          page_size: count, // Request exactly the count selected by user
           random: 'true',
           'product__status': 'published'
           // No other filters - get all published flashcards
@@ -157,11 +157,10 @@ const FlashcardStudy = () => {
         const fallbackResponse = await assessmentService.getFlashcards(fallbackParams);
         
         if (fallbackResponse.success && fallbackResponse.data && fallbackResponse.data.length > 0) {
-          // Use all available flashcards and shuffle them
           const shuffled = fallbackResponse.data.sort(() => Math.random() - 0.5);
           setFlashcards(shuffled);
           setError(null);
-          console.log(`Fallback: Successfully loaded ${shuffled.length} flashcards (requested: ${count}, available: ${fallbackResponse.data.length})`);
+          console.log(`Fallback: Successfully loaded ${shuffled.length} flashcards (requested: ${count})`);
       } else {
           console.log('Fallback also failed:', fallbackResponse);
           setError('No flashcards available in the system. Please contact support or try again later.');
@@ -248,7 +247,7 @@ const FlashcardStudy = () => {
     const accuracy = totalAnswered > 0 ? (correctCount / totalAnswered) * 100 : 0;
     
     const stats = {
-      totalCards: flashcards.length,
+      totalCards: count,
       correctCount,
       incorrectCount,
       flaggedCount: flaggedCards.size,
@@ -268,7 +267,7 @@ const FlashcardStudy = () => {
     const accuracy = totalAnswered > 0 ? (correctCount / totalAnswered) * 100 : 0;
     
     const stats = {
-      totalCards: flashcards.length,
+      totalCards: count,
       correctCount,
       incorrectCount,
       flaggedCount: flaggedCards.size,
@@ -293,7 +292,7 @@ const FlashcardStudy = () => {
           product: card.product?.title || null
         })),
         session_stats: {
-          total_cards: flashcards.length,
+          total_cards: count,
           correct_count: stats.correctCount,
           incorrect_count: stats.incorrectCount,
           flagged_count: stats.flaggedCount,
@@ -335,7 +334,7 @@ const FlashcardStudy = () => {
     const accuracy = totalAnswered > 0 ? (correctCount / totalAnswered) * 100 : 0;
     
     const stats = {
-      totalCards: flashcards.length,
+      totalCards: count,
       correctCount,
       incorrectCount,
       flaggedCount: flaggedCards.size,
@@ -1085,7 +1084,7 @@ const FlashcardStudy = () => {
                 fontWeight: 700,
                 fontSize: '1.1em'
               }}>
-                {flashcards.length}
+                {count}
               </Box>
             </Typography>
             
