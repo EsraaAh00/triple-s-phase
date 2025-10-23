@@ -60,8 +60,7 @@ const FlashcardStudy = () => {
   const products = searchParams.get('products')?.split(',') || [];
   const count = parseInt(searchParams.get('count')) || 50;
   
-      console.log('FlashcardStudy - Filter parameters:', { topics, chapters, products, count });
-      console.log('FlashcardStudy - Requested count:', count);
+  console.log('FlashcardStudy - Filter parameters:', { topics, chapters, products, count });
 
   useEffect(() => {
     fetchFlashcards();
@@ -76,7 +75,7 @@ const FlashcardStudy = () => {
         const accuracy = totalAnswered > 0 ? (correctCount / totalAnswered) * 100 : 0;
         
         const stats = {
-          totalCards: flashcards.length,
+          totalCards: count,
           correctCount,
           incorrectCount,
           flaggedCount: flaggedCards.size,
@@ -100,8 +99,9 @@ const FlashcardStudy = () => {
     setLoading(true);
     try {
       // Build parameters based on what's available
+      // Request more flashcards than needed to ensure we have enough after filtering
       const params = {
-        page_size: count, // Request exactly the count selected by user
+        page_size: Math.max(count * 2, 50), // Request more than needed
         random: 'true' // Request random flashcards
       };
 
@@ -139,21 +139,9 @@ const FlashcardStudy = () => {
       console.log('Flashcards response:', response); // Debug log
       
       if (response.success && response.data && response.data.length > 0) {
-        // Ensure we have exactly the requested count
-        let finalCards = response.data;
-        
-        // If we got more than requested, limit to requested count
-        if (finalCards.length > count) {
-          finalCards = finalCards.slice(0, count);
-          console.log(`Limited ${response.data.length} flashcards to requested ${count}`);
-        }
-        
-        // If we got less than requested, log a warning
-        if (finalCards.length < count) {
-          console.warn(`Warning: Requested ${count} flashcards but only got ${finalCards.length} from API`);
-        }
-        
-        const shuffled = finalCards.sort(() => Math.random() - 0.5);
+        // Limit to the requested count and shuffle the results
+        const limitedCards = response.data.slice(0, count);
+        const shuffled = limitedCards.sort(() => Math.random() - 0.5);
         setFlashcards(shuffled);
         setError(null);
         console.log(`Successfully loaded ${shuffled.length} flashcards (requested: ${count})`);
@@ -161,7 +149,7 @@ const FlashcardStudy = () => {
         // If no flashcards found, try to get any flashcards without filters
         console.log('No flashcards found with filters, trying without filters...');
         const fallbackParams = {
-          page_size: count, // Request exactly the count selected by user
+          page_size: Math.max(count * 2, 50), // Request more than needed
           random: 'true',
           'product__status': 'published'
           // No other filters - get all published flashcards
@@ -170,21 +158,8 @@ const FlashcardStudy = () => {
         const fallbackResponse = await assessmentService.getFlashcards(fallbackParams);
         
         if (fallbackResponse.success && fallbackResponse.data && fallbackResponse.data.length > 0) {
-          // Ensure we have exactly the requested count
-          let finalCards = fallbackResponse.data;
-          
-          // If we got more than requested, limit to requested count
-          if (finalCards.length > count) {
-            finalCards = finalCards.slice(0, count);
-            console.log(`Fallback: Limited ${fallbackResponse.data.length} flashcards to requested ${count}`);
-          }
-          
-          // If we got less than requested, log a warning
-          if (finalCards.length < count) {
-            console.warn(`Fallback Warning: Requested ${count} flashcards but only got ${finalCards.length} from API`);
-          }
-          
-          const shuffled = finalCards.sort(() => Math.random() - 0.5);
+          const limitedCards = fallbackResponse.data.slice(0, count);
+          const shuffled = limitedCards.sort(() => Math.random() - 0.5);
           setFlashcards(shuffled);
           setError(null);
           console.log(`Fallback: Successfully loaded ${shuffled.length} flashcards (requested: ${count})`);
@@ -203,7 +178,7 @@ const FlashcardStudy = () => {
   };
 
   const handleNext = () => {
-    if (currentIndex < flashcards.length - 1) {
+    if (currentIndex < count - 1) {
       setCurrentIndex(currentIndex + 1);
       setShowAnswer(false);
     }
@@ -274,7 +249,7 @@ const FlashcardStudy = () => {
     const accuracy = totalAnswered > 0 ? (correctCount / totalAnswered) * 100 : 0;
     
     const stats = {
-      totalCards: flashcards.length,
+      totalCards: count,
       correctCount,
       incorrectCount,
       flaggedCount: flaggedCards.size,
@@ -294,7 +269,7 @@ const FlashcardStudy = () => {
     const accuracy = totalAnswered > 0 ? (correctCount / totalAnswered) * 100 : 0;
     
     const stats = {
-      totalCards: flashcards.length,
+      totalCards: count,
       correctCount,
       incorrectCount,
       flaggedCount: flaggedCards.size,
@@ -319,7 +294,7 @@ const FlashcardStudy = () => {
           product: card.product?.title || null
         })),
         session_stats: {
-          total_cards: stats.totalCards,
+          total_cards: count,
           correct_count: stats.correctCount,
           incorrect_count: stats.incorrectCount,
           flagged_count: stats.flaggedCount,
@@ -361,7 +336,7 @@ const FlashcardStudy = () => {
     const accuracy = totalAnswered > 0 ? (correctCount / totalAnswered) * 100 : 0;
     
     const stats = {
-      totalCards: flashcards.length,
+      totalCards: count,
       correctCount,
       incorrectCount,
       flaggedCount: flaggedCards.size,
@@ -510,7 +485,7 @@ const FlashcardStudy = () => {
                   lineHeight: 1,
                   fontSize: { xs: '0.8rem', sm: '0.9rem' }
                 }}>
-                  {currentIndex + 1}/{flashcards.length}
+                  {currentIndex + 1}/{count}
                 </Typography>
                 <Typography variant="caption" sx={{ 
                   color: '#666',
@@ -779,7 +754,7 @@ const FlashcardStudy = () => {
         {/* Next Arrow */}
         <IconButton
           onClick={handleNext}
-          disabled={currentIndex === flashcards.length - 1}
+          disabled={currentIndex === count - 1}
           sx={{ 
             background: 'linear-gradient(135deg, #4caf50, #66bb6a)',
             color: 'white',
@@ -909,7 +884,7 @@ const FlashcardStudy = () => {
             },
           }
         }}>
-          {currentIndex + 1}/{flashcards.length}
+          {currentIndex + 1}/{count}
         </Box>
 
         {/* Correct Counter */}
@@ -1111,7 +1086,7 @@ const FlashcardStudy = () => {
                 fontWeight: 700,
                 fontSize: '1.1em'
               }}>
-                {flashcards.length}
+                {count}
               </Box>
             </Typography>
             

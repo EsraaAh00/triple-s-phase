@@ -56,8 +56,7 @@ const QuestionBankQuiz = () => {
   const topics = searchParams.get('topics')?.split(',') || [];
   const questionCount = parseInt(searchParams.get('count')) || 10;
   
-      console.log('QuestionBankQuiz - Filter parameters:', { products, chapters, topics, questionCount });
-      console.log('QuestionBankQuiz - Requested count:', questionCount);
+  console.log('QuestionBankQuiz - Filter parameters:', { products, chapters, topics, questionCount });
 
   useEffect(() => {
     fetchQuestions();
@@ -67,8 +66,9 @@ const QuestionBankQuiz = () => {
     setLoading(true);
     try {
       // Build query parameters for fetching questions
+      // Request more questions than needed to ensure we have enough after filtering
       const params = {
-        page_size: questionCount, // Request exactly the count selected by user
+        page_size: Math.max(questionCount * 2, 50), // Request more than needed
         random: 'true'
       };
 
@@ -93,21 +93,9 @@ const QuestionBankQuiz = () => {
       console.log('Questions response:', response);
       
       if (response.success) {
-        // Ensure we have exactly the requested count
-        let finalQuestions = response.data;
-        
-        // If we got more than requested, limit to requested count
-        if (finalQuestions.length > questionCount) {
-          finalQuestions = finalQuestions.slice(0, questionCount);
-          console.log(`Limited ${response.data.length} questions to requested ${questionCount}`);
-        }
-        
-        // If we got less than requested, log a warning
-        if (finalQuestions.length < questionCount) {
-          console.warn(`Warning: Requested ${questionCount} questions but only got ${finalQuestions.length} from API`);
-        }
-        
-        const shuffled = finalQuestions.sort(() => Math.random() - 0.5);
+        // Limit to the requested count and shuffle the results
+        const limitedQuestions = response.data.slice(0, questionCount);
+        const shuffled = limitedQuestions.sort(() => Math.random() - 0.5);
         setQuestions(shuffled);
         console.log(`Successfully loaded ${shuffled.length} questions (requested: ${questionCount})`);
         
@@ -134,7 +122,7 @@ const QuestionBankQuiz = () => {
   };
 
   const handleNextQuestion = () => {
-    if (currentQuestionIndex < questions.length - 1) {
+    if (currentQuestionIndex < questionCount - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
       setShowAnswer(false);
     } else {
@@ -161,10 +149,10 @@ const QuestionBankQuiz = () => {
       }
     });
     
-    const percentage = Math.round((correctAnswers / questions.length) * 100);
+    const percentage = Math.round((correctAnswers / questionCount) * 100);
     setScore({
       correct: correctAnswers,
-      total: questions.length,
+      total: questionCount,
       percentage: percentage
     });
   };
@@ -255,7 +243,7 @@ const QuestionBankQuiz = () => {
 
 
   const currentQuestion = questions[currentQuestionIndex];
-  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+  const progress = ((currentQuestionIndex + 1) / questionCount) * 100;
 
   return (
     <Box sx={{ 
@@ -284,7 +272,7 @@ const QuestionBankQuiz = () => {
             }} 
           />
           <Typography variant="body2" sx={{ mt: 1, color: '#666' }}>
-            Question {currentQuestionIndex + 1} of {questions.length}
+            Question {currentQuestionIndex + 1} of {questionCount}
           </Typography>
         </Paper>
 
@@ -384,7 +372,7 @@ const QuestionBankQuiz = () => {
             endIcon={<ArrowForwardIcon />}
             disabled={!answers[currentQuestion.id] || !showAnswer}
           >
-            {currentQuestionIndex === questions.length - 1 ? t('questionBankQuiz.finishQuiz') : t('questionBankQuiz.next')}
+            {currentQuestionIndex === questionCount - 1 ? t('questionBankQuiz.finishQuiz') : t('questionBankQuiz.next')}
           </Button>
         </Box>
       </Container>
