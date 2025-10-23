@@ -365,7 +365,7 @@ const ModuleLessons = ({ moduleId, lessons = [], course = null }) => {
 
 // Course Detail Page Component
 const CourseDetailPage = ({ course, onBack }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(0);
@@ -1165,7 +1165,9 @@ const CourseDetailPage = ({ course, onBack }) => {
                                       color: '#333',
                                       fontSize: '14px',
                                       flex: 1,
-                                      textAlign: 'right'
+                                      textAlign: i18n.language === 'ar' ? 'right' : 'left',
+                                      direction: i18n.language === 'ar' ? 'rtl' : 'ltr',
+                                      unicodeBidi: 'bidi-override'
                                     }}
                                   >
                                     {subModule.title || subModule.name}
@@ -1765,7 +1767,7 @@ const MyCourses = () => {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   useEffect(() => {
     fetchMyCourses();
