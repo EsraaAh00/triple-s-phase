@@ -66,9 +66,9 @@ const QuestionBankQuiz = () => {
     setLoading(true);
     try {
       // Build query parameters for fetching questions
-      // Request significantly more questions to ensure we have enough after filtering
+      // Request more questions than needed to ensure we have enough after filtering
       const params = {
-        page_size: Math.max(questionCount * 5, 200), // Request much more than needed
+        page_size: Math.max(questionCount * 2, 50), // Request more than needed
         random: 'true'
       };
 
@@ -93,22 +93,12 @@ const QuestionBankQuiz = () => {
       console.log('Questions response:', response);
       
       if (response.success) {
-        // Check if we have enough questions
-        if (response.data.length < questionCount) {
-          console.warn(`Warning: Only ${response.data.length} questions available, but ${questionCount} requested`);
-          // Use all available questions
-          const shuffled = response.data.sort(() => Math.random() - 0.5);
-          setQuestions(shuffled);
-          console.log(`Loaded ${shuffled.length} questions (requested: ${questionCount})`);
-        } else {
-          // Limit to the requested count and shuffle the results
-          const limitedQuestions = response.data.slice(0, questionCount);
-          const shuffled = limitedQuestions.sort(() => Math.random() - 0.5);
-          setQuestions(shuffled);
-          console.log(`Successfully loaded ${shuffled.length} questions (requested: ${questionCount})`);
-        }
+        // Use all available questions and shuffle them
+        const shuffled = response.data.sort(() => Math.random() - 0.5);
+        setQuestions(shuffled);
+        console.log(`Successfully loaded ${shuffled.length} questions (requested: ${questionCount}, available: ${response.data.length})`);
         
-        if (response.data.length === 0) {
+        if (shuffled.length === 0) {
           setError('No questions found with the selected filters');
         }
       } else {
@@ -252,8 +242,7 @@ const QuestionBankQuiz = () => {
 
 
   const currentQuestion = questions[currentQuestionIndex];
-  const actualQuestionCount = questions.length; // Use actual loaded questions count
-  const progress = ((currentQuestionIndex + 1) / actualQuestionCount) * 100;
+  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
 
   return (
     <Box sx={{ 
@@ -282,7 +271,7 @@ const QuestionBankQuiz = () => {
             }} 
           />
           <Typography variant="body2" sx={{ mt: 1, color: '#666' }}>
-            Question {currentQuestionIndex + 1} of {actualQuestionCount}
+            Question {currentQuestionIndex + 1} of {questions.length}
           </Typography>
         </Paper>
 
