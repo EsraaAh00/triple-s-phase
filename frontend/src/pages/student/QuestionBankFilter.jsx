@@ -572,11 +572,11 @@ const QuestionBankFilter = () => {
                     value={questionCount}
                     onChange={(event, newValue) => setQuestionCount(newValue)}
                     min={1}
-                    max={Math.min(availableCount || 100, 200)}
+                    max={availableCount || 100}
                     step={1}
                     marks={[
                       { value: 1, label: '1' },
-                      { value: Math.min(availableCount || 100, 200), label: Math.min(availableCount || 100, 200).toString() }
+                      { value: availableCount || 100, label: (availableCount || 100).toString() }
                     ]}
                     valueLabelDisplay="auto"
                     valueLabelFormat={(value) => `${value} ${t('commonQuestions', 'Questions')}`}
