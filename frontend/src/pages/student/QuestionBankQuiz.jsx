@@ -66,9 +66,9 @@ const QuestionBankQuiz = () => {
     setLoading(true);
     try {
       // Build query parameters for fetching questions
-      // Request exactly the count selected by user
+      // Request more questions than needed to ensure we have enough after filtering
       const params = {
-        page_size: questionCount, // Request exactly the count selected by user
+        page_size: Math.max(questionCount * 2, 50), // Request more than needed
         random: 'true'
       };
 
@@ -93,8 +93,9 @@ const QuestionBankQuiz = () => {
       console.log('Questions response:', response);
       
       if (response.success) {
-        // Use all available questions and shuffle them
-        const shuffled = response.data.sort(() => Math.random() - 0.5);
+        // Limit to the requested count and shuffle the results
+        const limitedQuestions = response.data.slice(0, questionCount);
+        const shuffled = limitedQuestions.sort(() => Math.random() - 0.5);
         setQuestions(shuffled);
         console.log(`Successfully loaded ${shuffled.length} questions (requested: ${questionCount})`);
         
