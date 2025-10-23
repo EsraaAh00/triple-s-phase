@@ -56,7 +56,8 @@ const QuestionBankQuiz = () => {
   const topics = searchParams.get('topics')?.split(',') || [];
   const questionCount = parseInt(searchParams.get('count')) || 10;
   
-  console.log('QuestionBankQuiz - Filter parameters:', { products, chapters, topics, questionCount });
+      console.log('QuestionBankQuiz - Filter parameters:', { products, chapters, topics, questionCount });
+      console.log('QuestionBankQuiz - Requested count:', questionCount);
 
   useEffect(() => {
     fetchQuestions();
@@ -66,9 +67,8 @@ const QuestionBankQuiz = () => {
     setLoading(true);
     try {
       // Build query parameters for fetching questions
-      // Request more questions than needed to ensure we have enough after filtering
       const params = {
-        page_size: Math.max(questionCount * 2, 50), // Request more than needed
+        page_size: questionCount, // Request exactly the count selected by user
         random: 'true'
       };
 
@@ -93,9 +93,21 @@ const QuestionBankQuiz = () => {
       console.log('Questions response:', response);
       
       if (response.success) {
-        // Limit to the requested count and shuffle the results
-        const limitedQuestions = response.data.slice(0, questionCount);
-        const shuffled = limitedQuestions.sort(() => Math.random() - 0.5);
+        // Ensure we have exactly the requested count
+        let finalQuestions = response.data;
+        
+        // If we got more than requested, limit to requested count
+        if (finalQuestions.length > questionCount) {
+          finalQuestions = finalQuestions.slice(0, questionCount);
+          console.log(`Limited ${response.data.length} questions to requested ${questionCount}`);
+        }
+        
+        // If we got less than requested, log a warning
+        if (finalQuestions.length < questionCount) {
+          console.warn(`Warning: Requested ${questionCount} questions but only got ${finalQuestions.length} from API`);
+        }
+        
+        const shuffled = finalQuestions.sort(() => Math.random() - 0.5);
         setQuestions(shuffled);
         console.log(`Successfully loaded ${shuffled.length} questions (requested: ${questionCount})`);
         

@@ -60,7 +60,8 @@ const FlashcardStudy = () => {
   const products = searchParams.get('products')?.split(',') || [];
   const count = parseInt(searchParams.get('count')) || 50;
   
-  console.log('FlashcardStudy - Filter parameters:', { topics, chapters, products, count });
+      console.log('FlashcardStudy - Filter parameters:', { topics, chapters, products, count });
+      console.log('FlashcardStudy - Requested count:', count);
 
   useEffect(() => {
     fetchFlashcards();
@@ -99,9 +100,8 @@ const FlashcardStudy = () => {
     setLoading(true);
     try {
       // Build parameters based on what's available
-      // Request more flashcards than needed to ensure we have enough after filtering
       const params = {
-        page_size: Math.max(count * 2, 50), // Request more than needed
+        page_size: count, // Request exactly the count selected by user
         random: 'true' // Request random flashcards
       };
 
@@ -139,9 +139,21 @@ const FlashcardStudy = () => {
       console.log('Flashcards response:', response); // Debug log
       
       if (response.success && response.data && response.data.length > 0) {
-        // Limit to the requested count and shuffle the results
-        const limitedCards = response.data.slice(0, count);
-        const shuffled = limitedCards.sort(() => Math.random() - 0.5);
+        // Ensure we have exactly the requested count
+        let finalCards = response.data;
+        
+        // If we got more than requested, limit to requested count
+        if (finalCards.length > count) {
+          finalCards = finalCards.slice(0, count);
+          console.log(`Limited ${response.data.length} flashcards to requested ${count}`);
+        }
+        
+        // If we got less than requested, log a warning
+        if (finalCards.length < count) {
+          console.warn(`Warning: Requested ${count} flashcards but only got ${finalCards.length} from API`);
+        }
+        
+        const shuffled = finalCards.sort(() => Math.random() - 0.5);
         setFlashcards(shuffled);
         setError(null);
         console.log(`Successfully loaded ${shuffled.length} flashcards (requested: ${count})`);
@@ -149,7 +161,7 @@ const FlashcardStudy = () => {
         // If no flashcards found, try to get any flashcards without filters
         console.log('No flashcards found with filters, trying without filters...');
         const fallbackParams = {
-          page_size: Math.max(count * 2, 50), // Request more than needed
+          page_size: count, // Request exactly the count selected by user
           random: 'true',
           'product__status': 'published'
           // No other filters - get all published flashcards
@@ -158,8 +170,21 @@ const FlashcardStudy = () => {
         const fallbackResponse = await assessmentService.getFlashcards(fallbackParams);
         
         if (fallbackResponse.success && fallbackResponse.data && fallbackResponse.data.length > 0) {
-          const limitedCards = fallbackResponse.data.slice(0, count);
-          const shuffled = limitedCards.sort(() => Math.random() - 0.5);
+          // Ensure we have exactly the requested count
+          let finalCards = fallbackResponse.data;
+          
+          // If we got more than requested, limit to requested count
+          if (finalCards.length > count) {
+            finalCards = finalCards.slice(0, count);
+            console.log(`Fallback: Limited ${fallbackResponse.data.length} flashcards to requested ${count}`);
+          }
+          
+          // If we got less than requested, log a warning
+          if (finalCards.length < count) {
+            console.warn(`Fallback Warning: Requested ${count} flashcards but only got ${finalCards.length} from API`);
+          }
+          
+          const shuffled = finalCards.sort(() => Math.random() - 0.5);
           setFlashcards(shuffled);
           setError(null);
           console.log(`Fallback: Successfully loaded ${shuffled.length} flashcards (requested: ${count})`);
