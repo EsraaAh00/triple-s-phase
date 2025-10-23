@@ -55,6 +55,8 @@ const QuestionBankQuiz = () => {
   const chapters = searchParams.get('chapters')?.split(',') || [];
   const topics = searchParams.get('topics')?.split(',') || [];
   const questionCount = parseInt(searchParams.get('count')) || 10;
+  
+  console.log('QuestionBankQuiz - Filter parameters:', { products, chapters, topics, questionCount });
 
   useEffect(() => {
     fetchQuestions();
@@ -64,8 +66,9 @@ const QuestionBankQuiz = () => {
     setLoading(true);
     try {
       // Build query parameters for fetching questions
+      // Request more questions than needed to ensure we have enough after filtering
       const params = {
-        page_size: questionCount,
+        page_size: Math.max(questionCount * 2, 50), // Request more than needed
         random: 'true'
       };
 
@@ -90,8 +93,13 @@ const QuestionBankQuiz = () => {
       console.log('Questions response:', response);
       
       if (response.success) {
-        setQuestions(response.data);
-        if (response.data.length === 0) {
+        // Limit to the requested count and shuffle the results
+        const limitedQuestions = response.data.slice(0, questionCount);
+        const shuffled = limitedQuestions.sort(() => Math.random() - 0.5);
+        setQuestions(shuffled);
+        console.log(`Successfully loaded ${shuffled.length} questions (requested: ${questionCount})`);
+        
+        if (shuffled.length === 0) {
           setError('No questions found with the selected filters');
         }
       } else {

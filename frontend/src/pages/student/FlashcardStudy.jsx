@@ -59,6 +59,8 @@ const FlashcardStudy = () => {
   const chapters = searchParams.get('chapters')?.split(',') || [];
   const products = searchParams.get('products')?.split(',') || [];
   const count = parseInt(searchParams.get('count')) || 50;
+  
+  console.log('FlashcardStudy - Filter parameters:', { topics, chapters, products, count });
 
   useEffect(() => {
     fetchFlashcards();
@@ -97,9 +99,10 @@ const FlashcardStudy = () => {
     setLoading(true);
     try {
       // Build parameters based on what's available
+      // Request more flashcards than needed to ensure we have enough after filtering
       const params = {
-        page_size: count // Use the count selected by user
-        // Note: Backend doesn't support 'random' parameter, we'll shuffle in frontend
+        page_size: Math.max(count * 2, 50), // Request more than needed
+        random: 'true' // Request random flashcards
       };
 
       // Add filters only if they exist and are not empty
@@ -136,16 +139,18 @@ const FlashcardStudy = () => {
       console.log('Flashcards response:', response); // Debug log
       
       if (response.success && response.data && response.data.length > 0) {
-        // Shuffle the results to ensure randomness
-        const shuffled = response.data.sort(() => Math.random() - 0.5);
+        // Limit to the requested count and shuffle the results
+        const limitedCards = response.data.slice(0, count);
+        const shuffled = limitedCards.sort(() => Math.random() - 0.5);
         setFlashcards(shuffled);
         setError(null);
-        console.log(`Successfully loaded ${shuffled.length} flashcards`);
+        console.log(`Successfully loaded ${shuffled.length} flashcards (requested: ${count})`);
       } else {
         // If no flashcards found, try to get any flashcards without filters
         console.log('No flashcards found with filters, trying without filters...');
         const fallbackParams = {
-          page_size: count,
+          page_size: Math.max(count * 2, 50), // Request more than needed
+          random: 'true',
           'product__status': 'published'
           // No other filters - get all published flashcards
         };
@@ -153,10 +158,11 @@ const FlashcardStudy = () => {
         const fallbackResponse = await assessmentService.getFlashcards(fallbackParams);
         
         if (fallbackResponse.success && fallbackResponse.data && fallbackResponse.data.length > 0) {
-          const shuffled = fallbackResponse.data.sort(() => Math.random() - 0.5);
+          const limitedCards = fallbackResponse.data.slice(0, count);
+          const shuffled = limitedCards.sort(() => Math.random() - 0.5);
           setFlashcards(shuffled);
-        setError(null);
-          console.log(`Fallback: Successfully loaded ${shuffled.length} flashcards`);
+          setError(null);
+          console.log(`Fallback: Successfully loaded ${shuffled.length} flashcards (requested: ${count})`);
       } else {
           console.log('Fallback also failed:', fallbackResponse);
           setError('No flashcards available in the system. Please contact support or try again later.');
