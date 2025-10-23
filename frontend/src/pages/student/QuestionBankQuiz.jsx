@@ -66,9 +66,9 @@ const QuestionBankQuiz = () => {
     setLoading(true);
     try {
       // Build query parameters for fetching questions
-      // Request more questions than needed to ensure we have enough after filtering
+      // Request significantly more questions to ensure we have enough after filtering
       const params = {
-        page_size: Math.max(questionCount * 2, 50), // Request more than needed
+        page_size: Math.max(questionCount * 5, 200), // Request much more than needed
         random: 'true'
       };
 
@@ -93,13 +93,22 @@ const QuestionBankQuiz = () => {
       console.log('Questions response:', response);
       
       if (response.success) {
-        // Limit to the requested count and shuffle the results
-        const limitedQuestions = response.data.slice(0, questionCount);
-        const shuffled = limitedQuestions.sort(() => Math.random() - 0.5);
-        setQuestions(shuffled);
-        console.log(`Successfully loaded ${shuffled.length} questions (requested: ${questionCount})`);
+        // Check if we have enough questions
+        if (response.data.length < questionCount) {
+          console.warn(`Warning: Only ${response.data.length} questions available, but ${questionCount} requested`);
+          // Use all available questions
+          const shuffled = response.data.sort(() => Math.random() - 0.5);
+          setQuestions(shuffled);
+          console.log(`Loaded ${shuffled.length} questions (requested: ${questionCount})`);
+        } else {
+          // Limit to the requested count and shuffle the results
+          const limitedQuestions = response.data.slice(0, questionCount);
+          const shuffled = limitedQuestions.sort(() => Math.random() - 0.5);
+          setQuestions(shuffled);
+          console.log(`Successfully loaded ${shuffled.length} questions (requested: ${questionCount})`);
+        }
         
-        if (shuffled.length === 0) {
+        if (response.data.length === 0) {
           setError('No questions found with the selected filters');
         }
       } else {
@@ -122,7 +131,7 @@ const QuestionBankQuiz = () => {
   };
 
   const handleNextQuestion = () => {
-    if (currentQuestionIndex < questionCount - 1) {
+    if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
       setShowAnswer(false);
     } else {
@@ -149,10 +158,10 @@ const QuestionBankQuiz = () => {
       }
     });
     
-    const percentage = Math.round((correctAnswers / questionCount) * 100);
+    const percentage = Math.round((correctAnswers / questions.length) * 100);
     setScore({
       correct: correctAnswers,
-      total: questionCount,
+      total: questions.length,
       percentage: percentage
     });
   };
@@ -243,7 +252,8 @@ const QuestionBankQuiz = () => {
 
 
   const currentQuestion = questions[currentQuestionIndex];
-  const progress = ((currentQuestionIndex + 1) / questionCount) * 100;
+  const actualQuestionCount = questions.length; // Use actual loaded questions count
+  const progress = ((currentQuestionIndex + 1) / actualQuestionCount) * 100;
 
   return (
     <Box sx={{ 
@@ -272,7 +282,7 @@ const QuestionBankQuiz = () => {
             }} 
           />
           <Typography variant="body2" sx={{ mt: 1, color: '#666' }}>
-            Question {currentQuestionIndex + 1} of {questionCount}
+            Question {currentQuestionIndex + 1} of {actualQuestionCount}
           </Typography>
         </Paper>
 
@@ -372,7 +382,7 @@ const QuestionBankQuiz = () => {
             endIcon={<ArrowForwardIcon />}
             disabled={!answers[currentQuestion.id] || !showAnswer}
           >
-            {currentQuestionIndex === questionCount - 1 ? t('questionBankQuiz.finishQuiz') : t('questionBankQuiz.next')}
+            {currentQuestionIndex === questions.length - 1 ? t('questionBankQuiz.finishQuiz') : t('questionBankQuiz.next')}
           </Button>
         </Box>
       </Container>
