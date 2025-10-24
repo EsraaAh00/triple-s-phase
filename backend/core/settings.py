@@ -328,6 +328,7 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 100,  # زيادة من 20 إلى 100 لعرض المزيد من الوحدات
+    'MAX_PAGE_SIZE': 1000,  # زيادة الحد الأقصى للسماح بأعداد أكبر
     # 'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 

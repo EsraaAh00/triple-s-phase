@@ -1,13 +1,14 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
-from users.models import Profile, Student, Organization, Instructor
+from users.models import Profile, Student, Organization, Instructor, AccountFreeze
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from rest_framework_simplejwt.views import TokenObtainPairView as BaseTokenObtainPairView
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 import re
 
 
@@ -238,31 +239,54 @@ class UserLoginSerializer(serializers.Serializer):
 
 class PasswordChangeSerializer(serializers.Serializer):
     old_password = serializers.CharField(write_only=True)
-    new_password = serializers.CharField(write_only=True)
-    confirm_password = serializers.CharField(write_only=True)
 
-    def validate_old_password(self, value):
-        user = self.context['request'].user
-        if not user.check_password(value):
-            raise serializers.ValidationError("كلمة المرور الحالية غير صحيحة")
+
+class AccountFreezeSerializer(serializers.ModelSerializer):
+    """Serializer for AccountFreeze model"""
+    remaining_days = serializers.SerializerMethodField()
+    is_currently_frozen = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = AccountFreeze
+        fields = [
+            'id', 'is_frozen', 'freeze_reason', 'freeze_start_date', 
+            'freeze_end_date', 'created_at', 'updated_at', 
+            'frozen_by_admin', 'admin_notes', 'remaining_days', 'is_currently_frozen'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at', 'frozen_by_admin', 'admin_notes']
+    
+    def get_remaining_days(self, obj):
+        return obj.get_remaining_days()
+    
+    def get_is_currently_frozen(self, obj):
+        return obj.is_currently_frozen()
+
+
+class FreezeAccountSerializer(serializers.Serializer):
+    """Serializer for freezing account"""
+    freeze_reason = serializers.CharField(max_length=1000, required=True, help_text="سبب التجميد")
+    freeze_end_date = serializers.DateTimeField(required=True, help_text="تاريخ انتهاء التجميد")
+    
+    def validate_freeze_end_date(self, value):
+        """التحقق من صحة تاريخ انتهاء التجميد"""
+        if value <= timezone.now():
+            raise serializers.ValidationError("تاريخ انتهاء التجميد يجب أن يكون في المستقبل")
         return value
-
+    
     def validate(self, data):
-        if data['new_password'] != data['confirm_password']:
-            raise serializers.ValidationError({"confirm_password": "كلمتا المرور الجديدتان غير متطابقتان"})
-        
-        # Validate password strength
-        password = data['new_password']
-        if len(password) < 8:
-            raise serializers.ValidationError({"new_password": "كلمة المرور يجب أن تكون 8 أحرف على الأقل"})
-        
+        """التحقق من صحة البيانات"""
+        freeze_end_date = data.get('freeze_end_date')
+        if freeze_end_date:
+            # التحقق من أن المدة لا تتجاوز سنة واحدة
+            max_end_date = timezone.now() + timezone.timedelta(days=365)
+            if freeze_end_date > max_end_date:
+                raise serializers.ValidationError("مدة التجميد لا يمكن أن تتجاوز سنة واحدة")
         return data
 
-    def save(self):
-        user = self.context['request'].user
-        user.set_password(self.validated_data['new_password'])
-        user.save()
-        return user
+
+class UnfreezeAccountSerializer(serializers.Serializer):
+    """Serializer for unfreezing account"""
+    admin_notes = serializers.CharField(max_length=1000, required=False, help_text="ملاحظات الإدارة (اختياري)")
 
 
 class ProfileUpdateSerializer(serializers.ModelSerializer):

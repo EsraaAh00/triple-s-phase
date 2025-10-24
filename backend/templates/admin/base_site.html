@@ -931,6 +931,13 @@
                 <span>الطلاب</span>
             </a>
         </li>
+        <li>
+            <a href="{% url 'admin:users_accountfreeze_changelist' %}"
+                class="{% if '/admin/users/accountfreeze/' in request.path %}active{% endif %}">
+                <i class="fas fa-snowflake"></i>
+                <span>تجميد الحسابات</span>
+            </a>
+        </li>
 
         <!-- Courses Section -->
         <li class="menu-section">

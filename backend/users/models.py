@@ -120,6 +120,70 @@ class Student(models.Model):
         return self.profile.name
 
 
+class AccountFreeze(models.Model):
+    """نموذج تجميد الحساب للطلاب"""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='account_freeze')
+    is_frozen = models.BooleanField(default=False, verbose_name="الحساب مجمد")
+    freeze_reason = models.TextField(blank=True, null=True, verbose_name="سبب التجميد")
+    freeze_start_date = models.DateTimeField(blank=True, null=True, verbose_name="تاريخ بداية التجميد")
+    freeze_end_date = models.DateTimeField(blank=True, null=True, verbose_name="تاريخ انتهاء التجميد")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإنشاء")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="تاريخ التحديث")
+    frozen_by_admin = models.BooleanField(default=False, verbose_name="تم التجميد من قبل الإدارة")
+    admin_notes = models.TextField(blank=True, null=True, verbose_name="ملاحظات الإدارة")
+    
+    class Meta:
+        verbose_name = "تجميد الحساب"
+        verbose_name_plural = "تجميد الحسابات"
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"تجميد حساب {self.user.username}"
+    
+    def is_currently_frozen(self):
+        """التحقق من أن الحساب مجمد حالياً"""
+        if not self.is_frozen:
+            return False
+        
+        now = timezone.now()
+        
+        # إذا كان التجميد من قبل الإدارة، فهو دائم حتى يتم إلغاؤه
+        if self.frozen_by_admin:
+            return True
+        
+        # إذا كان هناك تاريخ انتهاء، تحقق من انتهاء المدة
+        if self.freeze_end_date:
+            return now <= self.freeze_end_date
+        
+        # إذا لم يكن هناك تاريخ انتهاء، فهو دائم
+        return True
+    
+    def get_remaining_days(self):
+        """الحصول على الأيام المتبقية للتجميد"""
+        if not self.is_currently_frozen() or not self.freeze_end_date:
+            return None
+        
+        now = timezone.now()
+        if now >= self.freeze_end_date:
+            return 0
+        
+        delta = self.freeze_end_date - now
+        return delta.days
+    
+    def can_unfreeze_automatically(self):
+        """التحقق من إمكانية إلغاء التجميد تلقائياً"""
+        if not self.is_frozen:
+            return True
+        
+        if self.frozen_by_admin:
+            return False  # التجميد من قبل الإدارة يتطلب إلغاء يدوي
+        
+        if self.freeze_end_date and timezone.now() >= self.freeze_end_date:
+            return True
+        
+        return False
+
+
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     """
@@ -142,6 +206,27 @@ def create_user_profile(sender, instance, created, **kwargs):
             import logging
             logger = logging.getLogger(__name__)
             logger.error(f"Error creating profile for user {instance.username}: {str(e)}")
+
+
+@receiver(post_save, sender=User)
+def create_account_freeze(sender, instance, created, **kwargs):
+    """
+    Signal handler to create AccountFreeze record when a new User is created.
+    """
+    if created:
+        try:
+            # إنشاء سجل تجميد الحساب للمستخدم الجديد
+            AccountFreeze.objects.get_or_create(
+                user=instance,
+                defaults={
+                    'is_frozen': False,
+                    'frozen_by_admin': False
+                }
+            )
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error creating account freeze for user {instance.username}: {str(e)}")
 
 
 @receiver(post_save, sender=User)

@@ -23,13 +23,13 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import MultiPartParser, FormParser
 
-from .models import Profile, Student, Organization, Instructor
+from .models import Profile, Student, Organization, Instructor, AccountFreeze
 from courses.models import Enrollment, Course
 from .serializers import (
     ProfileSerializer, StudentSerializer, OrganizationSerializer,
     UserDetailSerializer, ProfileUpdateSerializer, UserListSerializer, UserRegistrationSerializer,
     UserLoginSerializer, PasswordChangeSerializer, CustomTokenObtainPairSerializer,
-    UserSerializer
+    UserSerializer, AccountFreezeSerializer, FreezeAccountSerializer, UnfreezeAccountSerializer
 )
 
 
@@ -381,6 +381,40 @@ def login_view(request):
     if serializer.is_valid():
         user = serializer.validated_data['user']
         
+        # التحقق من حالة تجميد الحساب
+        try:
+            account_freeze = AccountFreeze.objects.get(user=user)
+            if account_freeze.is_currently_frozen():
+                # التحقق من إمكانية إلغاء التجميد التلقائي
+                if account_freeze.can_unfreeze_automatically():
+                    # إلغاء التجميد التلقائي
+                    account_freeze.is_frozen = False
+                    account_freeze.save()
+                    user.is_active = True
+                    user.save()
+                else:
+                    # الحساب مجمد ولا يمكن إلغاء التجميد تلقائياً
+                    remaining_days = account_freeze.get_remaining_days()
+                    if remaining_days is not None:
+                        message = f'حسابك مجمد حتى {account_freeze.freeze_end_date.strftime("%Y-%m-%d")}. يتبقى {remaining_days} أيام.'
+                    else:
+                        message = 'حسابك مجمد من قبل الإدارة. يرجى التواصل مع الدعم الفني.'
+                    
+                    return Response({
+                        'success': False,
+                        'error': message,
+                        'account_frozen': True,
+                        'freeze_details': {
+                            'reason': account_freeze.freeze_reason,
+                            'end_date': account_freeze.freeze_end_date,
+                            'remaining_days': remaining_days,
+                            'frozen_by_admin': account_freeze.frozen_by_admin
+                        }
+                    }, status=status.HTTP_403_FORBIDDEN)
+        except AccountFreeze.DoesNotExist:
+            # إنشاء سجل تجميد جديد إذا لم يكن موجود
+            AccountFreeze.objects.create(user=user, is_frozen=False)
+        
         # Generate access token only (no refresh token)
         access_token = AccessToken.for_user(user)
         
@@ -427,6 +461,179 @@ def logout_view(request):
             'success': True,
             'message': 'تم تسجيل الخروج بنجاح'
         }, status=status.HTTP_200_OK)
+
+
+# Account Freeze Views
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_freeze_status(request):
+    """الحصول على حالة تجميد الحساب"""
+    try:
+        account_freeze, created = AccountFreeze.objects.get_or_create(
+            user=request.user,
+            defaults={'is_frozen': False}
+        )
+        
+        serializer = AccountFreezeSerializer(account_freeze)
+        return Response({
+            'success': True,
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def freeze_account(request):
+    """تجميد الحساب"""
+    try:
+        # التحقق من أن المستخدم طالب
+        if not hasattr(request.user, 'profile') or request.user.profile.status != 'Student':
+            return Response({
+                'success': False,
+                'error': 'هذه الميزة متاحة للطلاب فقط'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        # التحقق من أن الحساب غير مجمد بالفعل
+        account_freeze, created = AccountFreeze.objects.get_or_create(
+            user=request.user,
+            defaults={'is_frozen': False}
+        )
+        
+        if account_freeze.is_currently_frozen():
+            return Response({
+                'success': False,
+                'error': 'الحساب مجمد بالفعل'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        serializer = FreezeAccountSerializer(data=request.data)
+        if serializer.is_valid():
+            # تجميد الحساب
+            account_freeze.is_frozen = True
+            account_freeze.freeze_reason = serializer.validated_data['freeze_reason']
+            account_freeze.freeze_start_date = timezone.now()
+            account_freeze.freeze_end_date = serializer.validated_data['freeze_end_date']
+            account_freeze.frozen_by_admin = False
+            account_freeze.save()
+            
+            # إلغاء تفعيل المستخدم
+            request.user.is_active = False
+            request.user.save()
+            
+            return Response({
+                'success': True,
+                'message': 'تم تجميد الحساب بنجاح',
+                'data': AccountFreezeSerializer(account_freeze).data
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                'success': False,
+                'error': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def unfreeze_account(request):
+    """إلغاء تجميد الحساب (للإدارة فقط)"""
+    try:
+        # التحقق من صلاحيات الإدارة
+        if not (request.user.is_staff or request.user.is_superuser):
+            return Response({
+                'success': False,
+                'error': 'هذه الميزة متاحة للإدارة فقط'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        user_id = request.data.get('user_id')
+        if not user_id:
+            return Response({
+                'success': False,
+                'error': 'معرف المستخدم مطلوب'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            user = User.objects.get(id=user_id)
+            account_freeze = AccountFreeze.objects.get(user=user)
+        except (User.DoesNotExist, AccountFreeze.DoesNotExist):
+            return Response({
+                'success': False,
+                'error': 'المستخدم غير موجود'
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = UnfreezeAccountSerializer(data=request.data)
+        if serializer.is_valid():
+            # إلغاء التجميد
+            account_freeze.is_frozen = False
+            account_freeze.frozen_by_admin = False
+            if serializer.validated_data.get('admin_notes'):
+                account_freeze.admin_notes = serializer.validated_data['admin_notes']
+            account_freeze.save()
+            
+            # إعادة تفعيل المستخدم
+            user.is_active = True
+            user.save()
+            
+            return Response({
+                'success': True,
+                'message': 'تم إلغاء تجميد الحساب بنجاح',
+                'data': AccountFreezeSerializer(account_freeze).data
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                'success': False,
+                'error': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def check_auto_unfreeze(request):
+    """التحقق من إمكانية إلغاء التجميد التلقائي"""
+    try:
+        account_freeze, created = AccountFreeze.objects.get_or_create(
+            user=request.user,
+            defaults={'is_frozen': False}
+        )
+        
+        if account_freeze.can_unfreeze_automatically():
+            # إلغاء التجميد التلقائي
+            account_freeze.is_frozen = False
+            account_freeze.save()
+            
+            # إعادة تفعيل المستخدم
+            request.user.is_active = True
+            request.user.save()
+            
+            return Response({
+                'success': True,
+                'message': 'تم إلغاء التجميد تلقائياً',
+                'data': AccountFreezeSerializer(account_freeze).data
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                'success': True,
+                'message': 'الحساب لا يزال مجمداً',
+                'data': AccountFreezeSerializer(account_freeze).data
+            }, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['GET'])

@@ -7,7 +7,7 @@ from django.utils.safestring import mark_safe
 from django.contrib.admin import SimpleListFilter
 from django.db.models import Count
 from django.conf import settings
-from .models import Profile, Organization, Instructor, Student
+from .models import Profile, Organization, Instructor, Student, AccountFreeze
 from django.utils import timezone
 from django.http import JsonResponse
 from django.urls import path
@@ -578,3 +578,146 @@ class StudentAdmin(admin.ModelAdmin):
         if 'profile' in form.base_fields:
             form.base_fields['profile'].queryset = Profile.objects.filter(status='Student')
         return form
+
+
+@admin.register(AccountFreeze)
+class AccountFreezeAdmin(admin.ModelAdmin):
+    """إدارة تجميد الحسابات"""
+    list_display = (
+        'user_username', 'user_email', 'is_frozen', 'freeze_status', 
+        'freeze_reason_short', 'freeze_start_date', 'freeze_end_date', 
+        'remaining_days', 'frozen_by_admin', 'created_at'
+    )
+    list_filter = (
+        'is_frozen', 'frozen_by_admin', 'freeze_start_date', 'created_at'
+    )
+    search_fields = (
+        'user__username', 'user__email', 'user__first_name', 
+        'user__last_name', 'freeze_reason', 'admin_notes'
+    )
+    readonly_fields = ('created_at', 'updated_at', 'freeze_status', 'remaining_days')
+    actions = ['unfreeze_accounts', 'freeze_accounts']
+    
+    fieldsets = (
+        ('معلومات المستخدم', {
+            'fields': ('user', 'is_frozen', 'freeze_status')
+        }),
+        ('تفاصيل التجميد', {
+            'fields': (
+                'freeze_reason', 'freeze_start_date', 'freeze_end_date', 
+                'remaining_days', 'frozen_by_admin'
+            )
+        }),
+        ('ملاحظات الإدارة', {
+            'fields': ('admin_notes',)
+        }),
+        ('معلومات النظام', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def user_username(self, obj):
+        """اسم المستخدم مع رابط"""
+        if obj.user:
+            url = reverse('admin:auth_user_change', args=[obj.user.id])
+            return format_html('<a href="{}">{}</a>', url, obj.user.username)
+        return '-'
+    user_username.short_description = 'اسم المستخدم'
+    
+    def user_email(self, obj):
+        """البريد الإلكتروني"""
+        return obj.user.email if obj.user else '-'
+    user_email.short_description = 'البريد الإلكتروني'
+    
+    def freeze_status(self, obj):
+        """حالة التجميد مع ألوان"""
+        if obj.is_currently_frozen():
+            if obj.frozen_by_admin:
+                return format_html(
+                    '<span style="color: #dc3545; font-weight: bold;">🔒 مجمد (إدارة)</span>'
+                )
+            else:
+                return format_html(
+                    '<span style="color: #fd7e14; font-weight: bold;">❄️ مجمد (طالب)</span>'
+                )
+        else:
+            return format_html(
+                '<span style="color: #28a745; font-weight: bold;">✅ نشط</span>'
+            )
+    freeze_status.short_description = 'الحالة'
+    
+    def freeze_reason_short(self, obj):
+        """سبب التجميد مختصر"""
+        if obj.freeze_reason:
+            return obj.freeze_reason[:50] + '...' if len(obj.freeze_reason) > 50 else obj.freeze_reason
+        return '-'
+    freeze_reason_short.short_description = 'سبب التجميد'
+    
+    def remaining_days(self, obj):
+        """الأيام المتبقية"""
+        days = obj.get_remaining_days()
+        if days is None:
+            return '-'
+        elif days == 0:
+            return format_html('<span style="color: #28a745;">انتهى</span>')
+        elif days <= 7:
+            return format_html('<span style="color: #dc3545;">{} أيام</span>', days)
+        else:
+            return f'{days} أيام'
+    remaining_days.short_description = 'الأيام المتبقية'
+    
+    def unfreeze_accounts(self, request, queryset):
+        """إلغاء تجميد الحسابات المحددة"""
+        count = 0
+        for account_freeze in queryset:
+            if account_freeze.is_frozen:
+                account_freeze.is_frozen = False
+                account_freeze.frozen_by_admin = False
+                account_freeze.save()
+                
+                # إعادة تفعيل المستخدم
+                if account_freeze.user:
+                    account_freeze.user.is_active = True
+                    account_freeze.user.save()
+                
+                count += 1
+        
+        if count > 0:
+            self.message_user(request, f'تم إلغاء تجميد {count} حساب', level='SUCCESS')
+        else:
+            self.message_user(request, 'لا توجد حسابات مجمدة لإلغاء التجميد', level='INFO')
+    unfreeze_accounts.short_description = "إلغاء تجميد الحسابات المحددة"
+    
+    def freeze_accounts(self, request, queryset):
+        """تجميد الحسابات المحددة (للإدارة)"""
+        count = 0
+        for account_freeze in queryset:
+            if not account_freeze.is_frozen:
+                account_freeze.is_frozen = True
+                account_freeze.frozen_by_admin = True
+                account_freeze.freeze_start_date = timezone.now()
+                account_freeze.freeze_reason = 'تم التجميد من قبل الإدارة'
+                account_freeze.save()
+                
+                # إلغاء تفعيل المستخدم
+                if account_freeze.user:
+                    account_freeze.user.is_active = False
+                    account_freeze.user.save()
+                
+                count += 1
+        
+        if count > 0:
+            self.message_user(request, f'تم تجميد {count} حساب', level='SUCCESS')
+        else:
+            self.message_user(request, 'جميع الحسابات مجمدة بالفعل', level='INFO')
+    freeze_accounts.short_description = "تجميد الحسابات المحددة"
+    
+    def get_queryset(self, request):
+        """تحسين الاستعلام"""
+        queryset = super().get_queryset(request)
+        return queryset.select_related('user')
+    
+    def has_add_permission(self, request):
+        """منع إضافة سجلات تجميد جديدة يدوياً"""
+        return False

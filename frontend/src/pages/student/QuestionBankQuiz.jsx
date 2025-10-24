@@ -66,9 +66,9 @@ const QuestionBankQuiz = () => {
     setLoading(true);
     try {
       // Build query parameters for fetching questions
-      // Request more questions than needed to ensure we have enough after filtering
+      // Request exactly the number of questions the user selected
       const params = {
-        page_size: Math.max(questionCount * 2, 50), // Request more than needed
+        page_size: questionCount, // Use exact count from filter
         random: 'true'
       };
 
@@ -88,19 +88,23 @@ const QuestionBankQuiz = () => {
       }
 
       console.log('Fetching questions with params:', params);
+      console.log('Requested question count:', questionCount);
       console.log('Token from localStorage:', localStorage.getItem('token'));
       const response = await assessmentService.getQuestions(params);
       console.log('Questions response:', response);
+      console.log('Received questions count:', response.data?.length);
       
       if (response.success) {
-        // Limit to the requested count and shuffle the results
-        const limitedQuestions = response.data.slice(0, questionCount);
-        const shuffled = limitedQuestions.sort(() => Math.random() - 0.5);
+        // Use the questions directly since we requested the exact count
+        const shuffled = response.data.sort(() => Math.random() - 0.5);
         setQuestions(shuffled);
         console.log(`Successfully loaded ${shuffled.length} questions (requested: ${questionCount})`);
         
         if (shuffled.length === 0) {
           setError('No questions found with the selected filters');
+        } else if (shuffled.length < questionCount) {
+          console.warn(`Only ${shuffled.length} questions available, requested ${questionCount}`);
+          // Still proceed with available questions
         }
       } else {
         setError(response.error || 'Failed to fetch questions');

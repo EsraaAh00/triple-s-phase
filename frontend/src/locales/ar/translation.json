@@ -1654,5 +1654,49 @@
   "courseSaveCourse": "حفظ الدورة",
   "courseViewMyCourses": "عرض دوراتي",
   "courseBackToCourses": "العودة للدورات",
-  "courseUploaded": "تم تحميل"
+  "courseUploaded": "تم تحميل",
+  
+  "freezeModal": {
+    "title": "تجميد الحساب",
+    "freezeReason": "سبب التجميد",
+    "commonReasons": "أسباب شائعة",
+    "focusOnStudy": "التركيز على الدراسة",
+    "personalIssues": "مشاكل شخصية",
+    "travel": "السفر",
+    "illness": "المرض",
+    "familyCircumstances": "الظروف العائلية",
+    "otherReasons": "أسباب أخرى",
+    "reasonPlaceholder": "اكتب سبب التجميد بالتفصيل...",
+    "freezeDuration": "مدة التجميد",
+    "quickOptions": "خيارات سريعة",
+    "oneWeek": "أسبوع واحد",
+    "oneMonth": "شهر واحد",
+    "threeMonths": "3 أشهر",
+    "sixMonths": "6 أشهر",
+    "oneYear": "سنة واحدة",
+    "endDate": "تاريخ انتهاء التجميد",
+    "time": "الوقت",
+    "remainingDays": "المدة المتبقية",
+    "days": "يوم",
+    "importantWarnings": "تحذيرات مهمة",
+    "warning1": "لن تتمكن من تسجيل الدخول أثناء فترة التجميد",
+    "warning2": "يمكن إلغاء التجميد من قبل الإدارة فقط",
+    "warning3": "التجميد مرة واحدة فقط لكل حساب",
+    "warning4": "لا يمكن تجميد الحساب لأكثر من سنة واحدة",
+    "cancel": "إلغاء",
+    "freezeAccount": "تجميد الحساب",
+    "freezing": "جاري التجميد...",
+    "success": {
+      "accountFrozen": "تم تجميد حسابك بنجاح"
+    },
+    "errors": {
+      "enterReason": "يرجى إدخال سبب التجميد",
+      "selectEndDate": "يرجى تحديد تاريخ انتهاء التجميد",
+      "futureDate": "تاريخ انتهاء التجميد يجب أن يكون في المستقبل",
+      "maxOneYear": "مدة التجميد لا يمكن أن تتجاوز سنة واحدة",
+      "freezeFailed": "حدث خطأ أثناء تجميد الحساب",
+      "sessionExpired": "انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى",
+      "loginRequired": "يجب تسجيل الدخول أولاً للوصول إلى هذه الميزة"
+    }
+  }
 }

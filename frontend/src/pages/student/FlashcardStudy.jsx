@@ -99,9 +99,9 @@ const FlashcardStudy = () => {
     setLoading(true);
     try {
       // Build parameters based on what's available
-      // Request more flashcards than needed to ensure we have enough after filtering
+      // Request exactly the number of flashcards the user selected
       const params = {
-        page_size: Math.max(count * 2, 50), // Request more than needed
+        page_size: count, // Use exact count from filter
         random: 'true' // Request random flashcards
       };
 
@@ -133,23 +133,29 @@ const FlashcardStudy = () => {
       }
 
       console.log('Fetching flashcards with params:', params); // Debug log
+      console.log('Requested flashcard count:', count);
       
       const response = await assessmentService.getFlashcards(params);
       
       console.log('Flashcards response:', response); // Debug log
+      console.log('Received flashcards count:', response.data?.length);
       
       if (response.success && response.data && response.data.length > 0) {
-        // Limit to the requested count and shuffle the results
-        const limitedCards = response.data.slice(0, count);
-        const shuffled = limitedCards.sort(() => Math.random() - 0.5);
+        // Use the flashcards directly since we requested the exact count
+        const shuffled = response.data.sort(() => Math.random() - 0.5);
         setFlashcards(shuffled);
         setError(null);
         console.log(`Successfully loaded ${shuffled.length} flashcards (requested: ${count})`);
+        
+        if (shuffled.length < count) {
+          console.warn(`Only ${shuffled.length} flashcards available, requested ${count}`);
+          // Still proceed with available flashcards
+        }
       } else {
         // If no flashcards found, try to get any flashcards without filters
         console.log('No flashcards found with filters, trying without filters...');
         const fallbackParams = {
-          page_size: Math.max(count * 2, 50), // Request more than needed
+          page_size: count, // Use exact count from filter
           random: 'true',
           'product__status': 'published'
           // No other filters - get all published flashcards
@@ -158,8 +164,7 @@ const FlashcardStudy = () => {
         const fallbackResponse = await assessmentService.getFlashcards(fallbackParams);
         
         if (fallbackResponse.success && fallbackResponse.data && fallbackResponse.data.length > 0) {
-          const limitedCards = fallbackResponse.data.slice(0, count);
-          const shuffled = limitedCards.sort(() => Math.random() - 0.5);
+          const shuffled = fallbackResponse.data.sort(() => Math.random() - 0.5);
           setFlashcards(shuffled);
           setError(null);
           console.log(`Fallback: Successfully loaded ${shuffled.length} flashcards (requested: ${count})`);

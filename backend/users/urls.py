@@ -43,6 +43,12 @@ urlpatterns = [
     # Account Management
     path('auth/account/deactivate/', UserDeactivationView.as_view(), name='deactivate_account'),
     
+    # Account Freeze Management
+    path('account/freeze/status/', views.get_freeze_status, name='get_freeze_status'),
+    path('account/freeze/', views.freeze_account, name='freeze_account'),
+    path('account/unfreeze/', views.unfreeze_account, name='unfreeze_account'),
+    path('account/check-auto-unfreeze/', views.check_auto_unfreeze, name='check_auto_unfreeze'),
+    
     # Profile management
     path('profile/', views.profile_view, name='profile'),
     path('profile/update/', views.update_profile, name='update_profile'),

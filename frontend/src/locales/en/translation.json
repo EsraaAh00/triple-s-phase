@@ -1656,5 +1656,49 @@
   "courseSaveCourse": "Save Course",
   "courseViewMyCourses": "View My Courses",
   "courseBackToCourses": "Back to Courses",
-  "courseUploaded": "Uploaded"
+  "courseUploaded": "Uploaded",
+  
+  "freezeModal": {
+    "title": "Freeze Account",
+    "freezeReason": "Freeze Reason",
+    "commonReasons": "Common Reasons",
+    "focusOnStudy": "Focus on Studies",
+    "personalIssues": "Personal Issues",
+    "travel": "Travel",
+    "illness": "Illness",
+    "familyCircumstances": "Family Circumstances",
+    "otherReasons": "Other Reasons",
+    "reasonPlaceholder": "Write your freeze reason in detail...",
+    "freezeDuration": "Freeze Duration",
+    "quickOptions": "Quick Options",
+    "oneWeek": "One Week",
+    "oneMonth": "One Month",
+    "threeMonths": "3 Months",
+    "sixMonths": "6 Months",
+    "oneYear": "One Year",
+    "endDate": "Freeze End Date",
+    "time": "Time",
+    "remainingDays": "Remaining Days",
+    "days": "days",
+    "importantWarnings": "Important Warnings",
+    "warning1": "You will not be able to log in during the freeze period",
+    "warning2": "Freeze can only be lifted by administration",
+    "warning3": "Freeze is allowed only once per account",
+    "warning4": "Account cannot be frozen for more than one year",
+    "cancel": "Cancel",
+    "freezeAccount": "Freeze Account",
+    "freezing": "Freezing...",
+    "success": {
+      "accountFrozen": "Your account has been frozen successfully"
+    },
+    "errors": {
+      "enterReason": "Please enter a freeze reason",
+      "selectEndDate": "Please select a freeze end date",
+      "futureDate": "Freeze end date must be in the future",
+      "maxOneYear": "Freeze duration cannot exceed one year",
+      "freezeFailed": "An error occurred while freezing the account",
+      "sessionExpired": "Session expired. Please log in again",
+      "loginRequired": "You must log in first to access this feature"
+    }
+  }
 }

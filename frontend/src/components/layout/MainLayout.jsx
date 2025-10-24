@@ -43,6 +43,8 @@ import {
 import { courseAPI } from '../../services/courseService';
 import { contentAPI } from '../../services/content.service';
 import assessmentService from '../../services/assessment.service';
+import accountFreezeService from '../../services/accountFreeze.service';
+import AccountFreezeModal from '../account/AccountFreezeModal';
 
 const drawerWidth = {
   xs: 180,
@@ -64,6 +66,10 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
     questionBank: false,
     flashcards: false
   });
+  
+  // Account freeze state
+  const [freezeModalOpen, setFreezeModalOpen] = useState(false);
+  const [freezeStatus, setFreezeStatus] = useState(null);
   
   // Navigation items for teacher
   const teacherNavItems = [
@@ -97,7 +103,12 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
       enrollmentStatus: enrollmentStatus.questionBank
     },
     { text: t('dashboardPerformance'), icon: <PerformanceIcon /> },
-    { text: t('dashboardFreeze'), icon: <FreezeIcon /> },
+    { 
+      text: t('dashboardFreeze'), 
+      icon: <FreezeIcon />, 
+      onClick: () => setFreezeModalOpen(true),
+      isFreezeButton: true
+    },
     { text: t('navFAQ'), icon: <FAQsIcon /> },
     { text: t('navReview'), icon: <ReviewIcon /> },
     { text: t('navContact'), icon: <ContactUsIcon /> },
@@ -206,6 +217,18 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
     }
   };
 
+  // Load freeze status
+  const loadFreezeStatus = async () => {
+    try {
+      const response = await accountFreezeService.getFreezeStatus();
+      if (response.success) {
+        setFreezeStatus(response.data);
+      }
+    } catch (error) {
+      console.error('Error loading freeze status:', error);
+    }
+  };
+
   // Handle courses dropdown toggle
   const handleCoursesDropdownToggle = () => {
     console.log('Courses dropdown toggled:', !coursesDropdownOpen);
@@ -233,6 +256,7 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
   // Check enrollment status on component mount
   useEffect(() => {
     checkEnrollmentStatus();
+    loadFreezeStatus();
   }, []);
 
   // Listen for language changes
@@ -574,6 +598,15 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
           
           // Regular navigation items
           const handleNavClick = () => {
+            // Handle freeze button click
+            if (item.isFreezeButton) {
+              item.onClick && item.onClick();
+              if (isMobile) {
+                setMobileOpen(false);
+              }
+              return;
+            }
+            
             // Check enrollment for items that require it
             if (item.requiresEnrollment && !item.enrollmentStatus) {
               // Show enrollment modal or redirect to enrollment page
@@ -619,6 +652,45 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
                     }} 
                   />
                   <LockIcon sx={{ fontSize: 16, color: '#ccc' }} />
+                </ListItemButton>
+              </Box>
+            );
+          }
+
+          // Handle freeze button separately
+          if (item.isFreezeButton) {
+            return (
+              <Box key={item.text} sx={{ position: 'relative' }}>
+                <ListItemButton
+                  onClick={handleNavClick}
+                  sx={{
+                    borderRadius: 1,
+                    color: '#dc3545',
+                    py: { xs: 0.4, sm: 0.5 },
+                    px: { xs: 0.6, sm: 0.8 },
+                    minHeight: { xs: 28, sm: 32 },
+                    mb: 0,
+                    '&:hover': {
+                      background: 'rgba(220, 53, 69, 0.08)',
+                      color: '#dc3545',
+                      borderRadius: 1
+                    }
+                  }}
+                >
+                  <ListItemIcon sx={{
+                    minWidth: { xs: 24, sm: 28 },
+                    color: '#dc3545',
+                    fontSize: { xs: 16, sm: 18 }
+                  }}>{item.icon}</ListItemIcon>
+                  <ListItemText 
+                    primary={item.text} 
+                    sx={{ 
+                      fontWeight: 500,
+                      '& .MuiListItemText-primary': {
+                        fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.8rem' }
+                      }
+                    }} 
+                  />
                 </ListItemButton>
               </Box>
             );
@@ -1930,6 +2002,16 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
           </Box>
         </Box>
       </Box>
+      
+      {/* Account Freeze Modal */}
+      <AccountFreezeModal
+        open={freezeModalOpen}
+        onClose={() => setFreezeModalOpen(false)}
+        onSuccess={(freezeData) => {
+          setFreezeStatus(freezeData);
+          setFreezeModalOpen(false);
+        }}
+      />
     </Box>
   );
 }

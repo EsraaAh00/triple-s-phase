@@ -35,7 +35,27 @@ class StandardResultsSetPagination(PageNumberPagination):
     """Standard pagination for assessment views"""
     page_size = 20
     page_size_query_param = 'page_size'
-    max_page_size = 100
+    max_page_size = 1000  # زيادة الحد الأقصى للسماح بأعداد أكبر
+    
+    def get_page_size(self, request):
+        """Get page size from request, using requested size as both default and max"""
+        if self.page_size_query_param:
+            page_size = request.query_params.get(self.page_size_query_param)
+            if page_size is not None:
+                try:
+                    page_size = int(page_size)
+                    if page_size > 0:
+                        # استخدام العدد المحدد من الطلب مباشرة
+                        # تحديث الحد الأقصى ليكون نفس العدد المطلوب
+                        self.max_page_size = max(page_size, self.max_page_size)
+                        print(f"=== PAGINATION DEBUG ===")
+                        print(f"Requested page_size: {page_size}")
+                        print(f"Updated max_page_size: {self.max_page_size}")
+                        print(f"Final page_size: {page_size}")
+                        return page_size
+                except (KeyError, ValueError):
+                    pass
+        return self.page_size
 
 
 class QuestionBankFilter(filters.FilterSet):

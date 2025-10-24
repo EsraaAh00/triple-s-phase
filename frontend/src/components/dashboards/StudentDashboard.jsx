@@ -30,6 +30,8 @@ import dashboardService from '../../services/dashboard.service';
 import { contentAPI } from '../../services/content.service';
 import { courseAPI } from '../../services/courseService';
 import assessmentService from '../../services/assessment.service';
+import accountFreezeService from '../../services/accountFreeze.service';
+import AccountFreezeModal from '../account/AccountFreezeModal';
 // Animation variants
 const container = {
   hidden: { opacity: 0 },
@@ -70,10 +72,13 @@ const StudentDashboard = () => {
     questionBank: false,
     flashcards: false
   });
+  const [freezeModalOpen, setFreezeModalOpen] = useState(false);
+  const [freezeStatus, setFreezeStatus] = useState(null);
   useEffect(() => {
     loadDashboardData();
     loadUserName();
     checkEnrollmentStatus();
+    loadFreezeStatus();
   }, []);
 
   const checkEnrollmentStatus = async () => {
@@ -97,6 +102,17 @@ const StudentDashboard = () => {
         questionBank: false,
         flashcards: false
       });
+    }
+  };
+
+  const loadFreezeStatus = async () => {
+    try {
+      const response = await accountFreezeService.getFreezeStatus();
+      if (response.success) {
+        setFreezeStatus(response.data);
+      }
+    } catch (error) {
+      console.error('Error loading freeze status:', error);
     }
   };
   const loadUserName = () => {
@@ -475,6 +491,7 @@ const StudentDashboard = () => {
             </Typography>
           </motion.div>
         </Box>
+        
         {/* Dashboard Cards - 6 uniform cards */}
         <Box sx={{ mb: 5, px: 1 }}>
           <Box>
@@ -758,11 +775,11 @@ const StudentDashboard = () => {
                 </Card>
               </motion.div>
             </Grid>
-            {/* Cheat Sheets Card */}
+            {/* Freeze Account Card */}
             <Grid size={{ xs: 12, sm: 6, md: 4 }}>
               <motion.div variants={item}>
                 <Card
-                          sx={{
+                  sx={{
                     height: 80,
                     borderRadius: 2,
                     background: 'white',
@@ -775,6 +792,7 @@ const StudentDashboard = () => {
                     transition: 'all 0.3s ease',
                     cursor: 'pointer'
                   }}
+                  onClick={() => setFreezeModalOpen(true)}
                 >
                   <CardContent sx={{ p: 2, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -786,7 +804,7 @@ const StudentDashboard = () => {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          background: '#4db6ac',
+                          background: '#dc3545',
                           color: 'white',
                           '& svg': {
                             fontSize: '1.5rem'
@@ -795,21 +813,21 @@ const StudentDashboard = () => {
                       >
                         <FreezeIcon />
                       </Box>
-                  <Box>
+                      <Box>
                         <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500, mb: 0.5 }}>
                           {t('dashboardFreeze')}
-                    </Typography>
+                        </Typography>
                         <Typography variant="caption" sx={{ color: '#666', fontSize: '0.75rem' }}>
                           {t('dashboardPauseSubscription')}
-                      </Typography>
+                        </Typography>
+                      </Box>
                     </Box>
-                  </Box>
-                    <Box sx={{ color: '#ccc' }}>
-                      <LockIcon />
-                </Box>
-              </CardContent>
-            </Card>
-          </motion.div>
+                    <Box sx={{ color: '#dc3545' }}>
+                      <FreezeIcon />
+                    </Box>
+                  </CardContent>
+                </Card>
+              </motion.div>
             </Grid>
             </Grid>
           </Box>
@@ -1345,6 +1363,16 @@ const StudentDashboard = () => {
           </Card>
         </motion.div>
       </motion.div>
+      
+      {/* Account Freeze Modal */}
+      <AccountFreezeModal
+        open={freezeModalOpen}
+        onClose={() => setFreezeModalOpen(false)}
+        onSuccess={(freezeData) => {
+          setFreezeStatus(freezeData);
+          setFreezeModalOpen(false);
+        }}
+      />
     </Box>
   );
 };
