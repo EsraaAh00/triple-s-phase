@@ -686,6 +686,14 @@ const StudentDashboard = () => {
                 transition: 'all 0.3s ease',
                 cursor: 'pointer'
               }}
+              onClick={() => {
+                // Navigate to schedule with first course if available
+                if (courses.length > 0) {
+                  navigate(`/student/schedule?courseId=${courses[0].id}`);
+                } else {
+                  navigate('/student/schedule');
+                }
+              }}
             >
                   <CardContent sx={{ p: 2, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -715,8 +723,8 @@ const StudentDashboard = () => {
                     </Typography>
                   </Box>
                 </Box>
-                    <Box sx={{ color: '#ccc' }}>
-                      <LockIcon />
+                    <Box sx={{ color: '#4caf50' }}>
+                      <OpenIcon />
                     </Box>
                   </CardContent>
                 </Card>
@@ -786,13 +794,18 @@ const StudentDashboard = () => {
                     border: 'none',
                     boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
                     '&:hover': {
-                      transform: 'translateY(-2px)',
-                      boxShadow: '0 6px 20px rgba(0, 0, 0, 0.12)',
+                      transform: freezeStatus?.has_used_freeze ? 'none' : 'translateY(-2px)',
+                      boxShadow: freezeStatus?.has_used_freeze ? '0 2px 12px rgba(0, 0, 0, 0.08)' : '0 6px 20px rgba(0, 0, 0, 0.12)',
                     },
                     transition: 'all 0.3s ease',
-                    cursor: 'pointer'
+                    cursor: freezeStatus?.has_used_freeze ? 'not-allowed' : 'pointer',
+                    opacity: freezeStatus?.has_used_freeze ? 0.6 : 1
                   }}
-                  onClick={() => setFreezeModalOpen(true)}
+                  onClick={() => {
+                    if (!freezeStatus?.has_used_freeze) {
+                      setFreezeModalOpen(true);
+                    }
+                  }}
                 >
                   <CardContent sx={{ p: 2, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -804,7 +817,7 @@ const StudentDashboard = () => {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          background: '#dc3545',
+                          background: freezeStatus?.has_used_freeze ? '#ccc' : '#dc3545',
                           color: 'white',
                           '& svg': {
                             fontSize: '1.5rem'
@@ -814,16 +827,16 @@ const StudentDashboard = () => {
                         <FreezeIcon />
                       </Box>
                       <Box>
-                        <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500, mb: 0.5 }}>
+                        <Typography variant="body2" sx={{ color: freezeStatus?.has_used_freeze ? '#ccc' : 'text.secondary', fontWeight: 500, mb: 0.5 }}>
                           {t('dashboardFreeze')}
                         </Typography>
-                        <Typography variant="caption" sx={{ color: '#666', fontSize: '0.75rem' }}>
-                          {t('dashboardPauseSubscription')}
+                        <Typography variant="caption" sx={{ color: freezeStatus?.has_used_freeze ? '#999' : '#666', fontSize: '0.75rem' }}>
+                          {freezeStatus?.has_used_freeze ? t('freezeModal.alreadyUsed') || 'تم استخدام التجميد من قبل' : t('dashboardPauseSubscription')}
                         </Typography>
                       </Box>
                     </Box>
-                    <Box sx={{ color: '#dc3545' }}>
-                      <FreezeIcon />
+                    <Box sx={{ color: freezeStatus?.has_used_freeze ? '#ccc' : '#dc3545' }}>
+                      {freezeStatus?.has_used_freeze ? <LockIcon /> : <FreezeIcon />}
                     </Box>
                   </CardContent>
                 </Card>
@@ -1372,6 +1385,7 @@ const StudentDashboard = () => {
           setFreezeStatus(freezeData);
           setFreezeModalOpen(false);
         }}
+        freezeStatus={freezeStatus}
       />
     </Box>
   );

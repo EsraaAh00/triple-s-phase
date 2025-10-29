@@ -1672,7 +1672,9 @@
     "freezeDuration": "Freeze Duration",
     "quickOptions": "Quick Options",
     "oneWeek": "One Week",
+    "twoWeeks": "Two Weeks",
     "oneMonth": "One Month",
+    "twoMonths": "Two Months",
     "threeMonths": "3 Months",
     "sixMonths": "6 Months",
     "oneYear": "One Year",
@@ -1684,7 +1686,11 @@
     "warning1": "You will not be able to log in during the freeze period",
     "warning2": "Freeze can only be lifted by administration",
     "warning3": "Freeze is allowed only once per account",
-    "warning4": "Account cannot be frozen for more than one year",
+    "warning4": "Maximum freeze duration is 60 days",
+    "warning5": "Your subscriptions will be automatically extended by the same freeze duration",
+    "alreadyUsed": "Already Used",
+    "alreadyUsedTitle": "Freeze Already Used",
+    "alreadyUsedMessage": "You have used the freeze feature before. You can only use this feature once.",
     "cancel": "Cancel",
     "freezeAccount": "Freeze Account",
     "freezing": "Freezing...",
@@ -1696,9 +1702,37 @@
       "selectEndDate": "Please select a freeze end date",
       "futureDate": "Freeze end date must be in the future",
       "maxOneYear": "Freeze duration cannot exceed one year",
+      "maxSixtyDays": "Freeze duration cannot exceed 60 days",
       "freezeFailed": "An error occurred while freezing the account",
       "sessionExpired": "Session expired. Please log in again",
       "loginRequired": "You must log in first to access this feature"
     }
+  },
+  "schedule": {
+    "today": "Today",
+    "week": "Week",
+    "day": "Day",
+    "rebalance": "Rebalance",
+    "assignmentsCompleted": "assignments completed",
+    "configureSchedule": "Configure Study Schedule",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "dailyHours": "Daily Study Hours",
+    "hours": "hours",
+    "daysOff": "Days Off",
+    "errorLoading": "Error loading schedule",
+    "scheduleCreated": "Schedule created successfully",
+    "errorCreating": "Error creating schedule",
+    "scheduleRebalanced": "Schedule rebalanced successfully",
+    "errorRebalancing": "Error rebalancing schedule",
+    "studySession": "Study Session",
+    "fullSchedule": "Full Schedule",
+    "selectDay": "Select a day to view schedule",
+    "noItemsForDay": "No schedule items for this day"
+  }
+  ,
+  "common": {
+    "cancel": "Cancel",
+    "save": "Save"
   }
 }

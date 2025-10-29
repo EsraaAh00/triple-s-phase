@@ -1,8 +1,9 @@
 from rest_framework import serializers
-from .models import Course, Category, Tag, Enrollment
+from .models import Course, Category, Tag, Enrollment, StudySchedule, ScheduleItem
 from users.models import Instructor
 from django.db.models import Count
 from django.utils.text import slugify
+from datetime import timedelta
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -486,4 +487,86 @@ class SearchSerializer(serializers.Serializer):
         choices=['name', '-name', 'created_at', '-created_at', 'price', '-price', 'rating', '-rating'],
         required=False,
         default='-created_at'
-    ) 
+    )
+
+
+class ScheduleItemSerializer(serializers.ModelSerializer):
+    """Serializer for schedule items"""
+    
+    class Meta:
+        model = ScheduleItem
+        fields = [
+            'id', 'date', 'start_time', 'end_time', 'hours',
+            'module_id', 'module_title', 'lesson_id', 'lesson_title',
+            'is_completed', 'completed_at', 'notes', 'order'
+        ]
+        read_only_fields = ['id', 'completed_at']
+
+
+class StudyScheduleSerializer(serializers.ModelSerializer):
+    """Serializer for study schedules"""
+    schedule_items = ScheduleItemSerializer(many=True, read_only=True)
+    total_study_days = serializers.SerializerMethodField()
+    total_study_hours = serializers.SerializerMethodField()
+    completed_items = serializers.SerializerMethodField()
+    total_items = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = StudySchedule
+        fields = [
+            'id', 'course', 'start_date', 'end_date', 'daily_hours',
+            'days_off', 'is_active', 'created_at', 'updated_at',
+            'schedule_items', 'total_study_days', 'total_study_hours',
+            'completed_items', 'total_items'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+    
+    def get_total_study_days(self, obj):
+        return obj.get_total_study_days()
+    
+    def get_total_study_hours(self, obj):
+        return obj.get_total_study_hours()
+    
+    def get_completed_items(self, obj):
+        return obj.schedule_items.filter(is_completed=True).count()
+    
+    def get_total_items(self, obj):
+        return obj.schedule_items.count()
+
+
+class StudyScheduleCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating study schedules"""
+    
+    days_off = serializers.JSONField(required=False, allow_null=True)
+    
+    class Meta:
+        model = StudySchedule
+        fields = [
+            'start_date', 'end_date', 'daily_hours', 'days_off'
+        ]
+    
+    def validate(self, data):
+        # Validate dates
+        if 'start_date' in data and 'end_date' in data:
+            if data['end_date'] <= data['start_date']:
+                raise serializers.ValidationError({
+                    'end_date': 'End date must be after start date'
+                })
+        
+        # Validate days_off
+        valid_days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        days_off = data.get('days_off')
+        
+        # If days_off is None, set it to empty list
+        if days_off is None:
+            data['days_off'] = []
+        elif not isinstance(days_off, list):
+            raise serializers.ValidationError({
+                'days_off': 'Days off must be a list'
+            })
+        elif days_off and not all(day in valid_days for day in days_off):
+            raise serializers.ValidationError({
+                'days_off': f'Days off must be from: {", ".join(valid_days)}'
+            })
+        
+        return data 

@@ -69,6 +69,7 @@ import DashboardRedirect from './pages/DashboardRedirect';
 import StudentDashboard from './components/dashboards/StudentDashboard';
 import TeacherDashboard from './components/dashboards/TeacherDashboard';
 import CourseTracking from './pages/student/CourseTracking';
+import StudySchedule from './components/schedule/StudySchedule';
 
 
 // Meeting Components
@@ -317,6 +318,7 @@ const AppContent = () => {
                         <Routes>
                           <Route index element={<StudentDashboard />} />
                           <Route path="dashboard" element={<StudentDashboard />} />
+                          <Route path="schedule" element={<StudySchedule />} />
                           <Route path="courses" element={<StudentMyCourses />} />
                           <Route path="my-courses" element={<StudentMyCourses />} />
                           {/* مسارات الامتحان الشامل للطالب - DISABLED */}

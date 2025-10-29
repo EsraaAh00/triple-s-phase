@@ -25,6 +25,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 
 from .models import Profile, Student, Organization, Instructor, AccountFreeze
 from courses.models import Enrollment, Course
+from assessment.models import FlashcardProductEnrollment, QuestionBankProductEnrollment
 from .serializers import (
     ProfileSerializer, StudentSerializer, OrganizationSerializer,
     UserDetailSerializer, ProfileUpdateSerializer, UserListSerializer, UserRegistrationSerializer,
@@ -510,19 +511,66 @@ def freeze_account(request):
                 'error': 'الحساب مجمد بالفعل'
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        serializer = FreezeAccountSerializer(data=request.data)
+        serializer = FreezeAccountSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
+            freeze_start_date = timezone.now()
+            freeze_end_date = serializer.validated_data['freeze_end_date']
+            
+            # حساب مدة التجميد بالأيام
+            freeze_duration = (freeze_end_date - freeze_start_date).days
+            
             # تجميد الحساب
             account_freeze.is_frozen = True
             account_freeze.freeze_reason = serializer.validated_data['freeze_reason']
-            account_freeze.freeze_start_date = timezone.now()
-            account_freeze.freeze_end_date = serializer.validated_data['freeze_end_date']
+            account_freeze.freeze_start_date = freeze_start_date
+            account_freeze.freeze_end_date = freeze_end_date
             account_freeze.frozen_by_admin = False
+            account_freeze.has_used_freeze = True  # تعيين أن الطالب استخدم التجميد
             account_freeze.save()
             
             # إلغاء تفعيل المستخدم
             request.user.is_active = False
             request.user.save()
+            
+            # إمداد اشتراكات الطالب في الكورسات والـ flashcards والـ questionbanks
+            with transaction.atomic():
+                # إمداد اشتراكات الكورسات
+                course_enrollments = Enrollment.objects.filter(
+                    student=request.user,
+                    status='active'
+                )
+                for enrollment in course_enrollments:
+                    if enrollment.completion_date:
+                        # إذا كان هناك تاريخ انتهاء، أضف المدة إليه
+                        enrollment.completion_date += timezone.timedelta(days=freeze_duration)
+                    else:
+                        # إذا لم يكن هناك تاريخ، أنشئ واحداً بناءً على تاريخ اليوم + مدة التجميد
+                        enrollment.completion_date = timezone.now() + timezone.timedelta(days=freeze_duration)
+                    enrollment.save()
+                
+                # إمداد اشتراكات الـ flashcards
+                flashcard_enrollments = FlashcardProductEnrollment.objects.filter(
+                    student=request.user,
+                    status='active'
+                )
+                for enrollment in flashcard_enrollments:
+                    if enrollment.completion_date:
+                        enrollment.completion_date += timezone.timedelta(days=freeze_duration)
+                    else:
+                        enrollment.completion_date = timezone.now() + timezone.timedelta(days=freeze_duration)
+                    enrollment.save()
+                
+                # إمداد اشتراكات الـ questionbanks
+                questionbank_enrollments = QuestionBankProductEnrollment.objects.filter(
+                    student=request.user,
+                    status='active'
+                )
+                for enrollment in questionbank_enrollments:
+                    if enrollment.completion_date:
+                        enrollment.completion_date += timezone.timedelta(days=freeze_duration)
+                    else:
+                        enrollment.completion_date = timezone.now() + timezone.timedelta(days=freeze_duration)
+                    enrollment.save()
             
             return Response({
                 'success': True,

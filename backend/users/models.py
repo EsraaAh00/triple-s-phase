@@ -131,6 +131,7 @@ class AccountFreeze(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name="تاريخ التحديث")
     frozen_by_admin = models.BooleanField(default=False, verbose_name="تم التجميد من قبل الإدارة")
     admin_notes = models.TextField(blank=True, null=True, verbose_name="ملاحظات الإدارة")
+    has_used_freeze = models.BooleanField(default=False, verbose_name="تم استخدام التجميد من قبل")
     
     class Meta:
         verbose_name = "تجميد الحساب"

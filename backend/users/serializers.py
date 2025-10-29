@@ -251,9 +251,10 @@ class AccountFreezeSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'is_frozen', 'freeze_reason', 'freeze_start_date', 
             'freeze_end_date', 'created_at', 'updated_at', 
-            'frozen_by_admin', 'admin_notes', 'remaining_days', 'is_currently_frozen'
+            'frozen_by_admin', 'admin_notes', 'has_used_freeze', 
+            'remaining_days', 'is_currently_frozen'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at', 'frozen_by_admin', 'admin_notes']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'frozen_by_admin', 'admin_notes', 'has_used_freeze']
     
     def get_remaining_days(self, obj):
         return obj.get_remaining_days()
@@ -271,16 +272,29 @@ class FreezeAccountSerializer(serializers.Serializer):
         """التحقق من صحة تاريخ انتهاء التجميد"""
         if value <= timezone.now():
             raise serializers.ValidationError("تاريخ انتهاء التجميد يجب أن يكون في المستقبل")
+        
+        # التحقق من أن المدة لا تتجاوز 60 يوم
+        max_end_date = timezone.now() + timezone.timedelta(days=60)
+        if value > max_end_date:
+            raise serializers.ValidationError("مدة التجميد لا يمكن أن تتجاوز 60 يوم")
+        
         return value
     
     def validate(self, data):
         """التحقق من صحة البيانات"""
-        freeze_end_date = data.get('freeze_end_date')
-        if freeze_end_date:
-            # التحقق من أن المدة لا تتجاوز سنة واحدة
-            max_end_date = timezone.now() + timezone.timedelta(days=365)
-            if freeze_end_date > max_end_date:
-                raise serializers.ValidationError("مدة التجميد لا يمكن أن تتجاوز سنة واحدة")
+        # التحقق من أن المستخدم لم يستخدم التجميد من قبل
+        request = self.context.get('request')
+        if request and request.user:
+            try:
+                from users.models import AccountFreeze
+                account_freeze = AccountFreeze.objects.get(user=request.user)
+                if account_freeze.has_used_freeze:
+                    raise serializers.ValidationError({
+                        'freeze_end_date': 'يمكنك استخدام التجميد مرة واحدة فقط'
+                    })
+            except AccountFreeze.DoesNotExist:
+                pass
+        
         return data
 
 

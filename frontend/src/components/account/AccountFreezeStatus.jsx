@@ -257,15 +257,32 @@ const AccountFreezeStatus = () => {
         )}
 
         {!isCurrentlyFrozen && (
-          <Box sx={{ textAlign: 'center', py: 2 }}>
-            <CheckCircleIcon sx={{ fontSize: 48, color: '#4caf50', mb: 1 }} />
-            <Typography variant="h6" sx={{ color: '#4caf50', fontWeight: 600 }}>
-              حسابك نشط
-            </Typography>
-            <Typography variant="body2" sx={{ color: '#666', mt: 1 }}>
-              يمكنك استخدام جميع ميزات المنصة
-            </Typography>
-          </Box>
+          <>
+            <Box sx={{ textAlign: 'center', py: 2 }}>
+              <CheckCircleIcon sx={{ fontSize: 48, color: '#4caf50', mb: 1 }} />
+              <Typography variant="h6" sx={{ color: '#4caf50', fontWeight: 600 }}>
+                حسابك نشط
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#666', mt: 1 }}>
+                يمكنك استخدام جميع ميزات المنصة
+              </Typography>
+            </Box>
+
+            {/* معلومات استخدام التجميد */}
+            {freezeData.has_used_freeze && (
+              <>
+                <Divider sx={{ my: 2 }} />
+                <Alert severity="info" sx={{ mt: 2 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
+                    ملاحظة:
+                  </Typography>
+                  <Typography variant="body2">
+                    لقد استخدمت ميزة التجميد من قبل. يمكنك استخدامها مرة واحدة فقط.
+                  </Typography>
+                </Alert>
+              </>
+            )}
+          </>
         )}
       </CardContent>
     </Card>

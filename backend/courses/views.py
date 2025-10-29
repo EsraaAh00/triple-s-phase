@@ -17,13 +17,16 @@ from datetime import timedelta, datetime
 from django.core.paginator import Paginator
 import logging
 
-from .models import Course, Category, Tag, Enrollment
+from .models import Course, Category, Tag, Enrollment, StudySchedule, ScheduleItem
 from users.models import Instructor, Profile, User
 from .serializers import (
     CategorySerializer, TagsSerializer, CourseBasicSerializer, 
     CourseDetailSerializer, CourseCreateSerializer, CourseUpdateSerializer,
-    CourseEnrollmentSerializer, DashboardStatsSerializer, SearchSerializer
+    CourseEnrollmentSerializer, DashboardStatsSerializer, SearchSerializer,
+    StudyScheduleSerializer, StudyScheduleCreateSerializer, ScheduleItemSerializer
 )
+from content.models import Module, Lesson
+from collections import defaultdict
 from content.serializers import ModuleBasicSerializer
 
 logger = logging.getLogger(__name__)
@@ -1106,5 +1109,355 @@ def course_tracking_data(request, course_id):
         logger.error(f"Error in course_tracking_data: {str(e)}", exc_info=True)
         return Response({
             'error': 'حدث خطأ أثناء جلب بيانات الدورة',
+            'detail': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def study_schedule_view(request, course_id=None):
+    """Get or create study schedule for a course"""
+    try:
+        course = get_object_or_404(Course, id=course_id)
+        
+        # Check if user is enrolled
+        enrollment = Enrollment.objects.filter(
+            student=request.user,
+            course=course,
+            status__in=['active', 'completed']
+        ).first()
+        
+        if not enrollment:
+            return Response({
+                'error': 'You are not enrolled in this course'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        if request.method == 'GET':
+            # Get active schedule
+            schedule = StudySchedule.objects.filter(
+                student=request.user,
+                course=course,
+                is_active=True
+            ).first()
+            
+            if not schedule:
+                return Response({
+                    'schedule': None,
+                    'message': 'No active schedule found'
+                }, status=status.HTTP_200_OK)
+            
+            serializer = StudyScheduleSerializer(schedule)
+            return Response({
+                'schedule': serializer.data
+            }, status=status.HTTP_200_OK)
+        
+        elif request.method == 'POST':
+            # Create or update schedule
+            serializer = StudyScheduleCreateSerializer(data=request.data)
+            
+            if serializer.is_valid():
+                try:
+                    # Deactivate old schedules
+                    StudySchedule.objects.filter(
+                        student=request.user,
+                        course=course,
+                        is_active=True
+                    ).update(is_active=False)
+                    
+                    # Create new schedule
+                    schedule = serializer.save(
+                        student=request.user,
+                        course=course
+                    )
+                    
+                    response_serializer = StudyScheduleSerializer(schedule)
+                    return Response({
+                        'schedule': response_serializer.data,
+                        'message': 'Schedule created successfully'
+                    }, status=status.HTTP_201_CREATED)
+                except Exception as save_error:
+                    logger.error(f"Error saving schedule: {str(save_error)}", exc_info=True)
+                    return Response({
+                        'error': 'Failed to create schedule',
+                        'detail': str(save_error)
+                    }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Return validation errors with better formatting
+            return Response({
+                'error': 'Validation failed',
+                'errors': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
+    except Exception as e:
+        logger.error(f"Error in study_schedule_view: {str(e)}", exc_info=True)
+        return Response({
+            'error': 'An error occurred',
+            'detail': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def rebalance_schedule(request, schedule_id):
+    """Rebalance schedule by distributing course lessons across available days"""
+    try:
+        schedule = get_object_or_404(StudySchedule, id=schedule_id, student=request.user)
+        
+        # Delete existing schedule items
+        ScheduleItem.objects.filter(schedule=schedule).delete()
+        
+        # Get all modules and lessons for the course
+        modules = Module.objects.filter(
+            course=schedule.course,
+            is_active=True
+        ).prefetch_related('lessons').order_by('order')
+        
+        # Collect all lessons with their details
+        lessons = []
+        for module in modules:
+            module_lessons = Lesson.objects.filter(
+                module=module,
+                is_active=True
+            ).order_by('order')
+            
+            for lesson in module_lessons:
+                lessons.append({
+                    'module_id': module.id,
+                    'module_title': module.name,
+                    'lesson_id': lesson.id,
+                    'lesson_title': lesson.title,
+                    'duration_minutes': lesson.duration_minutes or 15,  # Default 15 minutes
+                })
+        
+        if not lessons:
+            return Response({
+                'error': 'No lessons found for this course'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Calculate available study days
+        study_days = []
+        current_date = schedule.start_date
+        day_names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        
+        while current_date <= schedule.end_date:
+            day_name = day_names[current_date.weekday()]
+            if day_name not in schedule.days_off:
+                study_days.append(current_date)
+            current_date += timedelta(days=1)
+        
+        if not study_days:
+            return Response({
+                'error': 'No study days available. All days are marked as days off.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Distribute lessons across days
+        schedule_items = []
+        lesson_index = 0
+        order = 0
+        
+        # Start time for each day
+        daily_start_hour = 9  # 9 AM
+        
+        # Cycle through days until all lessons are scheduled
+        day_cycle_index = 0
+        max_iterations = len(lessons) * 2  # Safety limit
+        
+        while lesson_index < len(lessons) and day_cycle_index < max_iterations:
+            # Get the current study day (cycle through available days)
+            study_date = study_days[day_cycle_index % len(study_days)]
+            current_time = daily_start_hour
+            daily_hours_remaining = schedule.daily_hours
+            day_has_space = True
+            
+            # Try to fill this day with lessons
+            while lesson_index < len(lessons) and daily_hours_remaining > 0.01 and day_has_space:
+                lesson = lessons[lesson_index]
+                lesson_duration_hours = lesson['duration_minutes'] / 60.0
+                
+                # Special case: If lesson is longer than daily hours, schedule it anyway but only once per day
+                if lesson_duration_hours > schedule.daily_hours:
+                    # This is a very long lesson, schedule it but don't add more lessons to this day
+                    start_time = datetime.combine(study_date, datetime.min.time()).replace(
+                        hour=int(current_time),
+                        minute=int((current_time % 1) * 60)
+                    ).time()
+                    
+                    end_time_obj = datetime.combine(study_date, datetime.min.time()).replace(
+                        hour=int(current_time),
+                        minute=int((current_time % 1) * 60)
+                    ) + timedelta(hours=lesson_duration_hours)
+                    end_time = end_time_obj.time()
+                    
+                    schedule_items.append(ScheduleItem(
+                        schedule=schedule,
+                        date=study_date,
+                        start_time=start_time,
+                        end_time=end_time,
+                        hours=lesson_duration_hours,
+                        module_id=lesson['module_id'],
+                        module_title=lesson['module_title'],
+                        lesson_id=lesson['lesson_id'],
+                        lesson_title=lesson['lesson_title'],
+                        order=order
+                    ))
+                    
+                    order += 1
+                    lesson_index += 1
+                    daily_hours_remaining = 0  # Day is full
+                    day_has_space = False
+                    logger.warning(f"Lesson '{lesson['lesson_title']}' ({lesson_duration_hours}h) exceeds daily hours ({schedule.daily_hours}h). Scheduled anyway.")
+                
+                # Check if lesson fits in remaining hours
+                elif lesson_duration_hours <= daily_hours_remaining:
+                    # Lesson fits completely - schedule it
+                    start_time = datetime.combine(study_date, datetime.min.time()).replace(
+                        hour=int(current_time),
+                        minute=int((current_time % 1) * 60)
+                    ).time()
+                    
+                    end_time_obj = datetime.combine(study_date, datetime.min.time()).replace(
+                        hour=int(current_time),
+                        minute=int((current_time % 1) * 60)
+                    ) + timedelta(hours=lesson_duration_hours)
+                    end_time = end_time_obj.time()
+                    
+                    schedule_items.append(ScheduleItem(
+                        schedule=schedule,
+                        date=study_date,
+                        start_time=start_time,
+                        end_time=end_time,
+                        hours=lesson_duration_hours,
+                        module_id=lesson['module_id'],
+                        module_title=lesson['module_title'],
+                        lesson_id=lesson['lesson_id'],
+                        lesson_title=lesson['lesson_title'],
+                        order=order
+                    ))
+                    
+                    order += 1
+                    lesson_index += 1
+                    daily_hours_remaining -= lesson_duration_hours
+                    current_time += lesson_duration_hours
+                    
+                else:
+                    # Lesson doesn't fit in remaining hours
+                    # Move to next day to schedule this lesson
+                    day_has_space = False
+            
+            # Move to next day
+            day_cycle_index += 1
+        
+        # Log summary before creating
+        logger.info(f"Schedule rebalance summary:")
+        logger.info(f"  - Total lessons: {len(lessons)}")
+        logger.info(f"  - Lessons processed: {lesson_index}/{len(lessons)}")
+        logger.info(f"  - Schedule items to create: {len(schedule_items)}")
+        logger.info(f"  - Available study days: {len(study_days)}")
+        logger.info(f"  - Daily hours: {schedule.daily_hours}")
+        
+        # Calculate hours per day for verification
+        days_with_items = {}
+        for item in schedule_items:
+            date_str = item.date.isoformat()
+            if date_str not in days_with_items:
+                days_with_items[date_str] = 0
+            days_with_items[date_str] += item.hours
+        
+        logger.info(f"  - Hours distribution per day: {days_with_items}")
+        
+        # Bulk create schedule items
+        ScheduleItem.objects.bulk_create(schedule_items)
+        
+        # Refresh schedule
+        schedule.refresh_from_db()
+        serializer = StudyScheduleSerializer(schedule)
+        
+        # Check if all lessons were distributed
+        if lesson_index < len(lessons):
+            logger.warning(f"Warning: Only {lesson_index} out of {len(lessons)} lessons were distributed. Remaining lessons may be too long for available hours.")
+        
+        return Response({
+            'schedule': serializer.data,
+            'message': 'Schedule rebalanced successfully',
+            'stats': {
+                'total_lessons': len(lessons),
+                'distributed_lessons': lesson_index,
+                'schedule_items_created': len(schedule_items),
+                'study_days_used': len(days_with_items),
+                'hours_per_day': schedule.daily_hours,
+                'hours_distribution': days_with_items
+            }
+        }, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        logger.error(f"Error in rebalance_schedule: {str(e)}", exc_info=True)
+        return Response({
+            'error': 'An error occurred while rebalancing schedule',
+            'detail': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def toggle_schedule_item_completion(request, item_id):
+    """Toggle completion status of a schedule item"""
+    try:
+        item = get_object_or_404(ScheduleItem, id=item_id)
+        
+        # Verify ownership
+        if item.schedule.student != request.user:
+            return Response({
+                'error': 'You do not have permission to modify this item'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        item.is_completed = not item.is_completed
+        if item.is_completed:
+            item.completed_at = timezone.now()
+        else:
+            item.completed_at = None
+        
+        item.save()
+        
+        serializer = ScheduleItemSerializer(item)
+        return Response({
+            'item': serializer.data
+        }, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        logger.error(f"Error in toggle_schedule_item_completion: {str(e)}", exc_info=True)
+        return Response({
+            'error': 'An error occurred',
+            'detail': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def schedule_items_by_date_range(request, schedule_id):
+    """Get schedule items for a specific date range"""
+    try:
+        schedule = get_object_or_404(StudySchedule, id=schedule_id, student=request.user)
+        
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+        
+        items = ScheduleItem.objects.filter(schedule=schedule).order_by('date', 'start_time')
+        
+        if start_date:
+            items = items.filter(date__gte=start_date)
+        if end_date:
+            items = items.filter(date__lte=end_date)
+        
+        serializer = ScheduleItemSerializer(items, many=True)
+        return Response({
+            'items': serializer.data,
+            'total': items.count(),
+            'completed': items.filter(is_completed=True).count()
+        }, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        logger.error(f"Error in schedule_items_by_date_range: {str(e)}", exc_info=True)
+        return Response({
+            'error': 'An error occurred',
             'detail': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR) 

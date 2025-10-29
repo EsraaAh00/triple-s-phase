@@ -574,3 +574,127 @@ def update_course_slug(sender, instance, created, **kwargs):
         # Update the instance in memory
         instance.slug = slug
 
+
+class StudySchedule(models.Model):
+    """Study schedule for students to track their course learning"""
+    
+    DAILY_HOURS_CHOICES = [
+        (4, _('4 hours')),
+        (6, _('6 hours')),
+        (8, _('8 hours')),
+    ]
+    
+    student = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='study_schedules',
+        verbose_name=_('Student')
+    )
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE,
+        related_name='study_schedules',
+        verbose_name=_('Course')
+    )
+    start_date = models.DateField(verbose_name=_('Start Date'))
+    end_date = models.DateField(verbose_name=_('End Date'))
+    daily_hours = models.PositiveIntegerField(
+        choices=DAILY_HOURS_CHOICES,
+        default=4,
+        verbose_name=_('Daily Study Hours')
+    )
+    days_off = models.JSONField(
+        default=list,
+        help_text=_('List of day names (e.g., ["Friday", "Saturday"])'),
+        verbose_name=_('Days Off')
+    )
+    is_active = models.BooleanField(default=True, verbose_name=_('Is Active'))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Created At'))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_('Updated At'))
+    
+    class Meta:
+        verbose_name = _('Study Schedule')
+        verbose_name_plural = _('Study Schedules')
+        ordering = ['-created_at']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['student', 'course', 'is_active'],
+                condition=models.Q(is_active=True),
+                name='unique_active_schedule_per_student_course'
+            )
+        ]
+    
+    def __str__(self):
+        return f"{self.student.get_full_name()} - {self.course.title} ({self.start_date} to {self.end_date})"
+    
+    def get_total_study_days(self):
+        """Calculate total study days excluding days off"""
+        from datetime import timedelta
+        total_days = 0
+        current_date = self.start_date
+        day_names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        
+        while current_date <= self.end_date:
+            day_name = day_names[current_date.weekday()]
+            if day_name not in self.days_off:
+                total_days += 1
+            current_date += timedelta(days=1)
+        
+        return total_days
+    
+    def get_total_study_hours(self):
+        """Calculate total available study hours"""
+        return self.get_total_study_days() * self.daily_hours
+
+
+class ScheduleItem(models.Model):
+    """Individual items in a study schedule"""
+    
+    schedule = models.ForeignKey(
+        StudySchedule,
+        on_delete=models.CASCADE,
+        related_name='schedule_items',
+        verbose_name=_('Schedule')
+    )
+    date = models.DateField(verbose_name=_('Date'))
+    start_time = models.TimeField(verbose_name=_('Start Time'))
+    end_time = models.TimeField(verbose_name=_('End Time'))
+    hours = models.DecimalField(
+        max_digits=3,
+        decimal_places=1,
+        verbose_name=_('Hours')
+    )
+    
+    # Lesson/Module reference
+    module_id = models.IntegerField(null=True, blank=True, verbose_name=_('Module ID'))
+    module_title = models.CharField(max_length=255, blank=True, verbose_name=_('Module Title'))
+    lesson_id = models.IntegerField(null=True, blank=True, verbose_name=_('Lesson ID'))
+    lesson_title = models.CharField(max_length=255, blank=True, verbose_name=_('Lesson Title'))
+    
+    # Progress tracking
+    is_completed = models.BooleanField(default=False, verbose_name=_('Is Completed'))
+    completed_at = models.DateTimeField(null=True, blank=True, verbose_name=_('Completed At'))
+    notes = models.TextField(blank=True, verbose_name=_('Notes'))
+    order = models.PositiveIntegerField(default=0, verbose_name=_('Order'))
+    
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Created At'))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_('Updated At'))
+    
+    class Meta:
+        verbose_name = _('Schedule Item')
+        verbose_name_plural = _('Schedule Items')
+        ordering = ['schedule', 'date', 'start_time', 'order']
+        indexes = [
+            models.Index(fields=['schedule', 'date']),
+            models.Index(fields=['date', 'is_completed']),
+        ]
+    
+    def __str__(self):
+        return f"{self.date} - {self.lesson_title or self.module_title or 'Study Session'}"
+    
+    def mark_completed(self):
+        """Mark this schedule item as completed"""
+        self.is_completed = True
+        self.completed_at = timezone.now()
+        self.save()
+

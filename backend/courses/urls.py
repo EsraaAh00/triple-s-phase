@@ -46,6 +46,12 @@ urlpatterns = [
     path('student/upcoming-assignments/', dashboard_views.student_upcoming_assignments, name='student_upcoming_assignments'),
     path('student/upcoming-meetings/', dashboard_views.student_upcoming_meetings, name='student_upcoming_meetings'),
     
+    # Study Schedule APIs
+    path('student/schedule/<int:course_id>/', views.study_schedule_view, name='study_schedule_view'),
+    path('student/schedule/<int:schedule_id>/rebalance/', views.rebalance_schedule, name='rebalance_schedule'),
+    path('student/schedule/item/<int:item_id>/toggle/', views.toggle_schedule_item_completion, name='toggle_schedule_item_completion'),
+    path('student/schedule/<int:schedule_id>/items/', views.schedule_items_by_date_range, name='schedule_items_by_date_range'),
+    
     # Include router URLs
     path('', include(router.urls)),
 ]

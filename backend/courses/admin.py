@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.db.models import Q
 
-from .models import Category, Tags, Course, Enrollment
+from .models import Category, Tags, Course, Enrollment, StudySchedule, ScheduleItem
 
 # Unregister any models that might be registered by default or other apps
 try:
@@ -285,6 +285,68 @@ class EnrollmentAdmin(admin.ModelAdmin):
             })
         
         return JsonResponse({'results': results})
+
+
+@admin.register(StudySchedule)
+class StudyScheduleAdmin(admin.ModelAdmin):
+    list_display = ('course', 'student_name', 'start_date', 'end_date', 'daily_hours', 'is_active', 'created_at')
+    list_filter = ('is_active', 'daily_hours', 'created_at')
+    search_fields = ('course__title', 'student__username', 'student__first_name', 'student__last_name')
+    readonly_fields = ('created_at', 'updated_at', 'total_study_days', 'total_study_hours')
+    date_hierarchy = 'start_date'
+    
+    fieldsets = (
+        ('Schedule Information', {
+            'fields': ('student', 'course', 'start_date', 'end_date', 'daily_hours', 'days_off', 'is_active')
+        }),
+        ('Statistics', {
+            'fields': ('total_study_days', 'total_study_hours'),
+            'classes': ('collapse',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def student_name(self, obj):
+        if obj.student.profile:
+            return f"{obj.student.profile.name} ({obj.student.username})"
+        return f"{obj.student.get_full_name() or obj.student.username}"
+    student_name.short_description = 'Student'
+    
+    def total_study_days(self, obj):
+        return obj.get_total_study_days()
+    total_study_days.short_description = 'Total Study Days'
+    
+    def total_study_hours(self, obj):
+        return obj.get_total_study_hours()
+    total_study_hours.short_description = 'Total Study Hours'
+
+
+@admin.register(ScheduleItem)
+class ScheduleItemAdmin(admin.ModelAdmin):
+    list_display = ('schedule', 'date', 'start_time', 'end_time', 'lesson_title', 'is_completed', 'order')
+    list_filter = ('is_completed', 'date', 'schedule__course')
+    search_fields = ('lesson_title', 'module_title', 'schedule__course__title')
+    readonly_fields = ('created_at', 'updated_at', 'completed_at')
+    date_hierarchy = 'date'
+    
+    fieldsets = (
+        ('Schedule Item', {
+            'fields': ('schedule', 'date', 'start_time', 'end_time', 'hours', 'order')
+        }),
+        ('Content', {
+            'fields': ('module_id', 'module_title', 'lesson_id', 'lesson_title')
+        }),
+        ('Progress', {
+            'fields': ('is_completed', 'completed_at', 'notes')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
 
 
 # Comment and SubComment admin classes moved to reviews app

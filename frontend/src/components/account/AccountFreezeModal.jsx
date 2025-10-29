@@ -25,7 +25,7 @@ import { ar, enUS } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
 import accountFreezeService from '../../services/accountFreeze.service';
 
-const AccountFreezeModal = ({ open, onClose, onSuccess }) => {
+const AccountFreezeModal = ({ open, onClose, onSuccess, freezeStatus }) => {
   const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -35,14 +35,32 @@ const AccountFreezeModal = ({ open, onClose, onSuccess }) => {
     freeze_end_date: null,
     freeze_end_time: null
   });
+  const [hasUsedFreeze, setHasUsedFreeze] = useState(false);
 
-  // خيارات مدة التجميد المحددة مسبقاً
+  // تحميل حالة التجميد عند فتح الـ Modal
+  useEffect(() => {
+    if (open) {
+      loadFreezeStatus();
+    }
+  }, [open]);
+
+  const loadFreezeStatus = async () => {
+    try {
+      const response = await accountFreezeService.getFreezeStatus();
+      if (response.success && response.data) {
+        setHasUsedFreeze(response.data.has_used_freeze || false);
+      }
+    } catch (error) {
+      console.error('Error loading freeze status:', error);
+    }
+  };
+
+  // خيارات مدة التجميد المحددة مسبقاً (أقصى مدة 60 يوم)
   const predefinedDurations = [
     { label: t('freezeModal.oneWeek'), days: 7 },
+    { label: t('freezeModal.twoWeeks'), days: 14 },
     { label: t('freezeModal.oneMonth'), days: 30 },
-    { label: t('freezeModal.threeMonths'), days: 90 },
-    { label: t('freezeModal.sixMonths'), days: 180 },
-    { label: t('freezeModal.oneYear'), days: 365 }
+    { label: t('freezeModal.twoMonths'), days: 60 }
   ];
 
   // أسباب التجميد الشائعة
@@ -64,8 +82,12 @@ const AccountFreezeModal = ({ open, onClose, onSuccess }) => {
         freeze_end_date: null,
         freeze_end_time: null
       });
+      // استخدام freezeStatus إذا كان متوفراً من الـ prop
+      if (freezeStatus) {
+        setHasUsedFreeze(freezeStatus.has_used_freeze || false);
+      }
     }
-  }, [open]);
+  }, [open, freezeStatus]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -86,6 +108,12 @@ const AccountFreezeModal = ({ open, onClose, onSuccess }) => {
   };
 
   const handleSubmit = async () => {
+    // التحقق من أن المستخدم لم يستخدم التجميد من قبل
+    if (hasUsedFreeze) {
+      setError(t('freezeModal.alreadyUsedMessage') || 'لقد قمت باستخدام ميزة التجميد من قبل. يمكنك استخدام هذه الميزة مرة واحدة فقط.');
+      return;
+    }
+
     if (!formData.freeze_reason.trim()) {
       setError(t('freezeModal.errors.enterReason'));
       return;
@@ -104,11 +132,11 @@ const AccountFreezeModal = ({ open, onClose, onSuccess }) => {
       return;
     }
 
-    // التحقق من أن المدة لا تتجاوز سنة واحدة
-    const oneYearFromNow = new Date();
-    oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
-    if (selectedDate > oneYearFromNow) {
-      setError(t('freezeModal.errors.maxOneYear'));
+    // التحقق من أن المدة لا تتجاوز 60 يوم
+    const maxDate = new Date();
+    maxDate.setDate(maxDate.getDate() + 60);
+    if (selectedDate > maxDate) {
+      setError(t('freezeModal.errors.maxSixtyDays') || 'مدة التجميد لا يمكن أن تتجاوز 60 يوم');
       return;
     }
 
@@ -146,7 +174,18 @@ const AccountFreezeModal = ({ open, onClose, onSuccess }) => {
       } else if (error.message && error.message.includes('يجب تسجيل الدخول')) {
         setError(t('freezeModal.errors.loginRequired'));
       } else {
-        setError(error.response?.data?.error || error.message || t('freezeModal.errors.freezeFailed'));
+        // معالجة أخطاء التجميد المحددة
+        const errorMessage = error.response?.data?.error;
+        if (errorMessage && typeof errorMessage === 'object' && errorMessage.freeze_end_date) {
+          // خطأ من validation (مثل: استخدم التجميد من قبل)
+          setError(Array.isArray(errorMessage.freeze_end_date) 
+            ? errorMessage.freeze_end_date[0] 
+            : errorMessage.freeze_end_date);
+        } else if (errorMessage && typeof errorMessage === 'string') {
+          setError(errorMessage);
+        } else {
+          setError(error.message || t('freezeModal.errors.freezeFailed'));
+        }
       }
     } finally {
       setLoading(false);
@@ -204,6 +243,17 @@ const AccountFreezeModal = ({ open, onClose, onSuccess }) => {
         </DialogTitle>
 
         <DialogContent sx={{ p: 3 }}>
+          {hasUsedFreeze && (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
+                {t('freezeModal.alreadyUsedTitle') || 'تم استخدام التجميد من قبل'}
+              </Typography>
+              <Typography variant="body2">
+                {t('freezeModal.alreadyUsedMessage') || 'لقد قمت باستخدام ميزة التجميد من قبل. يمكنك استخدام هذه الميزة مرة واحدة فقط.'}
+              </Typography>
+            </Alert>
+          )}
+
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
               {error}
@@ -232,9 +282,10 @@ const AccountFreezeModal = ({ open, onClose, onSuccess }) => {
                   <Chip
                     key={reason}
                     label={reason}
-                    onClick={() => handleInputChange('freeze_reason', reason)}
+                    onClick={() => !hasUsedFreeze && handleInputChange('freeze_reason', reason)}
                     variant={formData.freeze_reason === reason ? 'filled' : 'outlined'}
                     color={formData.freeze_reason === reason ? 'primary' : 'default'}
+                    disabled={hasUsedFreeze}
                     sx={{ mb: 1 }}
                   />
                 ))}
@@ -248,6 +299,7 @@ const AccountFreezeModal = ({ open, onClose, onSuccess }) => {
               placeholder={t('freezeModal.reasonPlaceholder')}
               value={formData.freeze_reason}
               onChange={(e) => handleInputChange('freeze_reason', e.target.value)}
+              disabled={hasUsedFreeze}
               sx={{
                 '& .MuiOutlinedInput-root': {
                   borderRadius: 2
@@ -274,9 +326,10 @@ const AccountFreezeModal = ({ open, onClose, onSuccess }) => {
                   <Chip
                     key={duration.days}
                     label={duration.label}
-                    onClick={() => handlePredefinedDuration(duration.days)}
+                    onClick={() => !hasUsedFreeze && handlePredefinedDuration(duration.days)}
                     variant="outlined"
                     color="secondary"
+                    disabled={hasUsedFreeze}
                     sx={{ mb: 1 }}
                   />
                 ))}
@@ -295,8 +348,9 @@ const AccountFreezeModal = ({ open, onClose, onSuccess }) => {
                   label={t('freezeModal.endDate')}
                   value={formData.freeze_end_date}
                   onChange={(date) => handleInputChange('freeze_end_date', date)}
+                  disabled={hasUsedFreeze}
                   minDate={new Date()}
-                  maxDate={new Date(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate())}
+                  maxDate={new Date(new Date().getTime() + 60 * 24 * 60 * 60 * 1000)}
                   slotProps={{
                     textField: {
                       fullWidth: true,
@@ -345,6 +399,7 @@ const AccountFreezeModal = ({ open, onClose, onSuccess }) => {
                   label={t('freezeModal.time')}
                   value={formData.freeze_end_time}
                   onChange={(time) => handleInputChange('freeze_end_time', time)}
+                  disabled={hasUsedFreeze}
                   slotProps={{
                     textField: {
                       fullWidth: true,
@@ -416,8 +471,9 @@ const AccountFreezeModal = ({ open, onClose, onSuccess }) => {
             <Typography variant="body2" component="div">
               • {t('freezeModal.warning1')}<br/>
               • {t('freezeModal.warning2')}<br/>
-              • {t('freezeModal.warning3')}<br/>
-              • {t('freezeModal.warning4')}
+              • {t('freezeModal.warning3') || 'يمكنك استخدام التجميد مرة واحدة فقط'}<br/>
+              • {t('freezeModal.warning4') || 'أقصى مدة للتجميد هي 60 يوم'}<br/>
+              • {t('freezeModal.warning5') || 'سيتم إمداد اشتراكاتك تلقائياً بنفس مدة التجميد'}
             </Typography>
           </Alert>
         </DialogContent>
@@ -434,17 +490,23 @@ const AccountFreezeModal = ({ open, onClose, onSuccess }) => {
           <Button
             onClick={handleSubmit}
             variant="contained"
-            disabled={loading || !formData.freeze_reason.trim() || !formData.freeze_end_date}
+            disabled={loading || hasUsedFreeze || !formData.freeze_reason.trim() || !formData.freeze_end_date}
             sx={{ 
               borderRadius: 2,
-              background: 'linear-gradient(45deg, #dc3545, #c82333)',
+              background: hasUsedFreeze 
+                ? 'linear-gradient(45deg, #ccc, #999)' 
+                : 'linear-gradient(45deg, #dc3545, #c82333)',
               '&:hover': {
-                background: 'linear-gradient(45deg, #c82333, #bd2130)'
+                background: hasUsedFreeze 
+                  ? 'linear-gradient(45deg, #ccc, #999)' 
+                  : 'linear-gradient(45deg, #c82333, #bd2130)'
               }
             }}
             startIcon={loading && <CircularProgress size={20} color="inherit" />}
           >
-            {loading ? t('freezeModal.freezing') : t('freezeModal.freezeAccount')}
+            {loading ? t('freezeModal.freezing') : hasUsedFreeze 
+              ? (t('freezeModal.alreadyUsed') || 'تم الاستخدام من قبل') 
+              : t('freezeModal.freezeAccount')}
           </Button>
         </DialogActions>
       </Dialog>

@@ -659,27 +659,31 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
 
           // Handle freeze button separately
           if (item.isFreezeButton) {
+            const hasUsedFreeze = freezeStatus?.has_used_freeze || false;
             return (
               <Box key={item.text} sx={{ position: 'relative' }}>
                 <ListItemButton
-                  onClick={handleNavClick}
+                  onClick={hasUsedFreeze ? undefined : handleNavClick}
+                  disabled={hasUsedFreeze}
                   sx={{
                     borderRadius: 1,
-                    color: '#dc3545',
+                    color: hasUsedFreeze ? '#ccc' : '#dc3545',
                     py: { xs: 0.4, sm: 0.5 },
                     px: { xs: 0.6, sm: 0.8 },
                     minHeight: { xs: 28, sm: 32 },
                     mb: 0,
+                    opacity: hasUsedFreeze ? 0.6 : 1,
+                    cursor: hasUsedFreeze ? 'not-allowed' : 'pointer',
                     '&:hover': {
-                      background: 'rgba(220, 53, 69, 0.08)',
-                      color: '#dc3545',
+                      background: hasUsedFreeze ? 'none' : 'rgba(220, 53, 69, 0.08)',
+                      color: hasUsedFreeze ? '#ccc' : '#dc3545',
                       borderRadius: 1
                     }
                   }}
                 >
                   <ListItemIcon sx={{
                     minWidth: { xs: 24, sm: 28 },
-                    color: '#dc3545',
+                    color: hasUsedFreeze ? '#ccc' : '#dc3545',
                     fontSize: { xs: 16, sm: 18 }
                   }}>{item.icon}</ListItemIcon>
                   <ListItemText 
@@ -2011,6 +2015,7 @@ const MainLayout = ({ children, toggleDarkMode, isDarkMode }) => {
           setFreezeStatus(freezeData);
           setFreezeModalOpen(false);
         }}
+        freezeStatus={freezeStatus}
       />
     </Box>
   );
