@@ -413,6 +413,19 @@ class Lesson(models.Model):
     
     def save(self, *args, **kwargs):
         """Override save to ensure clean is called and slug is generated"""
+        # Auto-assign or fix conflicting order within the same module
+        if self.module_id:
+            if not self.order or self.order == 0:
+                # Assign next available order if empty/zero
+                max_order = Lesson.objects.filter(module=self.module).aggregate(max_o=models.Max('order')).get('max_o') or 0
+                self.order = max_order + 1
+            else:
+                # If there's a conflict on (module, order), push to the end
+                conflict_qs = Lesson.objects.filter(module=self.module, order=self.order).exclude(pk=self.pk)
+                if conflict_qs.exists():
+                    max_order = Lesson.objects.filter(module=self.module).aggregate(max_o=models.Max('order')).get('max_o') or 0
+                    self.order = max_order + 1
+
         if not self.slug and self.title:
             self.slug = slugify(self.title)
             # Ensure slug is unique within the module
