@@ -105,7 +105,7 @@ class LessonAdmin(admin.ModelAdmin):
         'lesson_type', 'difficulty', 'is_active', 'is_free', 'created_at'
     ]
     search_fields = [
-        'title', 'description', 'content', 'module__name', 'module__course__name'
+        'title', 'description', 'content', 'module__name', 'module__course__title'
     ]
     list_editable = [
         'order', 'is_active', 'is_free', 'requires_completion'
