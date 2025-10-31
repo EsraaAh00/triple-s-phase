@@ -79,7 +79,7 @@ import { contentAPI } from '../../services/content.service';
 // import { quizAPI } from '../../services/quiz.service';
 
 // Module Lessons Component
-const ModuleLessons = ({ moduleId, lessons = [], course = null }) => {
+const ModuleLessons = ({ moduleId, lessons = [], course = null, moduleProgressData = {} }) => {
   const [localLessons, setLocalLessons] = useState([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -238,9 +238,26 @@ const ModuleLessons = ({ moduleId, lessons = [], course = null }) => {
         >
           {/* Checkbox - Left side */}
           <Box sx={{ mr: 2 }}>
+            {(() => {
+              // Check lesson completion status from multiple sources
+              let isCompleted = false;
+              
+              // First, check moduleProgressData if available
+              const progressData = moduleProgressData[moduleId || lesson.module_id];
+              if (progressData && progressData.lessonsProgress) {
+                isCompleted = progressData.lessonsProgress[lesson.id] === true || progressData.lessonsProgress[lesson.id] === 1;
+              }
+              
+              // Fallback to lesson's own data
+              if (!isCompleted) {
+                isCompleted = lesson.completed === true || lesson.completed === 1 || 
+                              lesson.is_completed === true || lesson.is_completed === 1;
+              }
+              
+              return (
             <Checkbox 
               size="small" 
-              checked={lesson.is_completed || false}
+                  checked={isCompleted}
               sx={{
                 color: '#666',
                 '&.Mui-checked': {
@@ -248,6 +265,8 @@ const ModuleLessons = ({ moduleId, lessons = [], course = null }) => {
                 }
               }}
             />
+              );
+            })()}
           </Box>
 
           {/* Lesson Number */}
@@ -276,28 +295,28 @@ const ModuleLessons = ({ moduleId, lessons = [], course = null }) => {
               const finalType = hasVideo ? 'video' : (hasContent ? 'article' : lessonType || 'lesson');
               
               return (
-                <Box sx={{
-                  px: 1,
-                  py: 0.5,
-                  borderRadius: 0.5,
+            <Box sx={{
+              px: 1,
+              py: 0.5,
+              borderRadius: 0.5,
                   background: finalType === 'article' || finalType === 'pdf' || finalType === 'document'
-                    ? '#f5f5f5'
+                ? '#f5f5f5'
                     : finalType === 'video' || finalType === 'video_lesson'
-                    ? '#e8f5e8'
-                    : '#f5f5f5',
+                ? '#e8f5e8'
+                : '#f5f5f5',
                   color: finalType === 'article' || finalType === 'pdf' || finalType === 'document'
-                    ? '#666'
+                ? '#666'
                     : finalType === 'video' || finalType === 'video_lesson'
-                    ? '#4caf50'
-                    : '#666',
-                  fontSize: '11px',
-                  fontWeight: 500,
-                  textTransform: 'uppercase',
-                  border: '1px solid #e0e0e0'
-                }}>
+                ? '#4caf50'
+                : '#666',
+              fontSize: '11px',
+              fontWeight: 500,
+              textTransform: 'uppercase',
+              border: '1px solid #e0e0e0'
+            }}>
                   {finalType === 'article' || finalType === 'pdf' || finalType === 'document' ? 'PDF' : 
                    finalType === 'video' || finalType === 'video_lesson' ? 'VIDEO' : 'LESSON'}
-                </Box>
+            </Box>
               );
             })()}
           </Box>
@@ -392,10 +411,12 @@ const CourseDetailPage = ({ course, onBack }) => {
   const [flashcards, setFlashcards] = useState([]);
   const [selectedModuleId, setSelectedModuleId] = useState(null);
   const [courseInstructors, setCourseInstructors] = useState([]);
+  const [moduleProgressData, setModuleProgressData] = useState({});
 
   useEffect(() => {
     fetchCourseContent();
     fetchCourseInstructors();
+    fetchCourseProgress();
   }, [course.id]);
 
   // Handle module filtering from URL parameter
@@ -441,6 +462,42 @@ const CourseDetailPage = ({ course, onBack }) => {
         return name !== 'admin' && name !== '';
       });
       setCourseInstructors(filtered);
+    }
+  };
+
+  const fetchCourseProgress = async () => {
+    try {
+      // Fetch progress data from tracking API (same as CourseTracking.jsx)
+      const response = await courseAPI.getCourseTrackingData(course.id);
+      if (response && response.course && response.course.modules) {
+        // Create a map of module progress data
+        const progressMap = {};
+        response.course.modules.forEach(module => {
+          // Create lessonsProgress map for main module lessons
+          const lessonsProgressMap = (module.lessons || []).reduce((acc, lesson) => {
+            acc[lesson.id] = lesson.completed === true || lesson.completed === 1;
+            return acc;
+          }, {});
+          
+          // Store progress data for main module
+          progressMap[module.id] = {
+            progress: module.progress,
+            completed_lessons: module.completed_lessons,
+            total_lessons: module.total_lessons,
+            lessonsProgress: lessonsProgressMap
+          };
+          
+          // Note: Submodules might not be in the API response separately
+          // They might be included in the main module's lessons
+          // If API returns submodules separately, we would process them here
+        });
+        setModuleProgressData(progressMap);
+        console.log('Module progress data loaded:', progressMap);
+      }
+    } catch (error) {
+      console.error('Error fetching course progress:', error);
+      // Set empty object on error
+      setModuleProgressData({});
     }
   };
 
@@ -882,8 +939,8 @@ const CourseDetailPage = ({ course, onBack }) => {
                             bgcolor: url ? 'transparent' : '#4DBFB3',
                             fontWeight: 800,
                             fontSize: '0.9rem'
-                          }}
-                        >
+                    }}
+                  >
                           {!url ? getInitial(ins) : null}
                         </Avatar>
                       );
@@ -1036,20 +1093,115 @@ const CourseDetailPage = ({ course, onBack }) => {
                         
                         {/* Progress Bar */}
                         <Box sx={{ mb: 1 }}>
-                                <Box sx={{ 
-                                  width: '100%', 
+                          {(() => {
+                            // Calculate module progress
+                            const mainLessons = module.lessons ? module.lessons.length : 0;
+                            const subModulesLessons = module.submodules ? 
+                              module.submodules.reduce((total, sub) => total + (sub.lessons ? sub.lessons.length : 0), 0) : 0;
+                            const totalLessons = mainLessons + subModulesLessons;
+                            
+                            // Calculate completed lessons - prioritize moduleProgressData from API
+                            let completedLessons = 0;
+                            const progressData = moduleProgressData[module.id];
+                            
+                            // Strategy: Always prefer counting from lessonsProgress map for accuracy
+                            // Then fall back to other methods
+                            if (progressData && progressData.lessonsProgress && typeof progressData.lessonsProgress === 'object') {
+                              // Count from lessonsProgress map (most accurate - per lesson basis)
+                              // Main module lessons
+                              const mainCompleted = module.lessons ? 
+                                module.lessons.filter(lesson => 
+                                  progressData.lessonsProgress[lesson.id] === true || 
+                                  progressData.lessonsProgress[lesson.id] === 1
+                                ).length : 0;
+                              
+                              // Count submodule lessons - check both parent and submodule progressData
+                              const subCompleted = module.submodules ? 
+                                module.submodules.reduce((total, sub) => {
+                                  if (!sub.lessons) return total;
+                                  // Try to get submodule progress data, or use parent module's
+                                  const subProgressData = moduleProgressData[sub.id] || progressData;
+                                  const subLessonsProgress = subProgressData?.lessonsProgress || progressData.lessonsProgress;
+                                  
+                                  return total + sub.lessons.filter(lesson => 
+                                    (subLessonsProgress && (
+                                      subLessonsProgress[lesson.id] === true || 
+                                      subLessonsProgress[lesson.id] === 1
+                                    ))
+                                  ).length;
+                                }, 0) : 0;
+                              
+                              completedLessons = mainCompleted + subCompleted;
+                            } 
+                            // If no lessonsProgress map, use completed_lessons from API
+                            else if (progressData && progressData.completed_lessons !== undefined && progressData.completed_lessons !== null) {
+                              completedLessons = parseInt(progressData.completed_lessons) || 0;
+                            } 
+                            // If no completed_lessons, calculate from progress percentage
+                            else if (progressData && progressData.progress !== undefined && progressData.progress !== null) {
+                              const progressValue = typeof progressData.progress === 'number' ? progressData.progress : parseFloat(progressData.progress) || 0;
+                              completedLessons = Math.round((progressValue / 100) * totalLessons);
+                            }
+                            // Fallback: try module's own data if no progressData
+                            else {
+                              if (module.completed_lessons !== undefined && module.completed_lessons !== null) {
+                                completedLessons = parseInt(module.completed_lessons) || 0;
+                              } else if (module.progress !== undefined && module.progress !== null) {
+                                const progressValue = typeof module.progress === 'number' ? module.progress : parseFloat(module.progress) || 0;
+                                completedLessons = Math.round((progressValue / 100) * totalLessons);
+                              } else {
+                                // Calculate from individual lessons in module data
+                                const mainCompleted = module.lessons ? 
+                                  module.lessons.filter(lesson => 
+                                    lesson.completed === true || 
+                                    lesson.is_completed === true || 
+                                    lesson.completed === 1 ||
+                                    lesson.is_completed === 1
+                                  ).length : 0;
+                                const subCompleted = module.submodules ? 
+                                  module.submodules.reduce((total, sub) => {
+                                    if (!sub.lessons) return total;
+                                    return total + sub.lessons.filter(lesson => 
+                                      lesson.completed === true || 
+                                      lesson.is_completed === true || 
+                                      lesson.completed === 1 ||
+                                      lesson.is_completed === 1
+                                    ).length;
+                                  }, 0) : 0;
+                                completedLessons = mainCompleted + subCompleted;
+                              }
+                            }
+                            
+                            const progressPercentage = totalLessons > 0 ? Math.min((completedLessons / totalLessons) * 100, 100) : 0;
+                            
+                            // Debug log for troubleshooting
+                            if (process.env.NODE_ENV === 'development' && totalLessons > 0) {
+                              console.log(`Module ${module.id} (${module.title || module.name}):`, {
+                                totalLessons,
+                                completedLessons,
+                                progressPercentage: progressPercentage.toFixed(2) + '%',
+                                hasProgressData: !!progressData,
+                                progressDataKeys: progressData ? Object.keys(progressData) : []
+                              });
+                            }
+                            
+                            return (
+                              <LinearProgress
+                                variant="determinate"
+                                value={progressPercentage}
+                                sx={{
                                   height: 4, 
-                                  bgcolor: '#f0f0f0', 
                                   borderRadius: 2,
-                                  overflow: 'hidden'
-                                }}>
-                                  <Box sx={{ 
-                              width: '0%', 
-                                    height: '100%', 
-                                    bgcolor: '#4DBFB3',
-                              borderRadius: 2
-                                  }} />
-                                </Box>
+                                  backgroundColor: 'rgba(0,0,0,0.08)',
+                                  '& .MuiLinearProgress-bar': {
+                                    borderRadius: 2,
+                                    backgroundColor: '#10b981',
+                                    background: 'linear-gradient(90deg, #10b981 0%, #34d399 100%)',
+                                  }
+                                }}
+                              />
+                            );
+                          })()}
                         </Box>
                         
                         {/* Module Stats */}
@@ -1175,7 +1327,7 @@ const CourseDetailPage = ({ course, onBack }) => {
                                 {t('unitsMainUnitLessons')} ({module.lessons.length})
                               </Typography>
                             </Box>
-                            <ModuleLessons moduleId={module.id} lessons={module.lessons} course={course} />
+                            <ModuleLessons moduleId={module.id} lessons={module.lessons} course={course} moduleProgressData={moduleProgressData} />
                           </Box>
                         )}
                         
@@ -1254,7 +1406,7 @@ const CourseDetailPage = ({ course, onBack }) => {
                                 {/* Sub Module Lessons - Collapsible */}
                                 <Collapse in={expandedSubModules[subModule.id]} timeout="auto" unmountOnExit>
                                   {subModule.lessons && subModule.lessons.length > 0 && (
-                                    <ModuleLessons moduleId={subModule.id} lessons={subModule.lessons} course={course} />
+                                    <ModuleLessons moduleId={subModule.id} lessons={subModule.lessons} course={course} moduleProgressData={moduleProgressData} />
                                   )}
                                 </Collapse>
                               </Box>
@@ -1459,7 +1611,17 @@ const MyCourses = () => {
                         <LinearProgress 
                           variant="determinate" 
                           value={course.progress} 
-                          sx={{ flex: 1, height: 6, borderRadius: 3 }}
+                          sx={{ 
+                            flex: 1, 
+                            height: 6, 
+                            borderRadius: 3,
+                            backgroundColor: 'rgba(0,0,0,0.08)',
+                            '& .MuiLinearProgress-bar': {
+                              borderRadius: 3,
+                              backgroundColor: '#10b981',
+                              background: 'linear-gradient(90deg, #10b981 0%, #34d399 100%)',
+                            }
+                          }}
                         />
                         <Typography variant="body2" sx={{ minWidth: '40px', textAlign: 'right' }}>
                           {course.progress}%
@@ -1514,7 +1676,17 @@ const MyCourses = () => {
                         <LinearProgress 
                           variant="determinate" 
                           value={100} 
-                          sx={{ flex: 1, height: 6, borderRadius: 3 }}
+                          sx={{ 
+                            flex: 1, 
+                            height: 6, 
+                            borderRadius: 3,
+                            backgroundColor: 'rgba(0,0,0,0.08)',
+                            '& .MuiLinearProgress-bar': {
+                              borderRadius: 3,
+                              backgroundColor: '#10b981',
+                              background: 'linear-gradient(90deg, #10b981 0%, #34d399 100%)',
+                            }
+                          }}
                         />
                         <Typography variant="body2" sx={{ minWidth: '40px', textAlign: 'right' }}>
                           100%

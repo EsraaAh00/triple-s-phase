@@ -1007,55 +1007,37 @@ const StudentDashboard = () => {
                             {module.name || module.title || `Module ${module.id}`}
                           </Typography>
                           
-                          {/* Progress Bars Side by Side */}
-                          <Box sx={{ display: 'flex', gap: 4 }}>
-                            {/* Questions Progress */}
-                            <Box sx={{ flex: 1 }}>
-                              <Box sx={{ mb: 1 }}>
-                                <Box sx={{ 
-                                  width: '100%', 
-                                  height: 6, 
-                                  backgroundColor: '#E0E0E0', 
-                              borderRadius: 3,
-                                  overflow: 'hidden',
-                                  mb: 0.5
-                                }}>
-                                  <Box sx={{ 
-                                    width: '0.14%', // 4/2786 * 100
-                                    height: '100%', 
-                                    backgroundColor: '#E0E0E0',
-                                    borderRadius: 3
-                                  }} />
-                                </Box>
-                                <Typography variant="caption" sx={{ color: '#666', fontSize: '0.75rem' }}>
-                                  {t('dashboardQuestionsTagged', { count: 0 })}
-                                </Typography>
-                              </Box>
-                            </Box>
-                            
-                            {/* Lessons Progress */}
-                            <Box sx={{ flex: 1 }}>
-                              <Box sx={{ mb: 1 }}>
-                                <Box sx={{ 
-                                  width: '100%', 
-                                  height: 6, 
-                                  backgroundColor: '#E0E0E0', 
-                                  borderRadius: 3,
-                                  overflow: 'hidden',
-                                  mb: 0.5
-                                }}>
-                                  <Box sx={{ 
-                                    width: '0%', // 0/380 * 100
-                                    height: '100%', 
-                                    backgroundColor: '#E0E0E0',
-                                    borderRadius: 3
-                                  }} />
-                                </Box>
-                                <Typography variant="caption" sx={{ color: '#666', fontSize: '0.75rem' }}>
-                                  {t('dashboardLessonsCompleted', { count: 0 })}
-                                </Typography>
-                                  </Box>
-                            </Box>
+                          {/* Lessons Progress */}
+                          <Box sx={{ mb: 1 }}>
+                            {(() => {
+                              const currentCourse = courses[activeTab];
+                              const totalLessons = currentCourse?.total_lessons || currentCourse?.totalLessons || 0;
+                              const completedLessons = currentCourse?.completed_lessons || currentCourse?.completedLessons || 0;
+                              const lessonsProgress = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
+                              
+                              return (
+                                <>
+                                  <LinearProgress
+                                    variant="determinate"
+                                    value={lessonsProgress}
+                                    sx={{
+                                      height: 6,
+                                      borderRadius: 3,
+                                      backgroundColor: 'rgba(0,0,0,0.08)',
+                                      mb: 0.5,
+                                      '& .MuiLinearProgress-bar': {
+                                        borderRadius: 3,
+                                        backgroundColor: '#10b981',
+                                        background: 'linear-gradient(90deg, #10b981 0%, #34d399 100%)',
+                                      }
+                                    }}
+                                  />
+                                  <Typography variant="caption" sx={{ color: '#666', fontSize: '0.75rem' }}>
+                                    {t('dashboardLessonsCompleted', { count: completedLessons })}
+                                  </Typography>
+                                </>
+                              );
+                            })()}
                           </Box>
                         </Box>
                       </Box>
