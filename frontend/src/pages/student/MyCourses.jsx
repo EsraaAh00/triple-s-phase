@@ -27,7 +27,8 @@ import {
   TextField,
   InputAdornment,
   Breadcrumbs,
-  Link
+  Link,
+  Avatar
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { 
@@ -51,7 +52,8 @@ import {
   Psychology as PsychologyIcon,
   PlayCircle as PlayCircleIcon,
   Assignment as AssignmentIcon,
-  QuestionAnswer as QuestionAnswerIcon
+  QuestionAnswer as QuestionAnswerIcon,
+  HourglassEmpty
 } from '@mui/icons-material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { styled, keyframes } from '@mui/system';
@@ -567,24 +569,17 @@ const CourseDetailPage = ({ course, onBack }) => {
   });
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc' }}>
+    <Box sx={{ 
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #333679 0%, #4DBFB3 50%, #333679 100%)'
+    }}>
       {/* Header */}
       <Box sx={{ 
-        background: 'linear-gradient(135deg, #333679 0%, #4DBFB3 50%, #333679 100%)',
+        background: 'transparent',
         color: 'white', 
         py: 1.5,
         position: 'relative',
-        overflow: 'hidden',
-        '&::before': {
-          content: '""',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.05"%3E%3Ccircle cx="30" cy="30" r="2"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
-          opacity: 0.3
-        }
+        overflow: 'hidden'
       }}>
         <Container maxWidth="xl">
           {/* Breadcrumbs */}
@@ -641,6 +636,7 @@ const CourseDetailPage = ({ course, onBack }) => {
           <Box sx={{ 
             display: 'flex', 
             alignItems: 'center', 
+            justifyContent: 'space-between',
             gap: 2, 
             mb: 1,
             position: 'relative',
@@ -673,7 +669,7 @@ const CourseDetailPage = ({ course, onBack }) => {
             }}>
               <SchoolIcon sx={{ fontSize: 24, filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }} />
             </Box>
-            <Box sx={{ flex: 1 }}>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
                 <Typography 
                   variant="h5" 
@@ -733,15 +729,54 @@ const CourseDetailPage = ({ course, onBack }) => {
                     }}
                   />
                 )}
-                {modules.length > 0 && (
+                {modules.length > 0 && (() => {
+                  // Compute lessons count and duration either for selected module or for all modules
+                  const computeStats = () => {
+                    if (selectedModuleId) {
+                      const mod = modules.find(m => m.id == selectedModuleId);
+                      if (!mod) return { lessons: 0, totalSeconds: 0 };
+                      const main = mod.lessons ? mod.lessons.length : 0;
+                      const sub = (mod.submodules || []).reduce((sum, sm) => sum + (sm.lessons ? sm.lessons.length : 0), 0);
+                      // Prefer module.video_duration (assumed seconds) if present, else sum lesson duration_minutes
+                      const durationSeconds = mod.video_duration || 0;
+                      const durationMinutesFromLessons = (mod.lessons || []).reduce((s, l) => s + (l.duration_minutes || 0), 0) +
+                        (mod.submodules || []).reduce((s, sm) => s + (sm.lessons || []).reduce((ss, l) => ss + (l.duration_minutes || 0), 0), 0);
+                      const totalSeconds = durationSeconds || (durationMinutesFromLessons * 60);
+                      return { lessons: main + sub, totalSeconds };
+                    }
+                    // Course totals
+                    const lessonsTotal = modules.reduce((sum, m) => sum + (m.lessons ? m.lessons.length : 0) + (m.submodules || []).reduce((ss, sm) => ss + (sm.lessons ? sm.lessons.length : 0), 0), 0);
+                    const totalSeconds = modules.reduce((sum, m) => {
+                      const modSeconds = m.video_duration || 0;
+                      const modMinutes = (m.lessons || []).reduce((s, l) => s + (l.duration_minutes || 0), 0) +
+                        (m.submodules || []).reduce((s, sm) => s + (sm.lessons || []).reduce((ss, l) => ss + (l.duration_minutes || 0), 0), 0);
+                      return sum + (modSeconds || (modMinutes * 60));
+                    }, 0);
+                    return { lessons: lessonsTotal, totalSeconds };
+                  };
+                  const stats = computeStats();
+                  // Format duration: hours, minutes, seconds
+                  const formatDuration = (totalSeconds) => {
+                    const hours = Math.floor(totalSeconds / 3600);
+                    const minutes = Math.floor((totalSeconds % 3600) / 60);
+                    const seconds = totalSeconds % 60;
+                    const parts = [];
+                    if (hours > 0) parts.push(`${hours} ${t('commonHours') || 'h'}`);
+                    if (minutes > 0) parts.push(`${minutes} ${t('commonMinutes') || 'm'}`);
+                    if (seconds > 0 || parts.length === 0) parts.push(`${seconds} ${t('commonSeconds') || 's'}`);
+                    return parts.join(' ');
+                  };
+                  const durationLabel = formatDuration(stats.totalSeconds);
+                  return (
+                    <>
                   <Chip 
                     icon={<PlayCircleIcon sx={{ fontSize: 14 }} />} 
-                    label={`${modules.length} ${t('unitsTitle')}`} 
+                        label={`${stats.lessons} ${t('lessonsTitle')}`} 
                     size="small"
                     sx={{ 
                       background: 'linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.15) 100%)',
                       color: 'white',
-                      fontWeight: 600,
+                          fontWeight: 700,
                       fontSize: '11px',
                       height: 24,
                       backdropFilter: 'blur(10px)',
@@ -753,7 +788,28 @@ const CourseDetailPage = ({ course, onBack }) => {
                       }
                     }}
                   />
-                )}
+                      <Chip 
+                        icon={<HourglassEmpty sx={{ fontSize: 14 }} />} 
+                        label={durationLabel} 
+                        size="small"
+                        sx={{ 
+                          background: 'linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.15) 100%)',
+                          color: 'white',
+                          fontWeight: 700,
+                          fontSize: '11px',
+                          height: 24,
+                          backdropFilter: 'blur(10px)',
+                          border: '1px solid rgba(255,255,255,0.3)',
+                          boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
+                          '&:hover': {
+                            transform: 'translateY(-1px)',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                          }
+                        }}
+                      />
+                    </>
+                  );
+                })()}
                 {flashcards.length > 0 && (
                   <Chip 
                     icon={<PsychologyIcon sx={{ fontSize: 14 }} />} 
@@ -777,89 +833,71 @@ const CourseDetailPage = ({ course, onBack }) => {
                 )}
               </Box>
             </Box>
-          </Box>
-
-          {/* Course Instructors */}
+            {/* Instructors group - avatar stack and label on the other side of the title */}
           {(() => {
             const instructorList = courseInstructors.length > 0 ? courseInstructors
               : Array.isArray(course.instructors) ? course.instructors
               : Array.isArray(course.teachers) ? course.teachers
               : (course.instructor ? [{ name: course.instructor }] : []);
-            const cleanedList = (instructorList || []).filter((ins) => {
+              const cleaned = (instructorList || []).filter((ins) => {
               const name = (ins?.name || ins?.username || ins?.first_name || '').toString().trim().toLowerCase();
               return name !== 'admin' && name !== '';
             });
-            const firstInstructor = cleanedList[0];
-            const firstInitial = firstInstructor ? (firstInstructor.first_name ? firstInstructor.first_name.charAt(0) : (firstInstructor.name || firstInstructor.username || '').charAt(0)) : '';
-            const names = cleanedList.map(ins => {
-              if (ins.first_name || ins.last_name) return `${ins.first_name || ''} ${ins.last_name || ''}`.trim();
-              return ins.name || ins.username || ins.email || '';
-            }).filter(Boolean);
-            return names.length > 0 ? (
-            <Box sx={{ 
-              mb: 1,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 2
-            }}>
-              {/* Instructor Avatar */}
-              <Box sx={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
-                <Box
+              const topThree = cleaned.slice(0, 3);
+              if (topThree.length === 0) return null;
+              const getAvatarUrl = (ins) => ins?.avatar || ins?.image || ins?.profile_image || ins?.photo || '';
+              const getInitial = (ins) => {
+                const base = (ins?.first_name || ins?.name || ins?.username || '').toString().trim();
+                return base ? base.charAt(0).toUpperCase() : 'I';
+              };
+              const names = cleaned.map((ins) => (ins.first_name || ins.last_name) ? `${ins.first_name || ''} ${ins.last_name || ''}`.trim() : (ins.name || ins.username || ins.email || '')).filter(Boolean);
+              return (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, ml: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    {topThree.map((ins, idx) => {
+                      const url = getAvatarUrl(ins);
+                      return (
+                        <Avatar
+                          key={idx}
+                          src={url || undefined}
+                          alt={ins?.name || ins?.username || 'Instructor'}
                   sx={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #4DBFB3 0%, #45a8a0 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    border: '2px solid rgba(255,255,255,0.8)',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      transform: 'scale(1.1)',
-                      boxShadow: '0 4px 16px rgba(0,0,0,0.3)'
-                    }
-                  }}
-                >
-                  <Typography 
-                    variant="h6" 
-                    fontWeight={800} 
-                    sx={{ 
-                      color: 'white',
-                      fontSize: '14px',
-                      textShadow: '0 1px 2px rgba(0,0,0,0.3)'
-                    }}
-                  >
-                    {(firstInitial || 'I').toString().toUpperCase()}
-                  </Typography>
+                            width: 36,
+                            height: 36,
+                            border: '2px solid rgba(255,255,255,0.9)',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+                            ml: idx === 0 ? 0 : -1.5,
+                            bgcolor: url ? 'transparent' : '#4DBFB3',
+                            fontWeight: 800,
+                            fontSize: '0.9rem'
+                          }}
+                        >
+                          {!url ? getInitial(ins) : null}
+                        </Avatar>
+                      );
+                    })}
                 </Box>
-              </Box>
-              
-              {/* Instructor Name */}
-              <Box sx={{ flex: 1 }}>
-                <Typography 
-                  variant="body1" 
-                  sx={{ 
-                    color: 'white',
-                    fontWeight: 700,
-                    fontSize: '12px',
-                    textShadow: '0 1px 2px rgba(0,0,0,0.2)'
-                  }}
-                >
-                  {names.join(', ')}
+                  <Box>
+                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)', fontWeight: 700, lineHeight: 1 }}>
+                      {t('commonContentExperts') || 'CONTENT EXPERTS'}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: 'white', fontWeight: 700, lineHeight: 1 }}>
+                      {names.slice(0, 3).join(', ')}{names.length > 3 ? ` ${t('commonAnd') || '&'} ${names.length - 3} ${t('commonMore') || 'more'}` : ''}
                 </Typography>
               </Box>
             </Box>
-            ) : null;
+              );
           })()}
+          </Box>
+
+          {/* Course Instructors (moved inline with title) */}
 
         </Container>
       </Box>
 
       <Container maxWidth="xl" sx={{ py: 4 }}>
         {/* Tabs */}
-        <Box sx={{ 
+        {/* <Box sx={{ 
           mb: 4,
           background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(248,250,252,0.9) 100%)',
           borderRadius: 4,
@@ -919,10 +957,10 @@ const CourseDetailPage = ({ course, onBack }) => {
               sx={{ gap: 1 }}
             />
           </Tabs>
-        </Box>
+        </Box> */}
 
         {/* Tab Content */}
-        {activeTab === 0 && (
+        {/* {activeTab === 0 && (  )} */}
           <Box>
             {loading ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
@@ -986,20 +1024,20 @@ const CourseDetailPage = ({ course, onBack }) => {
                         
                         {/* Progress Bar */}
                         <Box sx={{ mb: 1 }}>
-                          <Box sx={{ 
-                            width: '100%', 
-                            height: 4, 
-                            bgcolor: '#f0f0f0', 
-                            borderRadius: 2,
-                            overflow: 'hidden'
-                          }}>
-                            <Box sx={{ 
+                                <Box sx={{ 
+                                  width: '100%', 
+                                  height: 4, 
+                                  bgcolor: '#f0f0f0', 
+                                  borderRadius: 2,
+                                  overflow: 'hidden'
+                                }}>
+                                  <Box sx={{ 
                               width: '0%', 
-                              height: '100%', 
-                              bgcolor: '#4DBFB3',
+                                    height: '100%', 
+                                    bgcolor: '#4DBFB3',
                               borderRadius: 2
-                            }} />
-                          </Box>
+                                  }} />
+                                </Box>
                         </Box>
                         
                         {/* Module Stats */}
@@ -1218,554 +1256,7 @@ const CourseDetailPage = ({ course, onBack }) => {
               </Box>
             )}
           </Box>
-        )}
-
-        {activeTab === 1 && (
-          <Box>
-            {loading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                <CircularProgress />
-              </Box>
-            ) : questions.length === 0 ? (
-              <Card sx={{ borderRadius: 2, p: 4, textAlign: 'center' }}>
-                <Typography variant="h6" color="text.secondary">
-                  {t('assessmentNoQuestionsAvailable')}
-                </Typography>
-              </Card>
-            ) : (
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                {(() => {
-                  // Group questions by module
-                  const questionsByModule = {};
-                  questions.forEach(question => {
-                    const moduleName = question.module_name || question.category || t('commonGeneral');
-                    if (!questionsByModule[moduleName]) {
-                      questionsByModule[moduleName] = {
-                        questions: [],
-                        module_id: question.module_id
-                      };
-                    }
-                    questionsByModule[moduleName].questions.push(question);
-                  });
-
-                  return Object.entries(questionsByModule).map(([moduleName, moduleData], moduleIndex) => (
-                    <Card key={moduleName} sx={{
-                    borderRadius: 3,
-                    overflow: 'hidden',
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                    border: '1px solid rgba(0,0,0,0.05)',
-                    background: 'white',
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      transform: 'translateY(-2px)',
-                      boxShadow: '0 8px 30px rgba(0,0,0,0.15)'
-                    }
-                  }}>
-                    {/* Module Header */}
-                    <Box sx={{
-                      p: 3,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 3,
-                      borderBottom: '1px solid #f0f0f0'
-                    }}>
-                      {/* Module Number */}
-                      <Typography 
-                        variant="h4" 
-                        sx={{ 
-                          color: '#999',
-                          fontWeight: 400,
-                          fontSize: '24px',
-                          minWidth: '40px'
-                        }}
-                      >
-                        {moduleIndex + 1}
-                      </Typography>
-                      
-                      {/* Module Content */}
-                      <Box sx={{ flex: 1 }}>
-                        <Typography 
-                          variant="h6" 
-                          sx={{ 
-                            fontWeight: 600, 
-                            color: '#333',
-                            fontSize: '18px',
-                            mb: 1
-                          }}
-                        >
-                            {moduleName}
-                        </Typography>
-                        
-                          {/* Questions Count and Types */}
-                          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
-                        <Typography 
-                          variant="body2" 
-                          sx={{ 
-                            color: '#666',
-                            fontSize: '14px'
-                          }}
-                        >
-                              {moduleData.questions.length} {t('assessmentQuestion')}
-                        </Typography>
-                            {(() => {
-                              const questionTypes = moduleData.questions.reduce((acc, q) => {
-                                const type = q.type === 'multiple_choice' ? t('assessmentMcq') : 
-                                           q.type === 'true_false' ? t('assessmentTrueFalse') : 
-                                           q.type === 'essay' ? t('assessmentEssay') : t('assessmentQuestion');
-                                acc[type] = (acc[type] || 0) + 1;
-                                return acc;
-                              }, {});
-                              
-                              return Object.entries(questionTypes).map(([type, count]) => (
-                                              <Chip
-                                  key={type}
-                                  label={`${count} ${type}`}
-                                                size="small"
-                                                sx={{
-                                    background: '#e3f2fd',
-                                    color: '#1976d2',
-                                    fontSize: '10px',
-                                    height: 18
-                                  }}
-                                />
-                              ));
-                            })()}
-                                            </Box>
-                                          </Box>
-                                          
-                        {/* Start Button */}
-                                          <Button
-                                            variant="contained"
-                                            onClick={() => {
-                                              // Find first question in the module
-                                              const firstQuestion = moduleData.questions[0];
-                                              if (firstQuestion) {
-                                                navigate(`/student/courses/${course.id}/tracking?tab=questions&moduleId=${moduleData.module_id}&questionId=${firstQuestion.id}`);
-                                              } else {
-                                                navigate(`/student/courses/${course.id}/tracking?tab=questions&moduleId=${moduleData.module_id}`);
-                                              }
-                                            }}
-                                            sx={{
-                                              background: '#1976d2',
-                                              color: 'white',
-                                              fontWeight: 600,
-                            px: 3,
-                            py: 1.5,
-                            borderRadius: 2,
-                            fontSize: '14px',
-                                              textTransform: 'none',
-                            boxShadow: '0 2px 8px rgba(25, 118, 210, 0.3)',
-                                              '&:hover': {
-                                                background: '#1565c0',
-                              transform: 'translateY(-1px)',
-                              boxShadow: '0 4px 12px rgba(25, 118, 210, 0.4)'
-                                              }
-                                            }}
-                                          >
-                          {t('commonStart')}
-                                          </Button>
-                                        </Box>
-                                        
-                                        {/* Individual Questions List */}
-                                        {moduleData.questions.length > 0 && (
-                                          <Box sx={{ 
-                                            borderTop: '1px solid #f0f0f0',
-                                            bgcolor: '#fafafa',
-                                            maxHeight: '200px',
-                                            overflowY: 'auto'
-                                          }}>
-                                            <Box sx={{ 
-                                              px: 3, 
-                                              py: 2,
-                                              borderBottom: '1px solid #e0e0e0',
-                                              background: '#f0f0f0'
-                                            }}>
-                                              <Typography 
-                                                variant="body2" 
-                                                sx={{ 
-                                                  fontWeight: 600, 
-                                                  color: '#333',
-                                                  fontSize: '14px'
-                                                }}
-                                              >
-                                                {t('assessmentQuestions')} ({moduleData.questions.length})
-                                              </Typography>
-                                            </Box>
-                                            {moduleData.questions.slice(0, 5).map((question, qIndex) => (
-                                              <Box 
-                                                key={question.id} 
-                                                sx={{ 
-                                                  display: 'flex',
-                                                  alignItems: 'center',
-                                                  py: 1.5,
-                                                  px: 3,
-                                                  borderBottom: '1px solid #e0e0e0',
-                                                  cursor: 'pointer',
-                                                  transition: 'all 0.2s ease',
-                                                  '&:hover': {
-                                                    bgcolor: '#e3f2fd'
-                                                  },
-                                                  '&:last-child': {
-                                                    borderBottom: 'none'
-                                                  }
-                                                }}
-                                                onClick={() => navigate(`/student/courses/${course.id}/tracking?tab=questions&moduleId=${moduleData.module_id}&questionId=${question.id}`)}
-                                              >
-                                                {/* Question Number */}
-                                                <Box sx={{ mr: 2, minWidth: '20px' }}>
-                                                  <Typography 
-                                                    variant="body2" 
-                                                    sx={{ 
-                                                      color: '#999',
-                                                      fontSize: '14px',
-                                                      fontWeight: 400
-                                                    }}
-                                                  >
-                                                    {qIndex + 1}
-                                                  </Typography>
-                                                </Box>
-
-                                                {/* Question Type Badge */}
-                                                <Box sx={{ mr: 2 }}>
-                                                  <Box sx={{
-                                                    px: 1,
-                                                    py: 0.5,
-                                                    borderRadius: 0.5,
-                                                    background: question.type === 'multiple_choice' ? '#e3f2fd' : 
-                                                               question.type === 'true_false' ? '#e8f5e8' : '#f5f5f5',
-                                                    color: question.type === 'multiple_choice' ? '#1976d2' : 
-                                                           question.type === 'true_false' ? '#4caf50' : '#666',
-                                                    fontSize: '11px',
-                                                    fontWeight: 500,
-                                                    textTransform: 'uppercase',
-                                                    border: '1px solid #e0e0e0'
-                                                  }}>
-                                                    {question.type === 'multiple_choice' ? t('assessmentMcqShort') : 
-                                                     question.type === 'true_false' ? t('assessmentTrueFalseShort') : t('assessmentQuestion')}
-                                                  </Box>
-                                                </Box>
-
-                                                {/* Question Title */}
-                                                <Box sx={{ flex: 1, mr: 2 }}>
-                                                  <Typography 
-                                                    variant="body2" 
-                                                    sx={{ 
-                                                      fontWeight: 500, 
-                                                      color: '#333',
-                                                      fontSize: '14px',
-                                                      overflow: 'hidden',
-                                                      textOverflow: 'ellipsis',
-                                                      whiteSpace: 'nowrap'
-                                                    }}
-                                                  >
-                                                    {question.question}
-                                                  </Typography>
-                                                </Box>
-
-                                                {/* Arrow Icon */}
-                                                <Box sx={{ 
-                                                  color: '#999',
-                                                  fontSize: '16px',
-                                                  transition: 'all 0.2s ease'
-                                                }}>
-                                                  →
-                                                </Box>
-                                              </Box>
-                                            ))}
-                                            {moduleData.questions.length > 5 && (
-                                              <Box sx={{ 
-                                                px: 3, 
-                                                py: 2, 
-                                                textAlign: 'center',
-                                                borderTop: '1px solid #e0e0e0',
-                                                bgcolor: '#f5f5f5'
-                                              }}>
-                                                <Typography 
-                                                  variant="caption" 
-                                                  sx={{ 
-                                                    color: '#666',
-                                                    fontSize: '12px'
-                                                  }}
-                                                >
-                                                  {t('commonAnd')} {moduleData.questions.length - 5} {t('assessmentMoreQuestions')}...
-                                                </Typography>
-                                              </Box>
-                                            )}
-                                          </Box>
-                                        )}
-                                      </Card>
-                  ));
-                })()}
-                                  </Box>
-            )}
-          </Box>
-        )}
-
-        {activeTab === 2 && (
-          <Box>
-            {loading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                <CircularProgress />
-              </Box>
-            ) : flashcards.length === 0 ? (
-              <Card sx={{ borderRadius: 2, p: 4, textAlign: 'center' }}>
-                <Typography variant="h6" color="text.secondary">
-                  {t('assessmentNoFlashcardsAvailable')}
-                </Typography>
-              </Card>
-            ) : (
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                {(() => {
-                  // Group flashcards by module
-                  const flashcardsByModule = {};
-                  flashcards.forEach(flashcard => {
-                    const moduleName = flashcard.category || flashcard.module_name || t('commonGeneral');
-                    if (!flashcardsByModule[moduleName]) {
-                      flashcardsByModule[moduleName] = {
-                        flashcards: [],
-                        module_id: flashcard.module_id
-                      };
-                    }
-                    flashcardsByModule[moduleName].flashcards.push(flashcard);
-                  });
-
-                  return Object.entries(flashcardsByModule).map(([moduleName, moduleData], moduleIndex) => (
-                    <Card key={moduleName} sx={{
-                    borderRadius: 3,
-                    overflow: 'hidden',
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                    border: '1px solid rgba(0,0,0,0.05)',
-                    background: 'white',
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      transform: 'translateY(-2px)',
-                      boxShadow: '0 8px 30px rgba(0,0,0,0.15)'
-                    }
-                  }}>
-                    {/* Module Header */}
-                    <Box sx={{
-                      p: 3,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 3,
-                      borderBottom: '1px solid #f0f0f0'
-                    }}>
-                      {/* Module Number */}
-                      <Typography 
-                        variant="h4" 
-                        sx={{ 
-                          color: '#999',
-                          fontWeight: 400,
-                          fontSize: '24px',
-                          minWidth: '40px'
-                        }}
-                      >
-                        {moduleIndex + 1}
-                      </Typography>
-                      
-                      {/* Module Content */}
-                      <Box sx={{ flex: 1 }}>
-                        <Typography 
-                          variant="h6" 
-                          sx={{ 
-                            fontWeight: 600, 
-                            color: '#333',
-                            fontSize: '18px',
-                            mb: 1
-                          }}
-                        >
-                            {moduleName}
-                        </Typography>
-                        
-                        {/* Flashcards Count */}
-                        <Typography 
-                          variant="body2" 
-                          sx={{ 
-                            color: '#666',
-                            fontSize: '14px'
-                          }}
-                        >
-                            {moduleData.flashcards.length} {t('assessmentFlashcard')}
-                        </Typography>
-                      </Box>
-                      
-                        {/* Start Button */}
-                      <Button
-                          variant="contained"
-                          onClick={() => {
-                            // Find first flashcard in the module
-                            const firstFlashcard = moduleData.flashcards[0];
-                            if (firstFlashcard) {
-                              navigate(`/student/courses/${course.id}/tracking?tab=flashcards&moduleId=${moduleData.module_id}&flashcardId=${firstFlashcard.id}`);
-                            } else {
-                              navigate(`/student/courses/${course.id}/tracking?tab=flashcards&moduleId=${moduleData.module_id}`);
-                            }
-                          }}
-                        sx={{
-                            background: '#4caf50',
-                            color: 'white',
-                          fontWeight: 600,
-                          px: 3,
-                          py: 1.5,
-                          borderRadius: 2,
-                          fontSize: '14px',
-                          textTransform: 'none',
-                            boxShadow: '0 2px 8px rgba(76, 175, 80, 0.3)',
-                          '&:hover': {
-                              background: '#45a049',
-                                          transform: 'translateY(-1px)',
-                              boxShadow: '0 4px 12px rgba(76, 175, 80, 0.4)'
-                            }
-                          }}
-                        >
-                          {t('commonStart')}
-                                          </Button>
-                                        </Box>
-                                        
-                                        {/* Individual Flashcards List */}
-                                        {moduleData.flashcards.length > 0 && (
-                                          <Box sx={{ 
-                                            borderTop: '1px solid #f0f0f0',
-                                            bgcolor: '#fafafa',
-                                            maxHeight: '200px',
-                                            overflowY: 'auto'
-                                          }}>
-                                            <Box sx={{ 
-                                              px: 3, 
-                                              py: 2,
-                                              borderBottom: '1px solid #e0e0e0',
-                                              background: '#f0f0f0'
-                                            }}>
-                                              <Typography 
-                                                variant="body2" 
-                                                sx={{ 
-                                                  fontWeight: 600, 
-                                                  color: '#333',
-                                                  fontSize: '14px'
-                                                }}
-                                              >
-                                                {t('navFlashcards')} ({moduleData.flashcards.length})
-                                              </Typography>
-                                            </Box>
-                                            {moduleData.flashcards.slice(0, 5).map((flashcard, fIndex) => (
-                                              <Box 
-                                                key={flashcard.id} 
-                                                sx={{ 
-                                                  display: 'flex',
-                                                  alignItems: 'center',
-                                                  py: 1.5,
-                                                  px: 3,
-                                                  borderBottom: '1px solid #e0e0e0',
-                                                  cursor: 'pointer',
-                                                  transition: 'all 0.2s ease',
-                                                  '&:hover': {
-                                                    bgcolor: '#e8f5e8'
-                                                  },
-                                                  '&:last-child': {
-                                                    borderBottom: 'none'
-                                                  }
-                                                }}
-                                                onClick={() => navigate(`/student/courses/${course.id}/tracking?tab=flashcards&moduleId=${moduleData.module_id}&flashcardId=${flashcard.id}`)}
-                                              >
-                                                {/* Flashcard Number */}
-                                                <Box sx={{ mr: 2, minWidth: '20px' }}>
-                                                  <Typography 
-                                                    variant="body2" 
-                                                    sx={{ 
-                                                      color: '#999',
-                                                      fontSize: '14px',
-                                                      fontWeight: 400
-                                                    }}
-                                                  >
-                                                    {fIndex + 1}
-                                                  </Typography>
-                                                </Box>
-
-                                                {/* Flashcard Icon */}
-                                                <Box sx={{ mr: 2 }}>
-                                                  <Box sx={{
-                                                    width: 20,
-                                                    height: 20,
-                                                    color: '#4caf50',
-                                                    fontSize: '14px',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center'
-                                                  }}>
-                                                    🧠
-                                                  </Box>
-                                                </Box>
-
-                                                {/* Flashcard Content */}
-                                                <Box sx={{ flex: 1, mr: 2 }}>
-                                                  <Typography 
-                                                    variant="body2" 
-                                                    sx={{ 
-                                                      fontWeight: 500, 
-                                                      color: '#333',
-                                                      fontSize: '14px',
-                                                      overflow: 'hidden',
-                                                      textOverflow: 'ellipsis',
-                                                      whiteSpace: 'nowrap'
-                                                    }}
-                                                  >
-                                                    {flashcard.front}
-                                                  </Typography>
-                                                  {flashcard.back && (
-                                                    <Typography 
-                                                      variant="caption" 
-                                                      sx={{ 
-                                                        color: '#666',
-                                                        fontSize: '12px',
-                                                        display: 'block',
-                                                        overflow: 'hidden',
-                                                        textOverflow: 'ellipsis',
-                                                        whiteSpace: 'nowrap'
-                                                      }}
-                                                    >
-                                                      {flashcard.back}
-                                                    </Typography>
-                                                  )}
-                                                </Box>
-
-                                                {/* Arrow Icon */}
-                                                <Box sx={{ 
-                                                  color: '#999',
-                                                  fontSize: '16px',
-                                                  transition: 'all 0.2s ease'
-                                                }}>
-                                                  →
-                                                </Box>
-                                              </Box>
-                                            ))}
-                                            {moduleData.flashcards.length > 5 && (
-                                              <Box sx={{ 
-                                                px: 3, 
-                                                py: 2, 
-                                                textAlign: 'center',
-                                                borderTop: '1px solid #e0e0e0',
-                                                bgcolor: '#f5f5f5'
-                                              }}>
-                                                <Typography 
-                                                  variant="caption" 
-                                                  sx={{ 
-                                                    color: '#666',
-                                                    fontSize: '12px'
-                                                  }}
-                                                >
-                                                  {t('commonAnd')} {moduleData.flashcards.length - 5} {t('assessmentMoreFlashcards')}...
-                                                </Typography>
-                                              </Box>
-                                            )}
-                                          </Box>
-                                        )}
-                                      </Card>
-                  ));
-                })()}
-                                  </Box>
-            )}
-          </Box>
-        )}
+      
       </Container>
     </Box>
   );

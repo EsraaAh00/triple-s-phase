@@ -158,6 +158,7 @@
     "backToDashboard": "العودة للوحة التحكم"
   },
   "commonStart": "ابدأ",
+  "commonHours": "ساعة",
   "commonMinutes": "دقائق",
   "commonSeconds": "ثواني",
   "commonAnd": "و",
@@ -718,6 +719,7 @@
   "dashboardQuestionsTagged": "{{count}} سؤال موسوم",
   "dashboardLessonsCompleted": "{{count}} درس مكتمل",
   "dashboardContentExperts": "خبراء المحتوى",
+  "commonContentExperts": "مجموعة المدربين",
   "dashboardLoadingInstructors": "جاري تحميل المدربين...",
   "dashboardNoModulesAvailable": "لا توجد وحدات متاحة",
   "dashboardNoModulesDescription": "هذا الكورس لا يحتوي على وحدات بعد",
