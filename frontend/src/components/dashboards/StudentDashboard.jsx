@@ -59,6 +59,7 @@ const StudentDashboard = () => {
   });
   const [courses, setCourses] = useState([]);
   const [modules, setModules] = useState([]);
+  const [moduleProgressData, setModuleProgressData] = useState({});
   const [instructors, setInstructors] = useState([]);
   const [achievements, setAchievements] = useState([]);
   const [recentActivity, setRecentActivity] = useState([]);
@@ -365,82 +366,102 @@ const StudentDashboard = () => {
     }
   };
 
+  const loadModuleProgress = async (courseId) => {
+    try {
+      // Fetch progress data from tracking API (same as MyCourses.jsx)
+      const response = await courseAPI.getCourseTrackingData(courseId);
+      if (response && response.course && response.course.modules) {
+        // Create a map of module progress data
+        const progressMap = {};
+        response.course.modules.forEach(module => {
+          progressMap[module.id] = {
+            progress: module.progress,
+            completed_lessons: module.completed_lessons,
+            total_lessons: module.total_lessons,
+            // Map lessons with completed status
+            lessonsProgress: (module.lessons || []).reduce((acc, lesson) => {
+              acc[lesson.id] = lesson.completed === true || lesson.completed === 1;
+              return acc;
+            }, {})
+          };
+        });
+        setModuleProgressData(progressMap);
+        console.log('Module progress data loaded:', progressMap);
+        return progressMap; // Return the map for use in loadModules
+      }
+      return {}; // Return empty object if no data
+    } catch (error) {
+      console.error('Error fetching module progress:', error);
+      setModuleProgressData({});
+      return {}; // Return empty object on error
+    }
+  };
+
   const loadModules = async (courseId) => {
     try {
       setModulesLoading(true);
       console.log('Loading modules for course ID:', courseId);
       
-      // Try to get modules with course ID first
+      // Load module progress data first
+      const progressData = await loadModuleProgress(courseId).catch(err => {
+        console.error('Error loading progress:', err);
+        return {};
+      });
+      
+      // Try to get modules with lessons using the same API as MyCourses.jsx
       let modulesData;
       try {
-        modulesData = await contentAPI.getModules(courseId);
+        const modulesResponse = await contentAPI.getCourseModulesWithLessons(courseId);
+        modulesData = modulesResponse.modules || [];
       } catch (error) {
-        console.log('Failed to get modules with course ID, trying without course filter');
-        // If that fails, try to get all modules
+        console.log('Failed to get modules with lessons, trying regular modules API');
+        // Fallback to regular modules API
         try {
-          const response = await fetch('/api/content/modules/');
-          modulesData = await response.json();
+          modulesData = await contentAPI.getModules(courseId);
+          // Handle different response formats
+          if (!Array.isArray(modulesData)) {
+            if (modulesData && modulesData.results) {
+              modulesData = modulesData.results;
+            } else if (modulesData && modulesData.data) {
+              modulesData = modulesData.data;
+            } else {
+              modulesData = [];
+            }
+          }
         } catch (fetchError) {
           console.error('Failed to fetch modules:', fetchError);
-          throw error; // Throw original error
+          modulesData = [];
         }
       }
+      
       console.log('Raw modules data:', modulesData);
-      console.log('Modules data type:', typeof modulesData);
-      console.log('Modules data keys:', Object.keys(modulesData || {}));
       
-      // Handle different response formats
-      let modules = [];
-      if (Array.isArray(modulesData)) {
-        modules = modulesData;
-      } else if (modulesData && modulesData.results) {
-        modules = modulesData.results;
-      } else if (modulesData && modulesData.data) {
-        modules = modulesData.data;
-      }
+      // Organize modules: separate main modules and sub modules
+      const mainModules = modulesData.filter(module => !module.submodule);
+      const subModules = modulesData.filter(module => module.submodule);
       
-      // Filter to show only main modules (not submodules)
-      const mainModules = modules.filter(module => !module.submodule);
+      // Group sub modules under their parent modules
+      const organizedModules = mainModules.map(mainModule => {
+        const relatedSubModules = subModules.filter(subModule => subModule.submodule === mainModule.id);
+        
+        // Calculate total lessons for this module (main + submodules)
+        const mainLessons = mainModule.lessons ? mainModule.lessons.length : 0;
+        const subModulesLessons = relatedSubModules.reduce((total, sub) => total + (sub.lessons ? sub.lessons.length : 0), 0);
+        const totalLessons = mainLessons + subModulesLessons;
+        
+        return {
+          ...mainModule,
+          submodules: relatedSubModules,
+          total_lessons: totalLessons, // Add calculated total lessons
+          // Use progress data if available, otherwise keep module's own data
+          completed_lessons: progressData[mainModule.id]?.completed_lessons || mainModule.completed_lessons || 0,
+          progress: progressData[mainModule.id]?.progress || mainModule.progress || 0
+        };
+      });
       
-      console.log('All modules:', modules);
-      console.log('Main modules only:', mainModules);
+      console.log('Organized modules:', organizedModules);
       
-      // If no main modules found, add some mock data for testing
-      if (mainModules.length === 0) {
-        console.log('No main modules found, adding mock data for testing');
-        const mockModules = [
-          {
-            id: 1,
-            name: 'Introduction to Biology',
-            title: 'Introduction to Biology',
-            is_active: true,
-            order: 1,
-            description: 'Basic concepts of biology',
-            submodule: false // Explicitly mark as main module
-          },
-          {
-            id: 2,
-            name: 'Cell Structure',
-            title: 'Cell Structure',
-            is_active: true,
-            order: 2,
-            description: 'Understanding cell components',
-            submodule: false // Explicitly mark as main module
-          },
-          {
-            id: 3,
-            name: 'Genetics',
-            title: 'Genetics',
-            is_active: false,
-            order: 3,
-            description: 'Introduction to genetics',
-            submodule: false // Explicitly mark as main module
-          }
-        ];
-        setModules(mockModules);
-      } else {
-        setModules(mainModules);
-      }
+      setModules(organizedModules);
     } catch (error) {
       console.error('Error loading modules:', error);
       console.error('Error details:', error.response?.data);
@@ -1010,10 +1031,55 @@ const StudentDashboard = () => {
                           {/* Lessons Progress */}
                           <Box sx={{ mb: 1 }}>
                             {(() => {
-                              const currentCourse = courses[activeTab];
-                              const totalLessons = currentCourse?.total_lessons || currentCourse?.totalLessons || 0;
-                              const completedLessons = currentCourse?.completed_lessons || currentCourse?.completedLessons || 0;
-                              const lessonsProgress = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
+                              // Get progress data from API
+                              const progressData = moduleProgressData[module.id];
+                              
+                              // Calculate total lessons from module data (main + submodules)
+                              const mainLessons = module.lessons ? module.lessons.length : 0;
+                              const subModulesLessons = module.submodules ? 
+                                module.submodules.reduce((total, sub) => total + (sub.lessons ? sub.lessons.length : 0), 0) : 0;
+                              const totalLessons = module.total_lessons || mainLessons + subModulesLessons || 0;
+                              
+                              // Calculate completed lessons - prioritize API data, then count from lessonsProgress
+                              let completedLessons = 0;
+                              
+                              if (progressData) {
+                                // Method 1: Use completed_lessons from API
+                                if (progressData.completed_lessons !== undefined && progressData.completed_lessons !== null) {
+                                  completedLessons = parseInt(progressData.completed_lessons) || 0;
+                                } 
+                                // Method 2: Count from lessonsProgress map
+                                else if (progressData.lessonsProgress && typeof progressData.lessonsProgress === 'object') {
+                                  // Count main module lessons
+                                  const mainCompleted = module.lessons ? 
+                                    module.lessons.filter(lesson => 
+                                      progressData.lessonsProgress[lesson.id] === true || 
+                                      progressData.lessonsProgress[lesson.id] === 1
+                                    ).length : 0;
+                                  // Count submodule lessons
+                                  const subCompleted = module.submodules ? 
+                                    module.submodules.reduce((total, sub) => {
+                                      if (!sub.lessons) return total;
+                                      return total + sub.lessons.filter(lesson => 
+                                        progressData.lessonsProgress[lesson.id] === true || 
+                                        progressData.lessonsProgress[lesson.id] === 1
+                                      ).length;
+                                    }, 0) : 0;
+                                  completedLessons = mainCompleted + subCompleted;
+                                }
+                                // Method 3: Calculate from progress percentage
+                                else if (progressData.progress !== undefined && progressData.progress !== null) {
+                                  const progressValue = typeof progressData.progress === 'number' ? progressData.progress : parseFloat(progressData.progress) || 0;
+                                  completedLessons = Math.round((progressValue / 100) * totalLessons);
+                                }
+                              }
+                              
+                              // Fallback: use module's own data
+                              if (completedLessons === 0 && (!progressData || !progressData.lessonsProgress)) {
+                                completedLessons = module.completed_lessons || module.completedLessons || 0;
+                              }
+                              
+                              const lessonsProgress = totalLessons > 0 ? Math.min((completedLessons / totalLessons) * 100, 100) : 0;
                               
                               return (
                                 <>
@@ -1033,7 +1099,7 @@ const StudentDashboard = () => {
                                     }}
                                   />
                                   <Typography variant="caption" sx={{ color: '#666', fontSize: '0.75rem' }}>
-                                    {t('dashboardLessonsCompleted', { count: completedLessons })}
+                                    {completedLessons}/{totalLessons} {t('lessonsTitle')}
                                   </Typography>
                                 </>
                               );
