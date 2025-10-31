@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
 from django.utils.safestring import mark_safe
+from django.db.models import Q
 from .models import Module, Lesson, UserProgress, ModuleProgress, LessonResource
 
 
@@ -98,7 +99,7 @@ class LessonResourceInline(admin.TabularInline):
 @admin.register(Lesson)
 class LessonAdmin(admin.ModelAdmin):
     list_display = [
-        'title', 'module', 'lesson_type', 'difficulty', 'order',
+        'title', 'get_course_module', 'lesson_type', 'difficulty', 'order',
         'is_active', 'is_free', 'requires_completion', 'resource_count', 'created_at'
     ]
     list_filter = [
@@ -141,6 +142,52 @@ class LessonAdmin(admin.ModelAdmin):
             'classes': ['collapse']
         }),
     ]
+    
+    def get_queryset(self, request):
+        """Optimize queryset with select_related to avoid N+1 queries"""
+        qs = super().get_queryset(request)
+        return qs.select_related('module', 'module__course')
+    
+    def get_search_results(self, request, queryset, search_term):
+        """Custom search to support Course - Module format"""
+        queryset, use_distinct = super().get_search_results(request, queryset, search_term)
+        
+        if search_term:
+            # Check if search term contains " - " (Course - Module format)
+            if ' - ' in search_term:
+                parts = search_term.split(' - ', 1)
+                if len(parts) == 2:
+                    course_part = parts[0].strip()
+                    module_part = parts[1].strip()
+                    
+                    # Search for exact match in Course - Module format
+                    # Combine with existing search results
+                    course_module_qs = queryset.model.objects.filter(
+                        Q(module__course__title__icontains=course_part) &
+                        Q(module__name__icontains=module_part)
+                    )
+                    queryset = queryset | course_module_qs
+                    use_distinct = True
+            else:
+                # Regular search - also search in both course title and module name
+                # The parent search_fields already handles module__name and module__course__title
+                # So this is just ensuring we use distinct
+                use_distinct = True
+        
+        return queryset, use_distinct
+    
+    def get_course_module(self, obj):
+        """Display Course - Module format"""
+        try:
+            if obj.module and hasattr(obj.module, 'course') and obj.module.course:
+                course_title = obj.module.course.title or 'No Title'
+                module_name = obj.module.name or 'No Name'
+                return f"{course_title} - {module_name}"
+        except AttributeError:
+            pass
+        return "N/A"
+    get_course_module.short_description = 'Course - Module'
+    get_course_module.admin_order_field = 'module__course__title'
     
     def resource_count(self, obj):
         return obj.lesson_resources.count()
