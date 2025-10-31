@@ -2097,7 +2097,13 @@ const CourseTracking = () => {
             </IconButton>
             {/* Desktop navigation button - only show on desktop */}
             <IconButton
-              onClick={() => navigate('/student/dashboard')}
+              onClick={() => {
+                const targetModuleId = selectedModuleId || currentLesson?.parentModuleId || currentLesson?.moduleId || expandedModule || '';
+                const params = new URLSearchParams();
+                params.set('courseId', courseId);
+                if (targetModuleId) params.set('moduleId', targetModuleId);
+                navigate(`/student/my-courses?${params.toString()}`);
+              }}
               sx={{
                 display: { xs: 'none', md: 'flex' },
                 color: 'white',
@@ -2357,7 +2363,13 @@ const CourseTracking = () => {
           </Box>
           {/* Dashboard Return Button */}
           <IconButton 
-            onClick={() => navigate('/student/dashboard')} 
+            onClick={() => {
+              const targetModuleId = selectedModuleId || currentLesson?.parentModuleId || currentLesson?.moduleId || expandedModule || '';
+              const params = new URLSearchParams();
+              params.set('courseId', courseId);
+              if (targetModuleId) params.set('moduleId', targetModuleId);
+              navigate(`/student/my-courses?${params.toString()}`);
+            }} 
             sx={{ 
               ml: 2, 
               color: 'white',
