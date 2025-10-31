@@ -740,17 +740,28 @@ const CourseDetail = () => {
         const courseRating = ratingStats?.average_rating || apiCourse.average_rating || apiCourse.rating || 0;
         const totalReviews = ratingStats?.review_count || ratingStats?.total_reviews || transformedReviews.length;
 
+        // Filter instructors to exclude admin
+        const filterOutAdmin = (list) => {
+            if (!Array.isArray(list)) return [];
+            return list.filter((ins) => {
+                const name = (ins?.name || ins?.username || ins?.first_name || '').toString().trim().toLowerCase();
+                return name !== 'admin' && name !== '';
+            });
+        };
+
+        const cleanedInstructors = filterOutAdmin(apiCourse.instructors || []);
+
         return {
             id: apiCourse.id,
             title: apiCourse.title || apiCourse.name || '',
             subtitle: apiCourse.subtitle || apiCourse.short_description || apiCourse.description?.substring(0, 100) || '',
             description: apiCourse.description || '',
             longDescription: apiCourse.description || apiCourse.long_description || apiCourse.content || '',
-            instructor: apiCourse.instructors?.[0]?.name || apiCourse.instructor?.name || apiCourse.teacher?.name || '',
-            instructors: apiCourse.instructors || [],
-            instructorTitle: apiCourse.instructors?.[0]?.bio || apiCourse.instructor?.title || apiCourse.teacher?.title || '',
-            instructorBio: apiCourse.instructors?.[0]?.bio || apiCourse.instructor?.bio || apiCourse.teacher?.bio || '',
-            instructorAvatar: getImageUrl(apiCourse.instructors?.[0]?.profile_pic || apiCourse.instructor?.profile_pic || apiCourse.teacher?.profile_pic),
+            instructor: cleanedInstructors?.[0]?.name || apiCourse.instructor?.name || apiCourse.teacher?.name || '',
+            instructors: cleanedInstructors,
+            instructorTitle: cleanedInstructors?.[0]?.bio || apiCourse.instructor?.title || apiCourse.teacher?.title || '',
+            instructorBio: cleanedInstructors?.[0]?.bio || apiCourse.instructor?.bio || apiCourse.teacher?.bio || '',
+            instructorAvatar: getImageUrl(cleanedInstructors?.[0]?.profile_pic || apiCourse.instructor?.profile_pic || apiCourse.teacher?.profile_pic),
             instructorRating: apiCourse.instructor?.rating || apiCourse.teacher?.rating || 0,
             instructorStudents: apiCourse.instructor?.students_count || apiCourse.teacher?.students_count || apiCourse.total_enrollments || 0,
             instructorCourses: apiCourse.instructor?.courses_count || apiCourse.teacher?.courses_count || 0,

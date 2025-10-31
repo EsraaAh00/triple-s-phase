@@ -768,20 +768,28 @@ const Courses = () => {
 
 
   const getInstructorName = (instructors) => {
-    if (!instructors || instructors.length === 0) return 'غير محدد';
-    if (instructors.length === 1) {
-      return instructors[0].name || 'غير محدد';
+    const filtered = (instructors || []).filter((ins) => {
+      const name = (ins?.name || ins?.username || ins?.first_name || '').toString().trim().toLowerCase();
+      return name !== 'admin' && name !== '';
+    });
+    if (filtered.length === 0) return 'غير محدد';
+    if (filtered.length === 1) {
+      return filtered[0].name || filtered[0].username || filtered[0].first_name || 'غير محدد';
     }
     // For multiple instructors, show first two and count
-    const firstTwo = instructors.slice(0, 2).map(inst => inst.name || 'مدرب').join('، ');
-    return instructors.length > 2 
-      ? `${firstTwo} و ${instructors.length - 2} آخرين`
+    const firstTwo = filtered.slice(0, 2).map(inst => inst.name || inst.username || inst.first_name || 'مدرب').join('، ');
+    return filtered.length > 2 
+      ? `${firstTwo} و ${filtered.length - 2} آخرين`
       : firstTwo;
   };
 
   const getInstructorAvatar = (instructors) => {
-    if (!instructors || instructors.length === 0) return null;
-    return instructors[0].profile_pic;
+    const filtered = (instructors || []).filter((ins) => {
+      const name = (ins?.name || ins?.username || ins?.first_name || '').toString().trim().toLowerCase();
+      return name !== 'admin' && name !== '';
+    });
+    if (filtered.length === 0) return null;
+    return filtered[0].profile_pic;
   };
 
   const getCategoryName = (course) => {
@@ -1423,8 +1431,14 @@ const Courses = () => {
                           }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                               <Box sx={{ display: 'flex' }}>
-                                {course.instructors && course.instructors.length > 0 ? (
-                                  course.instructors.slice(0, 3).map((instructor, index) => (
+                                {course.instructors && course.instructors.filter((ins) => ((ins?.name || ins?.username || ins?.first_name || '').toString().trim().toLowerCase() !== 'admin' && (ins?.name || ins?.username || ins?.first_name))).length > 0 ? (
+                                  course.instructors
+                                    .filter((ins) => {
+                                      const n = (ins?.name || ins?.username || ins?.first_name || '').toString().trim().toLowerCase();
+                                      return n !== 'admin' && n !== '';
+                                    })
+                                    .slice(0, 3)
+                                    .map((instructor, index) => (
                                     <Box
                                       key={instructor.id || index}
                                       sx={{
@@ -1538,9 +1552,16 @@ const Courses = () => {
                               }}
                             >
                               {course.instructors && course.instructors.length > 0 ? 
-                                course.instructors.slice(0, 2).map(instructor => 
-                                  instructor.first_name || instructor.username || instructor.name || 'مدرب'
-                                ).join(', ') + (course.instructors.length > 2 ? ' +' + (course.instructors.length - 2) : '') :
+                                (() => {
+                                  const filtered = course.instructors.filter((ins) => {
+                                    const n = (ins?.name || ins?.username || ins?.first_name || '').toString().trim().toLowerCase();
+                                    return n !== 'admin' && n !== '';
+                                  });
+                                  const names = filtered.slice(0, 2).map(instructor => 
+                                    instructor.first_name || instructor.username || instructor.name || 'مدرب'
+                                  ).join(', ');
+                                  return names + (filtered.length > 2 ? ' +' + (filtered.length - 2) : '');
+                                })() :
                                 'مدربين'
                               }
                             </Typography>

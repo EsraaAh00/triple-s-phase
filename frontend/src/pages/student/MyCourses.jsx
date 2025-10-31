@@ -411,13 +411,22 @@ const CourseDetailPage = ({ course, onBack }) => {
       } else if (courseData?.instructor) {
         instructors = Array.isArray(courseData.instructor) ? courseData.instructor : [courseData.instructor];
       }
-      setCourseInstructors(instructors);
+      // filter out admin
+      const filtered = (instructors || []).filter((ins) => {
+        const name = (ins?.name || ins?.username || ins?.first_name || '').toString().trim().toLowerCase();
+        return name !== 'admin' && name !== '';
+      });
+      setCourseInstructors(filtered);
     } catch (error) {
       // fallback to what exists on the course prop
       const fallback = Array.isArray(course.instructors) ? course.instructors
         : Array.isArray(course.teachers) ? course.teachers
         : (course.instructor ? [{ name: course.instructor }] : []);
-      setCourseInstructors(fallback);
+      const filtered = (fallback || []).filter((ins) => {
+        const name = (ins?.name || ins?.username || ins?.first_name || '').toString().trim().toLowerCase();
+        return name !== 'admin' && name !== '';
+      });
+      setCourseInstructors(filtered);
     }
   };
 
@@ -776,9 +785,13 @@ const CourseDetailPage = ({ course, onBack }) => {
               : Array.isArray(course.instructors) ? course.instructors
               : Array.isArray(course.teachers) ? course.teachers
               : (course.instructor ? [{ name: course.instructor }] : []);
-            const firstInstructor = instructorList[0];
+            const cleanedList = (instructorList || []).filter((ins) => {
+              const name = (ins?.name || ins?.username || ins?.first_name || '').toString().trim().toLowerCase();
+              return name !== 'admin' && name !== '';
+            });
+            const firstInstructor = cleanedList[0];
             const firstInitial = firstInstructor ? (firstInstructor.first_name ? firstInstructor.first_name.charAt(0) : (firstInstructor.name || firstInstructor.username || '').charAt(0)) : '';
-            const names = instructorList.map(ins => {
+            const names = cleanedList.map(ins => {
               if (ins.first_name || ins.last_name) return `${ins.first_name || ''} ${ins.last_name || ''}`.trim();
               return ins.name || ins.username || ins.email || '';
             }).filter(Boolean);

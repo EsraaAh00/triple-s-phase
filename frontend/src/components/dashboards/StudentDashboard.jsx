@@ -297,9 +297,14 @@ const StudentDashboard = () => {
       }
       
       console.log('Course instructors found:', courseInstructors);
+      // Filter out admin
+      const filteredInstructors = (courseInstructors || []).filter((ins) => {
+        const name = (ins?.name || ins?.username || ins?.first_name || '').toString().trim().toLowerCase();
+        return name !== 'admin' && name !== '';
+      });
       
       // If no instructors found from API, use mock data for demonstration
-      if (courseInstructors.length === 0) {
+      if (filteredInstructors.length === 0) {
         console.log('No instructors found in API response, using mock data');
         const mockInstructors = [
           {
@@ -326,7 +331,7 @@ const StudentDashboard = () => {
         ];
         setInstructors(mockInstructors);
       } else {
-        setInstructors(courseInstructors);
+        setInstructors(filteredInstructors);
       }
     } catch (error) {
       console.error('Error loading instructors:', error);
@@ -1084,7 +1089,13 @@ const StudentDashboard = () => {
                           ) : (
                             <Box sx={{ display: 'flex', gap: -1 }}>
                               {instructors && instructors.length > 0 ? (
-                                instructors.slice(0, 3).map((instructor, index) => (
+                                instructors
+                                  .filter((ins) => {
+                                    const n = (ins?.name || ins?.username || ins?.first_name || '').toString().trim().toLowerCase();
+                                    return n !== 'admin' && n !== '';
+                                  })
+                                  .slice(0, 3)
+                                  .map((instructor, index) => (
                                   <Avatar key={instructor.id || index} sx={{ 
                                     width: 32, 
                                     height: 32, 
@@ -1143,10 +1154,17 @@ const StudentDashboard = () => {
                           {instructorsLoading ? (
                             t('dashboardLoadingInstructors')
                           ) : instructors && instructors.length > 0 ? 
-                            instructors.slice(0, 3).map(instructor => {
-                              const name = instructor.first_name || instructor.username || instructor.name || t('commonInstructor');
-                              return name;
-                            }).join(', ') + (instructors.length > 3 ? ` ${t('commonAnd')} ${t('commonMore')}` : '') :
+                            (() => {
+                              const filtered = instructors.filter((ins) => {
+                                const n = (ins?.name || ins?.username || ins?.first_name || '').toString().trim().toLowerCase();
+                                return n !== 'admin' && n !== '';
+                              });
+                              const names = filtered.slice(0, 3).map(instructor => {
+                                const name = instructor.first_name || instructor.username || instructor.name || t('commonInstructor');
+                                return name;
+                              }).join(', ');
+                              return names + (filtered.length > 3 ? ` ${t('commonAnd')} ${t('commonMore')}` : '');
+                            })() :
                             t('commonInstructors')
                           }
                         </Typography>

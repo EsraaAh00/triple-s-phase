@@ -824,8 +824,14 @@ const CourseCollections = () => {
                               gap: 1
                             }}>
                               <Box sx={{ display: 'flex' }}>
-                                {course.instructors && course.instructors.length > 0 ? (
-                                  course.instructors.slice(0, 3).map((instructor, index) => (
+                                {course.instructors && course.instructors.filter((ins) => ((ins?.name || ins?.username || ins?.first_name || '').toString().trim().toLowerCase() !== 'admin' && (ins?.name || ins?.username || ins?.first_name))).length > 0 ? (
+                                  course.instructors
+                                    .filter((ins) => {
+                                      const n = (ins?.name || ins?.username || ins?.first_name || '').toString().trim().toLowerCase();
+                                      return n !== 'admin' && n !== '';
+                                    })
+                                    .slice(0, 3)
+                                    .map((instructor, index) => (
                                     <Box
                                       key={instructor.id || index}
                                       sx={{
