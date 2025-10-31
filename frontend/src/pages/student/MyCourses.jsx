@@ -266,28 +266,40 @@ const ModuleLessons = ({ moduleId, lessons = [], course = null }) => {
 
           {/* Content Type Badge */}
           <Box sx={{ mr: 2 }}>
-            <Box sx={{
-              px: 1,
-              py: 0.5,
-              borderRadius: 0.5,
-              background: lesson.content_type === 'article' 
-                ? '#f5f5f5'
-                : lesson.content_type === 'video'
-                ? '#e8f5e8'
-                : '#f5f5f5',
-              color: lesson.content_type === 'article' 
-                ? '#666'
-                : lesson.content_type === 'video'
-                ? '#4caf50'
-                : '#666',
-              fontSize: '11px',
-              fontWeight: 500,
-              textTransform: 'uppercase',
-              border: '1px solid #e0e0e0'
-            }}>
-              {lesson.content_type === 'article' ? 'PDF' : 
-               lesson.content_type === 'video' ? 'VIDEO' : 'LESSON'}
-            </Box>
+            {(() => {
+              // Get lesson type from multiple possible fields
+              const lessonType = lesson.content_type || lesson.lesson_type || lesson.type || '';
+              const hasVideo = lesson.video_url || lesson.bunny_video_id || lesson.bunny_video_url;
+              const hasContent = lesson.content && lesson.content.trim().length > 0;
+              
+              // Determine final type: prefer video if exists, then article if content exists, else use lessonType
+              const finalType = hasVideo ? 'video' : (hasContent ? 'article' : lessonType || 'lesson');
+              
+              return (
+                <Box sx={{
+                  px: 1,
+                  py: 0.5,
+                  borderRadius: 0.5,
+                  background: finalType === 'article' || finalType === 'pdf' || finalType === 'document'
+                    ? '#f5f5f5'
+                    : finalType === 'video' || finalType === 'video_lesson'
+                    ? '#e8f5e8'
+                    : '#f5f5f5',
+                  color: finalType === 'article' || finalType === 'pdf' || finalType === 'document'
+                    ? '#666'
+                    : finalType === 'video' || finalType === 'video_lesson'
+                    ? '#4caf50'
+                    : '#666',
+                  fontSize: '11px',
+                  fontWeight: 500,
+                  textTransform: 'uppercase',
+                  border: '1px solid #e0e0e0'
+                }}>
+                  {finalType === 'article' || finalType === 'pdf' || finalType === 'document' ? 'PDF' : 
+                   finalType === 'video' || finalType === 'video_lesson' ? 'VIDEO' : 'LESSON'}
+                </Box>
+              );
+            })()}
           </Box>
 
           {/* Lesson Title with Module Info */}
