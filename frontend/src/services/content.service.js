@@ -130,6 +130,15 @@ export const contentAPI = {
     try {
       console.log('Creating lesson resource with payload:', payload);
       
+      // Check file size before sending (max 300MB)
+      if (payload.file && payload.file instanceof File) {
+        const maxSizeMB = 300;
+        const maxSizeBytes = maxSizeMB * 1024 * 1024;
+        if (payload.file.size > maxSizeBytes) {
+          throw new Error(`حجم الملف كبير جداً. الحد الأقصى المسموح به هو ${maxSizeMB}MB`);
+        }
+      }
+      
       const form = new FormData();
       Object.entries(payload || {}).forEach(([k, v]) => {
         if (v !== undefined && v !== null) {
@@ -150,11 +159,45 @@ export const contentAPI = {
     } catch (error) {
       console.error('Error creating lesson resource:', error);
       console.error('Error response:', error.response?.data);
+      
+      // If it's already an Error object with message, throw it
+      if (error instanceof Error && error.message && !error.response) {
+        throw error;
+      }
+      
       if (error.response?.data) {
-        const errorMessage = error.response.data.error || 
-                           error.response.data.details || 
-                           error.response.data.message ||
-                           'حدث خطأ أثناء إنشاء المورد';
+        // Try to extract nested error messages from details
+        let errorMessage = error.response.data.error || 
+                          error.response.data.message ||
+                          'حدث خطأ أثناء إنشاء المورد';
+        
+        // Check if details contains nested error messages
+        if (error.response.data.details) {
+          const details = error.response.data.details;
+          
+          // If details is an object with field-specific errors
+          if (typeof details === 'object' && !Array.isArray(details)) {
+            // Extract error from 'file' field first (most common for file uploads)
+            if (details.file && Array.isArray(details.file) && details.file.length > 0) {
+              errorMessage = details.file[0];
+            } else if (details.file && typeof details.file === 'string') {
+              errorMessage = details.file;
+            } else {
+              // Try to find the first error message in the details object
+              const firstError = Object.values(details).find(val => 
+                (Array.isArray(val) && val.length > 0) || typeof val === 'string'
+              );
+              if (firstError) {
+                errorMessage = Array.isArray(firstError) ? firstError[0] : firstError;
+              }
+            }
+          } else if (typeof details === 'string') {
+            errorMessage = details;
+          } else if (Array.isArray(details) && details.length > 0) {
+            errorMessage = details[0];
+          }
+        }
+        
         throw new Error(errorMessage);
       }
       throw new Error('حدث خطأ أثناء إنشاء المورد');

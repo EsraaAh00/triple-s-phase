@@ -5,6 +5,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.decorators import action
 from django.shortcuts import get_object_or_404
 from django.db import models
+from django.core.exceptions import ValidationError
 
 from courses.models import Course, Enrollment
 from users.models import Profile
@@ -400,10 +401,36 @@ class LessonResourceViewSet(ModelViewSet):
                 headers = self.get_success_headers(serializer.data)
                 return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
             else:
+                # Extract error messages for better display
+                error_details = {}
+                for field, errors in serializer.errors.items():
+                    if isinstance(errors, list):
+                        error_details[field] = errors[0] if len(errors) > 0 else str(errors)
+                    else:
+                        error_details[field] = str(errors)
+                
+                # If file validation error exists, prioritize it
+                main_error = 'بيانات غير صحيحة'
+                if 'file' in error_details:
+                    main_error = error_details['file']
+                elif error_details:
+                    main_error = list(error_details.values())[0]
+                
                 return Response({
-                    'error': 'بيانات غير صحيحة',
-                    'details': serializer.errors
+                    'error': main_error,
+                    'details': error_details
                 }, status=status.HTTP_400_BAD_REQUEST)
+        except ValidationError as e:
+            # Handle Django validation errors (like file size)
+            error_message = str(e)
+            if hasattr(e, 'error_list') and e.error_list:
+                error_message = str(e.error_list[0])
+            elif hasattr(e, 'message'):
+                error_message = str(e.message)
+            return Response({
+                'error': error_message,
+                'details': {'file': error_message}
+            }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({
                 'error': 'حدث خطأ أثناء إنشاء المورد',

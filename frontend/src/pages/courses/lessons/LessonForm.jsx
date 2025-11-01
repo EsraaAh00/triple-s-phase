@@ -184,7 +184,44 @@ const LessonForm = ({ isEdit = false }) => {
       }
       navigate(`/teacher/courses/${courseId}/units/${unitId}/lessons`);
     } catch (err) {
-      const msg = err?.response?.data?.detail || err?.response?.data?.error || t('lessonsFailedToSaveLesson');
+      console.error('Error in handleSubmit:', err);
+      
+      // Extract error message from different possible locations
+      let msg = t('lessonsFailedToSaveLesson');
+      
+      if (err?.message) {
+        // Error from createLessonResource or other API calls
+        msg = err.message;
+      } else if (err?.response?.data) {
+        // Try to extract from response data
+        const data = err.response.data;
+        msg = data.detail || data.error || data.message || t('lessonsFailedToSaveLesson');
+        
+        // If details exists, try to extract nested errors
+        if (data.details) {
+          if (typeof data.details === 'object' && !Array.isArray(data.details)) {
+            // Extract from file field if exists
+            if (data.details.file && Array.isArray(data.details.file) && data.details.file.length > 0) {
+              msg = data.details.file[0];
+            } else if (data.details.file && typeof data.details.file === 'string') {
+              msg = data.details.file;
+            } else {
+              // Get first error from details
+              const firstError = Object.values(data.details).find(val => 
+                (Array.isArray(val) && val.length > 0) || typeof val === 'string'
+              );
+              if (firstError) {
+                msg = Array.isArray(firstError) ? firstError[0] : firstError;
+              }
+            }
+          } else if (typeof data.details === 'string') {
+            msg = data.details;
+          } else if (Array.isArray(data.details) && data.details.length > 0) {
+            msg = data.details[0];
+          }
+        }
+      }
+      
       setError(msg);
     } finally {
       setSaving(false);
@@ -400,12 +437,30 @@ const LessonForm = ({ isEdit = false }) => {
                     type="file"
                     onChange={(e) => {
                       const file = e.target.files && e.target.files.length ? e.target.files[0] : null;
+                      if (file) {
+                        // Check file size (max 300MB)
+                        const maxSizeMB = 300;
+                        const maxSizeBytes = maxSizeMB * 1024 * 1024;
+                        if (file.size > maxSizeBytes) {
+                          setError(`حجم الملف كبير جداً (${(file.size / 1024 / 1024).toFixed(2)}MB). الحد الأقصى المسموح به هو ${maxSizeMB}MB`);
+                          setResource((p) => ({ ...p, file: null }));
+                          return;
+                        }
+                        setError(null);
+                      }
                       setResource((p) => ({ ...p, file }));
                     }}
                   />
                 </Button>
                 {resource.file && (
-                  <Typography variant="caption" color="text.secondary">{resource.file.name}</Typography>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary" display="block">
+                      {resource.file.name}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      الحجم: {(resource.file.size / 1024 / 1024).toFixed(2)} MB
+                    </Typography>
+                  </Box>
                 )}
               </Box>
             )}
