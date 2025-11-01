@@ -77,6 +77,7 @@ export const contentAPI = {
 
     const response = await api.post('/api/content/modules/', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 600000, // 10 minutes (600000ms) for large file uploads
     });
     return response.data;
   },
@@ -97,6 +98,7 @@ export const contentAPI = {
 
     const response = await api.patch(`/api/content/modules/${moduleId}/`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 600000, // 10 minutes (600000ms) for large file uploads
     });
     return response.data;
   },
@@ -154,6 +156,7 @@ export const contentAPI = {
       
       const response = await api.post('/api/content/resources/', form, {
         headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 600000, // 10 minutes (600000ms) for large file uploads
       });
       return response.data;
     } catch (error) {
@@ -211,6 +214,7 @@ export const contentAPI = {
       });
       const response = await api.patch(`/api/content/resources/${resourceId}/`, form, {
         headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 600000, // 10 minutes (600000ms) for large file uploads
       });
       return response.data;
     } catch (error) {
