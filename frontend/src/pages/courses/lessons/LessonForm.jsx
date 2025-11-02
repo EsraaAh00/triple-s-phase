@@ -148,6 +148,12 @@ const LessonForm = ({ isEdit = false }) => {
     try {
       setSaving(true);
       setError(null);
+      
+      // Show upload loader if file is being uploaded
+      if (resourceMode === 'file' && resource.file) {
+        setUploading(true);
+      }
+      
       let currentLessonId = lessonId;
       if (isEdit) {
         const res = await contentAPI.updateLesson(lessonId, { module: unitId, ...form });
@@ -185,9 +191,13 @@ const LessonForm = ({ isEdit = false }) => {
           await contentAPI.createLessonResource(resourceData);
         }
       }
+      
+      setUploading(false);
       navigate(`/teacher/courses/${courseId}/units/${unitId}/lessons`);
     } catch (err) {
       console.error('Error in handleSubmit:', err);
+      
+      setUploading(false);
       
       // Extract error message from different possible locations
       let msg = t('lessonsFailedToSaveLesson');
@@ -228,6 +238,7 @@ const LessonForm = ({ isEdit = false }) => {
       setError(msg);
     } finally {
       setSaving(false);
+      setUploading(false);
     }
   };
 
@@ -433,53 +444,38 @@ const LessonForm = ({ isEdit = false }) => {
                     <MenuItem value="other">{t('lessonsOther')}</MenuItem>
                   </Select>
                 </FormControl>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  <Button component="label" variant="outlined" disabled={uploading}>
-                    {uploading ? t('lessonsUploading') : t('lessonsChooseFile')}
-                    <input
-                      hidden
-                      type="file"
-                      disabled={uploading}
-                      onChange={async (e) => {
-                        const file = e.target.files && e.target.files.length ? e.target.files[0] : null;
-                        if (file) {
-                          // Check file size (max 300MB)
-                          const maxSizeMB = 300;
-                          const maxSizeBytes = maxSizeMB * 1024 * 1024;
-                          if (file.size > maxSizeBytes) {
-                            setError(`حجم الملف كبير جداً (${(file.size / 1024 / 1024).toFixed(2)}MB). الحد الأقصى المسموح به هو ${maxSizeMB}MB`);
-                            setResource((p) => ({ ...p, file: null }));
-                            return;
-                          }
-                          setError(null);
-                          setUploading(true);
-                          // Simulate upload delay for better UX
-                          await new Promise(resolve => setTimeout(resolve, 1500));
-                          setUploading(false);
-                          setResource((p) => ({ ...p, file }));
+                <Button component="label" variant="outlined">
+                  {t('lessonsChooseFile')}
+                  <input
+                    hidden
+                    type="file"
+                    onChange={(e) => {
+                      const file = e.target.files && e.target.files.length ? e.target.files[0] : null;
+                      if (file) {
+                        // Check file size (max 300MB)
+                        const maxSizeMB = 300;
+                        const maxSizeBytes = maxSizeMB * 1024 * 1024;
+                        if (file.size > maxSizeBytes) {
+                          setError(`حجم الملف كبير جداً (${(file.size / 1024 / 1024).toFixed(2)}MB). الحد الأقصى المسموح به هو ${maxSizeMB}MB`);
+                          setResource((p) => ({ ...p, file: null }));
+                          return;
                         }
-                      }}
-                    />
-                  </Button>
-                  {uploading && (
-                    <Box>
-                      <LinearProgress />
-                      <Typography variant="caption" color="primary" sx={{ mt: 0.5, display: 'block', textAlign: 'center' }}>
-                        {t('lessonsUploading')}...
-                      </Typography>
-                    </Box>
-                  )}
-                  {resource.file && !uploading && (
-                    <Box sx={{ position: 'relative', width: '100%' }}>
-                      <Typography variant="caption" color="text.secondary" display="block">
-                        {resource.file.name}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        الحجم: {(resource.file.size / 1024 / 1024).toFixed(2)} MB
-                      </Typography>
-                    </Box>
-                  )}
-                </Box>
+                        setError(null);
+                        setResource((p) => ({ ...p, file }));
+                      }
+                    }}
+                  />
+                </Button>
+                {resource.file && (
+                  <Box>
+                    <Typography variant="caption" color="text.secondary" display="block">
+                      {resource.file.name}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      الحجم: {(resource.file.size / 1024 / 1024).toFixed(2)} MB
+                    </Typography>
+                  </Box>
+                )}
               </Box>
             )}
 
@@ -498,10 +494,19 @@ const LessonForm = ({ isEdit = false }) => {
         )}
 
 
+        {uploading && (
+          <Box sx={{ mt: 3 }}>
+            <LinearProgress sx={{ mb: 1 }} />
+            <Typography variant="body2" color="primary" sx={{ textAlign: 'center' }}>
+              {t('lessonsUploading')}...
+            </Typography>
+          </Box>
+        )}
+        
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1.5, mt: 3 }}>
-          <Button variant="outlined" onClick={() => navigate(-1)} disabled={saving}>{t('lessonsCancel')}</Button>
-          <Button type="submit" variant="contained" startIcon={<SaveIcon />} disabled={saving}>
-            {t('lessonsSave')}
+          <Button variant="outlined" onClick={() => navigate(-1)} disabled={saving || uploading}>{t('lessonsCancel')}</Button>
+          <Button type="submit" variant="contained" startIcon={<SaveIcon />} disabled={saving || uploading}>
+            {uploading ? t('lessonsUploading') : t('lessonsSave')}
           </Button>
         </Box>
       </Wrapper>
