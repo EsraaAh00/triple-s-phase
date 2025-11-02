@@ -22,6 +22,8 @@ import {
   ListItemText,
   ListItemSecondaryAction,
   Link,
+  CircularProgress,
+  LinearProgress,
 } from '@mui/material';
 import { ArrowBack as ArrowBackIcon, Save as SaveIcon, DeleteOutline as DeleteIcon, Edit as EditIcon, AttachFile as AttachFileIcon, Launch as LaunchIcon } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
@@ -70,6 +72,7 @@ const LessonForm = ({ isEdit = false }) => {
   const [resources, setResources] = useState([]);
   const [resLoading, setResLoading] = useState(false);
   const [resError, setResError] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     const fetchLesson = async () => {
@@ -430,12 +433,13 @@ const LessonForm = ({ isEdit = false }) => {
                     <MenuItem value="other">{t('lessonsOther')}</MenuItem>
                   </Select>
                 </FormControl>
-                <Button component="label" variant="outlined">
-                  {t('lessonsChooseFile')}
+                <Button component="label" variant="outlined" disabled={uploading}>
+                  {uploading ? t('lessonsUploading') : t('lessonsChooseFile')}
                   <input
                     hidden
                     type="file"
-                    onChange={(e) => {
+                    disabled={uploading}
+                    onChange={async (e) => {
                       const file = e.target.files && e.target.files.length ? e.target.files[0] : null;
                       if (file) {
                         // Check file size (max 300MB)
@@ -447,13 +451,25 @@ const LessonForm = ({ isEdit = false }) => {
                           return;
                         }
                         setError(null);
+                        setUploading(true);
+                        // Simulate upload delay for better UX
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        setUploading(false);
                       }
                       setResource((p) => ({ ...p, file }));
                     }}
                   />
                 </Button>
                 {resource.file && (
-                  <Box>
+                  <Box sx={{ position: 'relative', width: '100%' }}>
+                    {uploading && (
+                      <Box sx={{ mb: 1 }}>
+                        <LinearProgress />
+                        <Typography variant="caption" color="primary" sx={{ mt: 0.5, display: 'block', textAlign: 'center' }}>
+                          {t('lessonsUploading')}...
+                        </Typography>
+                      </Box>
+                    )}
                     <Typography variant="caption" color="text.secondary" display="block">
                       {resource.file.name}
                     </Typography>
