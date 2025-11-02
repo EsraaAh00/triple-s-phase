@@ -433,51 +433,53 @@ const LessonForm = ({ isEdit = false }) => {
                     <MenuItem value="other">{t('lessonsOther')}</MenuItem>
                   </Select>
                 </FormControl>
-                <Button component="label" variant="outlined" disabled={uploading}>
-                  {uploading ? t('lessonsUploading') : t('lessonsChooseFile')}
-                  <input
-                    hidden
-                    type="file"
-                    disabled={uploading}
-                    onChange={async (e) => {
-                      const file = e.target.files && e.target.files.length ? e.target.files[0] : null;
-                      if (file) {
-                        // Check file size (max 300MB)
-                        const maxSizeMB = 300;
-                        const maxSizeBytes = maxSizeMB * 1024 * 1024;
-                        if (file.size > maxSizeBytes) {
-                          setError(`حجم الملف كبير جداً (${(file.size / 1024 / 1024).toFixed(2)}MB). الحد الأقصى المسموح به هو ${maxSizeMB}MB`);
-                          setResource((p) => ({ ...p, file: null }));
-                          return;
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <Button component="label" variant="outlined" disabled={uploading}>
+                    {uploading ? t('lessonsUploading') : t('lessonsChooseFile')}
+                    <input
+                      hidden
+                      type="file"
+                      disabled={uploading}
+                      onChange={async (e) => {
+                        const file = e.target.files && e.target.files.length ? e.target.files[0] : null;
+                        if (file) {
+                          // Check file size (max 300MB)
+                          const maxSizeMB = 300;
+                          const maxSizeBytes = maxSizeMB * 1024 * 1024;
+                          if (file.size > maxSizeBytes) {
+                            setError(`حجم الملف كبير جداً (${(file.size / 1024 / 1024).toFixed(2)}MB). الحد الأقصى المسموح به هو ${maxSizeMB}MB`);
+                            setResource((p) => ({ ...p, file: null }));
+                            return;
+                          }
+                          setError(null);
+                          setUploading(true);
+                          // Simulate upload delay for better UX
+                          await new Promise(resolve => setTimeout(resolve, 1500));
+                          setUploading(false);
+                          setResource((p) => ({ ...p, file }));
                         }
-                        setError(null);
-                        setUploading(true);
-                        // Simulate upload delay for better UX
-                        await new Promise(resolve => setTimeout(resolve, 500));
-                        setUploading(false);
-                      }
-                      setResource((p) => ({ ...p, file }));
-                    }}
-                  />
-                </Button>
-                {resource.file && (
-                  <Box sx={{ position: 'relative', width: '100%' }}>
-                    {uploading && (
-                      <Box sx={{ mb: 1 }}>
-                        <LinearProgress />
-                        <Typography variant="caption" color="primary" sx={{ mt: 0.5, display: 'block', textAlign: 'center' }}>
-                          {t('lessonsUploading')}...
-                        </Typography>
-                      </Box>
-                    )}
-                    <Typography variant="caption" color="text.secondary" display="block">
-                      {resource.file.name}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      الحجم: {(resource.file.size / 1024 / 1024).toFixed(2)} MB
-                    </Typography>
-                  </Box>
-                )}
+                      }}
+                    />
+                  </Button>
+                  {uploading && (
+                    <Box>
+                      <LinearProgress />
+                      <Typography variant="caption" color="primary" sx={{ mt: 0.5, display: 'block', textAlign: 'center' }}>
+                        {t('lessonsUploading')}...
+                      </Typography>
+                    </Box>
+                  )}
+                  {resource.file && !uploading && (
+                    <Box sx={{ position: 'relative', width: '100%' }}>
+                      <Typography variant="caption" color="text.secondary" display="block">
+                        {resource.file.name}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        الحجم: {(resource.file.size / 1024 / 1024).toFixed(2)} MB
+                      </Typography>
+                    </Box>
+                  )}
+                </Box>
               </Box>
             )}
 
