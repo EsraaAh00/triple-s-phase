@@ -237,16 +237,68 @@ const QuestionForm = ({ open = true, onClose, question, onSubmit, onCancel, less
     video: null
   });
 
-  // Debug logging
-  console.log('QuestionForm props:', { lessons, product, chapter, topic });
-  console.log('Lessons type:', typeof lessons, 'Is array:', Array.isArray(lessons));
-  console.log('Form data:', formData);
   const [errors, setErrors] = useState({});
   const [newOption, setNewOption] = useState('');
   const [newTag, setNewTag] = useState('');
 
   useEffect(() => {
     if (question) {
+      // Get correct_answer - handle null, undefined, empty string
+      let correctAnswer = '';
+      if (question.correct_answer !== null && question.correct_answer !== undefined) {
+        correctAnswer = String(question.correct_answer).trim();
+      }
+      
+      // Normalize correct_answer for true_false questions
+      if (question.question_type === 'true_false' && correctAnswer) {
+        correctAnswer = correctAnswer.toLowerCase();
+      }
+      
+      // Get options list - try multiple sources
+      let optionsList = [];
+      if (question.options_list && Array.isArray(question.options_list) && question.options_list.length > 0) {
+        optionsList = question.options_list.map(opt => String(opt || '').trim());
+      } else if (question.options) {
+        try {
+          if (typeof question.options === 'string') {
+            const parsed = JSON.parse(question.options);
+            optionsList = Array.isArray(parsed) ? parsed.map(opt => String(opt || '').trim()) : [];
+          } else if (Array.isArray(question.options)) {
+            optionsList = question.options.map(opt => String(opt || '').trim());
+          }
+        } catch (e) {
+          // Silent error handling
+        }
+      }
+      
+      // For MCQ questions, try to match correct_answer with options
+      if (question.question_type === 'mcq' && correctAnswer && optionsList.length > 0) {
+        // Normalize correct_answer
+        const normalizedCorrect = String(correctAnswer).trim();
+        
+        // Try exact match first (case-sensitive)
+        let matchedOption = optionsList.find(opt => opt === normalizedCorrect);
+        
+        if (!matchedOption && normalizedCorrect) {
+          // Try case-insensitive match
+          const lowerCorrect = normalizedCorrect.toLowerCase();
+          matchedOption = optionsList.find(opt => opt.toLowerCase() === lowerCorrect);
+        }
+        
+        // Try to match by index if correct_answer is a number
+        if (!matchedOption && normalizedCorrect && !isNaN(normalizedCorrect)) {
+          const index = parseInt(normalizedCorrect) - 1;
+          if (index >= 0 && index < optionsList.length) {
+            matchedOption = optionsList[index];
+          }
+        }
+        
+        // If match found, use the matched option value
+        if (matchedOption) {
+          correctAnswer = matchedOption;
+        }
+      }
+      
       setFormData({
         question_text: question.question_text || '',
         question_type: question.question_type || 'mcq',
@@ -254,8 +306,8 @@ const QuestionForm = ({ open = true, onClose, question, onSubmit, onCancel, less
         product: product?.id || question.product || '',
         chapter: chapter?.id || question.chapter || '',
         topic: topic?.id || question.topic || '',
-        options: question.options_list || [],
-        correct_answer: question.correct_answer || '',
+        options: optionsList,
+        correct_answer: correctAnswer,
         explanation: question.explanation || '',
         tags: question.tags || [],
         image: question.image || null,
@@ -389,47 +441,70 @@ const QuestionForm = ({ open = true, onClose, question, onSubmit, onCancel, less
               خيارات الإجابة
             </SectionTitle>
             <Box sx={{ mb: 2, direction: 'rtl' }}>
-              {formData.options.map((option, index) => (
-                <Box key={index} sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: 2, 
-                  mb: 2,
-                  p: 2,
-                  borderRadius: '4px',
-                  backgroundColor: '#ffffff',
-                  border: '1px solid #e0e0e0',
-                  direction: 'rtl'
-                }}>
-                  <IconButton
-                    color="error"
-                    onClick={() => handleRemoveOption(index)}
-                    disabled={formData.options.length <= 2}
-                    size="small"
-                    sx={{ order: 1 }}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                  <FormTextField
-                    fullWidth
-                    value={option}
-                    onChange={(e) => {
-                      const newOptions = [...formData.options];
-                      newOptions[index] = e.target.value;
-                      handleInputChange('options', newOptions);
-                    }}
-                    placeholder={`الخيار ${index + 1}`}
-                    size="small"
-                    sx={{ order: 2 }}
-                  />
-                  <Radio
-                    checked={formData.correct_answer === option}
-                    onChange={() => handleInputChange('correct_answer', option)}
-                  size="small"
-                    sx={{ order: 3 }}
-                />
-                </Box>
-              ))}
+              {formData.options.map((option, index) => {
+                const optionStr = String(option || '').trim();
+                const correctStr = String(formData.correct_answer || '').trim();
+                // Compare exact match first, then case-insensitive
+                const isSelected = optionStr && correctStr && (
+                  optionStr === correctStr || 
+                  optionStr.toLowerCase() === correctStr.toLowerCase()
+                );
+                
+                return (
+                  <Box key={index} sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 2, 
+                    mb: 2,
+                    p: 2,
+                    borderRadius: '4px',
+                    backgroundColor: isSelected ? '#e8f5e8' : '#ffffff',
+                    border: `1px solid ${isSelected ? '#4caf50' : '#e0e0e0'}`,
+                    direction: 'rtl',
+                    transition: 'all 0.2s ease'
+                  }}>
+                    <IconButton
+                      color="error"
+                      onClick={() => handleRemoveOption(index)}
+                      disabled={formData.options.length <= 2}
+                      size="small"
+                      sx={{ order: 1 }}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                    <FormTextField
+                      fullWidth
+                      value={option}
+                      onChange={(e) => {
+                        const newValue = e.target.value;
+                        const newOptions = [...formData.options];
+                        newOptions[index] = newValue;
+                        handleInputChange('options', newOptions);
+                        // If this was the correct answer, update it too
+                        if (isSelected) {
+                          handleInputChange('correct_answer', newValue);
+                        }
+                      }}
+                      placeholder={`الخيار ${index + 1}`}
+                      size="small"
+                      sx={{ order: 2 }}
+                    />
+                    <Radio
+                      checked={isSelected}
+                      onChange={() => {
+                        handleInputChange('correct_answer', option);
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleInputChange('correct_answer', option);
+                      }}
+                      size="small"
+                      sx={{ order: 3 }}
+                      color="success"
+                    />
+                  </Box>
+                );
+              })}
               <Box sx={{ display: 'flex', gap: 2, mt: 2, alignItems: 'center', direction: 'rtl' }}>
                 <FormButton
                   variant="outlined"
@@ -459,6 +534,11 @@ const QuestionForm = ({ open = true, onClose, question, onSubmit, onCancel, less
         );
 
       case 'true_false':
+        // Normalize the value for comparison
+        const normalizedAnswer = formData.correct_answer ? String(formData.correct_answer).toLowerCase() : '';
+        const isTrue = normalizedAnswer === 'true' || normalizedAnswer === '1' || normalizedAnswer === 'yes' || normalizedAnswer === 'صح';
+        const isFalse = normalizedAnswer === 'false' || normalizedAnswer === '0' || normalizedAnswer === 'no' || normalizedAnswer === 'خطأ';
+        
         return (
           <Box>
             <SectionTitle>
@@ -467,7 +547,7 @@ const QuestionForm = ({ open = true, onClose, question, onSubmit, onCancel, less
             </SectionTitle>
             <FormControl component="fieldset" fullWidth>
               <RadioGroup
-                value={formData.correct_answer}
+                value={isTrue ? 'true' : (isFalse ? 'false' : '')}
                 onChange={(e) => handleInputChange('correct_answer', e.target.value)}
                 sx={{ 
                   display: 'flex', 
@@ -482,10 +562,10 @@ const QuestionForm = ({ open = true, onClose, question, onSubmit, onCancel, less
                   control={<Radio size="small" />} 
                   label="صح" 
                   sx={{ 
-                    backgroundColor: formData.correct_answer === 'true' ? '#e8f5e8' : 'transparent',
+                    backgroundColor: isTrue ? '#e8f5e8' : 'transparent',
                     borderRadius: '4px',
                     padding: '8px 16px',
-                    border: `1px solid ${formData.correct_answer === 'true' ? '#4caf50' : '#e0e0e0'}`,
+                    border: `1px solid ${isTrue ? '#4caf50' : '#e0e0e0'}`,
                     direction: 'rtl',
                     '&:hover': {
                       backgroundColor: '#f5f5f5',
@@ -497,10 +577,10 @@ const QuestionForm = ({ open = true, onClose, question, onSubmit, onCancel, less
                   control={<Radio size="small" />} 
                   label="خطأ" 
                   sx={{ 
-                    backgroundColor: formData.correct_answer === 'false' ? '#ffebee' : 'transparent',
+                    backgroundColor: isFalse ? '#ffebee' : 'transparent',
                     borderRadius: '4px',
                     padding: '8px 16px',
-                    border: `1px solid ${formData.correct_answer === 'false' ? '#f44336' : '#e0e0e0'}`,
+                    border: `1px solid ${isFalse ? '#f44336' : '#e0e0e0'}`,
                     direction: 'rtl',
                     '&:hover': {
                       backgroundColor: '#f5f5f5',

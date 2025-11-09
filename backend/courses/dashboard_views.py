@@ -314,8 +314,8 @@ def student_dashboard_stats(request):
         student_enrollments = Enrollment.objects.filter(student=user)
         student_courses = [enrollment.course for enrollment in student_enrollments]
         
-        # إحصائيات المقررات
-        enrolled_courses = student_enrollments.filter(status__in=['active', 'completed']).count()
+        # إحصائيات المقررات (فقط الاشتراكات النشطة)
+        enrolled_courses = student_enrollments.filter(status='active').count()
         completed_courses = student_enrollments.filter(status='completed').count()
         
         # إحصائيات الدروس - حساب حقيقي
@@ -418,10 +418,10 @@ def student_courses(request):
                 'error': 'ليس لديك صلاحية للوصول لهذه البيانات'
             }, status=status.HTTP_403_FORBIDDEN)
         
-        # الحصول على مقررات الطالب
+        # الحصول على مقررات الطالب (استبعاد الاشتراكات المنتهية)
         enrollments = Enrollment.objects.filter(
             student=user,
-            status__in=['active', 'completed']
+            status='active'
         ).select_related('course', 'course__category').prefetch_related(
             'course__instructors', 'course__modules__lessons'
         ).order_by('-enrollment_date')
@@ -613,10 +613,10 @@ def student_upcoming_assignments(request):
                 'error': 'ليس لديك صلاحية للوصول لهذه البيانات'
             }, status=status.HTTP_403_FORBIDDEN)
         
-        # الحصول على مقررات الطالب
+        # الحصول على مقررات الطالب (فقط الاشتراكات النشطة)
         student_courses = [enrollment.course for enrollment in Enrollment.objects.filter(
             student=user,
-            status__in=['active', 'completed']
+            status='active'
         )]
         
         # الواجبات القادمة - تعليق مؤقت بسبب حذف نموذج الواجبات

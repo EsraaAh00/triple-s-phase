@@ -252,8 +252,8 @@ class CourseViewSet(ModelViewSet):
                 'error': 'هذه الدورة غير متاحة للتسجيل'
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        # Check if already enrolled
-        if course.enrollments.filter(student=request.user, status__in=['active', 'completed']).exists():
+        # Check if already enrolled (only check active enrollments)
+        if course.enrollments.filter(student=request.user, status='active').exists():
             return Response({
                 'error': 'أنت مسجل في هذه الدورة بالفعل'
             }, status=status.HTTP_400_BAD_REQUEST)
@@ -286,7 +286,7 @@ class CourseViewSet(ModelViewSet):
         """إلغاء التسجيل من دورة"""
         course = self.get_object()
         
-        if not course.enrollments.filter(student=request.user, status__in=['active', 'completed']).exists():
+        if not course.enrollments.filter(student=request.user, status='active').exists():
             return Response({
                 'error': 'أنت غير مسجل في هذه الدورة'
             }, status=status.HTTP_400_BAD_REQUEST)
@@ -319,9 +319,9 @@ class CourseViewSet(ModelViewSet):
         """جلب وحدات الدورة"""
         course = self.get_object()
         
-        # Check if user is enrolled or is the teacher/admin
+        # Check if user is enrolled or is the teacher/admin (only check active enrollments)
         user = request.user
-        is_enrolled = course.enrollments.filter(student=user, status__in=['active', 'completed']).exists()
+        is_enrolled = course.enrollments.filter(student=user, status='active').exists()
         is_instructor_or_admin = False
         
         try:
@@ -377,7 +377,7 @@ class CourseViewSet(ModelViewSet):
         user = request.user
         enrolled_courses = Course.objects.filter(
             enrollments__student=user,
-            enrollments__status__in=['active', 'completed'],
+            enrollments__status='active',
             status='published'
         ).select_related('instructors', 'category').prefetch_related('tags')
         
@@ -623,10 +623,10 @@ def my_enrolled_courses(request):
     try:
         user = request.user
         
-        # Get enrolled courses with enrollment details
+        # Get enrolled courses with enrollment details (exclude completed subscriptions)
         enrollments = Enrollment.objects.filter(
             student=user,
-            status__in=['active', 'completed']
+            status='active'
         ).select_related(
             'course', 
             'course__category'
@@ -723,11 +723,11 @@ def course_tracking_data(request, course_id):
             'tags'
         ).get(id=course_id, status='published')
         
-        # Check if user is enrolled
+        # Check if user is enrolled (only active enrollments)
         enrollment = Enrollment.objects.filter(
             student=user,
             course=course,
-            status__in=['active', 'completed']
+            status='active'
         ).first()
         
         if not enrollment:
@@ -1120,11 +1120,11 @@ def study_schedule_view(request, course_id=None):
     try:
         course = get_object_or_404(Course, id=course_id)
         
-        # Check if user is enrolled
+        # Check if user is enrolled (only active enrollments)
         enrollment = Enrollment.objects.filter(
             student=request.user,
             course=course,
-            status__in=['active', 'completed']
+            status='active'
         ).first()
         
         if not enrollment:

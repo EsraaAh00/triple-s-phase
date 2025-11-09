@@ -229,7 +229,7 @@ class CourseAdmin(admin.ModelAdmin):
 class EnrollmentAdmin(admin.ModelAdmin):
     list_display = ('course', 'student_name', 'status', 'enrollment_date', 'last_accessed')
     list_filter = ('status', 'enrollment_date', 'course')
-    search_fields = ('course__name', 'student__username', 'student__first_name', 'student__last_name', 'student__profile__name')
+    search_fields = ('course__title', 'course__subtitle', 'student__username', 'student__email', 'student__first_name', 'student__last_name', 'student__profile__name')
     readonly_fields = ('enrollment_date',)
     autocomplete_fields = ['student']
     

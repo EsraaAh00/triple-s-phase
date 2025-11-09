@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Typography,
@@ -21,7 +21,10 @@ import {
   TableRow,
   TablePagination,
   Paper,
-  TableSortLabel
+  TableSortLabel,
+  Alert,
+  CircularProgress,
+  LinearProgress
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -29,7 +32,9 @@ import {
   Delete as DeleteIcon,
   Bookmark as BookmarkIcon,
   Quiz as QuizIcon,
-  Style as StyleIcon
+  Style as StyleIcon,
+  UploadFile as UploadFileIcon,
+  Download as DownloadIcon
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import assessmentAPI from '../../services/assessment.service';
@@ -51,6 +56,8 @@ const TopicManager = ({ chapter, type, onTopicSelect, onNotification }) => {
   const [order, setOrder] = useState('asc');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [topicToDelete, setTopicToDelete] = useState(null);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [selectedTopicForImport, setSelectedTopicForImport] = useState(null);
 
   useEffect(() => {
     if (chapter) {
@@ -331,6 +338,24 @@ const TopicManager = ({ chapter, type, onTopicSelect, onNotification }) => {
                             {getContentIcon()}
                           </IconButton>
                         </Tooltip>
+                        <Tooltip title={type === 'questionbank' ? t('importQuestions') || 'Import Questions' : t('importFlashcards') || 'Import Flashcards'}>
+                          <IconButton
+                            size="small"
+                            onClick={() => {
+                              setSelectedTopicForImport(topic);
+                              setImportDialogOpen(true);
+                            }}
+                            sx={{ 
+                              bgcolor: 'success.main',
+                              color: 'white',
+                              '&:hover': {
+                                bgcolor: 'success.dark'
+                              }
+                            }}
+                          >
+                            <UploadFileIcon />
+                          </IconButton>
+                        </Tooltip>
                         <Tooltip title={t('edit')}>
                           <IconButton
                             size="small"
@@ -477,6 +502,186 @@ const TopicManager = ({ chapter, type, onTopicSelect, onNotification }) => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Import Excel Dialog */}
+      <Dialog 
+        open={importDialogOpen} 
+        onClose={() => {
+          setImportDialogOpen(false);
+          setSelectedTopicForImport(null);
+        }}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          {type === 'questionbank' 
+            ? (t('assessmentImportQuestions') || 'Import Questions from Excel') 
+            : (t('assessmentImportFlashcards') || 'Import Flashcards from Excel')}
+        </DialogTitle>
+        <DialogContent>
+          <ImportExcelDialog
+            topic={selectedTopicForImport}
+            type={type}
+            onSuccess={(result) => {
+              onNotification(
+                result.message || `Successfully imported ${result.created_count || 0} ${type === 'questionbank' ? 'questions' : 'flashcards'}`,
+                'success'
+              );
+              setImportDialogOpen(false);
+              setSelectedTopicForImport(null);
+              fetchTopics();
+            }}
+            onError={(error) => {
+              onNotification(error || 'Failed to import file', 'error');
+            }}
+            onClose={() => {
+              setImportDialogOpen(false);
+              setSelectedTopicForImport(null);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+    </Box>
+  );
+};
+
+// Import Excel Dialog Component
+const ImportExcelDialog = ({ topic, type, onSuccess, onError, onClose }) => {
+  const { t } = useTranslation();
+  const [file, setFile] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const handleFileChange = (event) => {
+    const selectedFile = event.target.files[0];
+    if (selectedFile) {
+      // Validate file type
+      if (!selectedFile.name.endsWith('.xlsx') && !selectedFile.name.endsWith('.xls')) {
+        setError('Please select an Excel file (.xlsx or .xls)');
+        return;
+      }
+      setFile(selectedFile);
+      setError(null);
+    }
+  };
+
+  const handleImport = async () => {
+    if (!file || !topic) {
+      setError('Please select a file');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      let result;
+      if (type === 'questionbank') {
+        result = await assessmentAPI.importQuestionsExcel(topic.id, file);
+      } else {
+        result = await assessmentAPI.importFlashcardsExcel(topic.id, file);
+      }
+
+      if (result.success) {
+        onSuccess(result.data);
+      } else {
+        const errorMessage = result.error?.error || result.error?.message || 'Failed to import file';
+        setError(errorMessage);
+        onError(errorMessage);
+      }
+    } catch (err) {
+      const errorMessage = err.message || 'Failed to import file';
+      setError(errorMessage);
+      onError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
+      {loading && <LinearProgress />}
+      
+      {error && (
+        <Alert severity="error" onClose={() => setError(null)}>
+          {error}
+        </Alert>
+      )}
+
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        {t('assessmentImportInstructions') || 'Upload an Excel file with the following columns'}: {
+          type === 'questionbank' 
+            ? t('assessmentImportQuestionsColumns') || 'question_text, question_type, correct_answer, difficulty_level, answer1, answer2, answer3, answer4, answer5, explanation, tags'
+            : t('assessmentImportFlashcardsColumns') || 'front_text, back_text, tags'
+        }
+      </Typography>
+
+      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".xlsx,.xls"
+          onChange={handleFileChange}
+          style={{ display: 'none' }}
+        />
+
+        <Button
+          variant="outlined"
+          onClick={() => fileInputRef.current?.click()}
+          startIcon={<UploadFileIcon />}
+          sx={{ flex: 1 }}
+        >
+          {file ? file.name : (t('assessmentSelectExcelFile') || 'Select Excel File')}
+        </Button>
+
+        <Button
+          variant="text"
+          startIcon={<DownloadIcon />}
+          onClick={async () => {
+            const res = type === 'questionbank'
+              ? await assessmentAPI.downloadQuestionTemplate()
+              : await assessmentAPI.downloadFlashcardTemplate();
+            if (res.success) {
+              const blob = new Blob([res.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+              const url = window.URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = type === 'questionbank' ? 'question_bank_template.xlsx' : 'flashcards_template.xlsx';
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
+              window.URL.revokeObjectURL(url);
+            } else {
+              setError(t('assessmentDownloadTemplateFailed') || 'Failed to download template');
+            }
+          }}
+        >
+          {type === 'questionbank' 
+            ? (t('assessmentDownloadQuestionsTemplate') || 'Download Questions Template') 
+            : (t('assessmentDownloadFlashcardsTemplate') || 'Download Flashcards Template')}
+        </Button>
+      </Box>
+
+      {file && (
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+          {t('assessmentFileSelected') || 'Selected'}: {file.name} ({(file.size / 1024).toFixed(2)} KB)
+        </Typography>
+      )}
+
+      <DialogActions sx={{ pt: 2 }}>
+        <Button onClick={onClose} disabled={loading}>
+          {t('cancel')}
+        </Button>
+        <Button
+          onClick={handleImport}
+          variant="contained"
+          disabled={!file || loading}
+          startIcon={loading ? <CircularProgress size={20} /> : <UploadFileIcon />}
+        >
+          {loading ? (t('assessmentImporting') || 'Importing...') : (t('assessmentImport') || 'Import')}
+        </Button>
+      </DialogActions>
     </Box>
   );
 };

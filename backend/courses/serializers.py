@@ -218,7 +218,7 @@ class CourseDetailSerializer(serializers.ModelSerializer):
         try:
             request = self.context.get('request')
             if request and hasattr(request, 'user') and request.user.is_authenticated:
-                return obj.enrollments.filter(student=request.user, status__in=['active', 'completed']).exists()
+                return obj.enrollments.filter(student=request.user, status='active').exists()
             return False
         except Exception as e:
             import logging

@@ -106,11 +106,11 @@ class QuestionBankProductEnrollmentViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def check_enrollment(self, request):
-        """Check if current user is enrolled in any question bank products"""
+        """Check if current user is enrolled in any question bank products (only active enrollments)"""
         user = request.user
         enrollments = self.get_queryset().filter(
             student=user,
-            status__in=['active', 'completed']
+            status='active'
         )
         
         if enrollments.exists():
@@ -189,11 +189,11 @@ class FlashcardProductEnrollmentViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def check_enrollment(self, request):
-        """Check if current user is enrolled in any flashcard products"""
+        """Check if current user is enrolled in any flashcard products (only active enrollments)"""
         user = request.user
         enrollments = self.get_queryset().filter(
             student=user,
-            status__in=['active', 'completed']
+            status='active'
         )
         
         if enrollments.exists():

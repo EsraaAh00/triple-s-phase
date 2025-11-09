@@ -8,6 +8,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from django.db.models import Q, Count, Avg, Sum
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
 
 from .models import (
     Assessment, QuestionBank, AssessmentQuestions, 
@@ -781,6 +782,196 @@ class QuestionBankTopicViewSet(viewsets.ModelViewSet):
         
         serializer = self.get_serializer(topics, many=True)
         return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def excel_template(self, request):
+        """Download Excel template for Question Bank import"""
+        import pandas as pd
+        import io
+        
+        # Define columns with separate answer columns
+        columns = ['question_text', 'question_type', 'correct_answer', 'difficulty_level', 
+                  'answer1', 'answer2', 'answer3', 'answer4', 'answer5', 
+                  'explanation', 'tags']
+        
+        # Example rows: MCQ and True/False
+        examples = [
+            {
+                'question_text': 'What is 2 + 2?',
+                'question_type': 'mcq',
+                'correct_answer': '4',
+                'difficulty_level': 'easy',
+                'answer1': '1',
+                'answer2': '2',
+                'answer3': '3',
+                'answer4': '4',
+                'answer5': '5',
+                'explanation': 'Basic addition',
+                'tags': 'math,arithmetic'
+            },
+            {
+                'question_text': 'The capital of France is Paris',
+                'question_type': 'true_false',
+                'correct_answer': 'True',
+                'difficulty_level': 'easy',
+                'answer1': '',
+                'answer2': '',
+                'answer3': '',
+                'answer4': '',
+                'answer5': '',
+                'explanation': 'Paris is indeed the capital of France',
+                'tags': 'geography,france'
+            }
+        ]
+        
+        df = pd.DataFrame(examples, columns=columns)
+        buffer = io.BytesIO()
+        with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='QuestionsTemplate')
+        buffer.seek(0)
+        
+        resp = HttpResponse(
+            buffer.getvalue(),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        resp['Content-Disposition'] = 'attachment; filename="question_bank_template.xlsx"'
+        return resp
+    
+    @action(detail=True, methods=['post'])
+    def import_excel(self, request, pk=None):
+        """Import questions from Excel file into this topic"""
+        import pandas as pd
+        import json
+        
+        topic = self.get_object()
+        
+        if 'file' not in request.FILES:
+            return Response(
+                {'error': 'No file uploaded'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        excel_file = request.FILES['file']
+        
+        # Validate file extension
+        if not excel_file.name.endswith(('.xlsx', '.xls')):
+            return Response(
+                {'error': 'Invalid file format. Please upload an Excel file (.xlsx or .xls)'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            # Read Excel file
+            df = pd.read_excel(excel_file)
+            
+            # Expected columns for questions
+            required_columns = ['question_text', 'question_type', 'correct_answer', 'difficulty_level']
+            
+            # Check if required columns exist
+            missing_columns = [col for col in required_columns if col not in df.columns]
+            if missing_columns:
+                return Response(
+                    {'error': f'Missing required columns: {", ".join(missing_columns)}'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            created_questions = []
+            errors = []
+            
+            for index, row in df.iterrows():
+                try:
+                    # Get question data
+                    question_text = str(row['question_text']).strip()
+                    question_type = str(row['question_type']).strip().lower()
+                    correct_answer = str(row['correct_answer']).strip()
+                    difficulty_level = str(row.get('difficulty_level', 'medium')).strip().lower()
+                    explanation = str(row.get('explanation', '')).strip() if pd.notna(row.get('explanation')) else ''
+                    tags_str = str(row.get('tags', '')).strip() if pd.notna(row.get('tags')) else ''
+                    
+                    # Validate question type
+                    valid_types = ['mcq', 'true_false', 'short_answer', 'essay', 'fill_blank', 'matching', 'ordering']
+                    if question_type not in valid_types:
+                        errors.append(f'Row {index + 2}: Invalid question type "{question_type}"')
+                        continue
+                    
+                    # Validate difficulty level
+                    valid_difficulties = ['easy', 'medium', 'hard']
+                    if difficulty_level not in valid_difficulties:
+                        difficulty_level = 'medium'
+                    
+                    # Parse options for MCQ questions
+                    options = []
+                    if question_type == 'mcq':
+                        # Try to read from separate answer columns (answer1, answer2, etc.)
+                        answer_columns = [f'answer{i}' for i in range(1, 6)]
+                        found_answers = []
+                        
+                        for col in answer_columns:
+                            if col in df.columns and pd.notna(row.get(col)):
+                                answer_val = str(row[col]).strip()
+                                if answer_val:
+                                    found_answers.append(answer_val)
+                        
+                        # If no separate columns, try the old 'options' column (backward compatibility)
+                        if not found_answers and 'options' in df.columns and pd.notna(row.get('options')):
+                            options_str = str(row['options']).strip()
+                            # Try to parse as JSON array first
+                            try:
+                                found_answers = json.loads(options_str) if options_str.startswith('[') else options_str.split(',')
+                            except:
+                                # If not JSON, split by comma
+                                found_answers = [opt.strip() for opt in options_str.split(',') if opt.strip()]
+                        
+                        if len(found_answers) < 2:
+                            errors.append(f'Row {index + 2}: MCQ questions must have at least 2 options')
+                            continue
+                        
+                        options = found_answers
+                    
+                    # Parse tags
+                    tags = []
+                    if tags_str:
+                        try:
+                            tags = json.loads(tags_str) if tags_str.startswith('[') else [tag.strip() for tag in tags_str.split(',') if tag.strip()]
+                        except:
+                            tags = [tag.strip() for tag in tags_str.split(',') if tag.strip()]
+                    
+                    # Create question
+                    question = QuestionBank.objects.create(
+                        question_text=question_text,
+                        question_type=question_type,
+                        correct_answer=correct_answer,
+                        difficulty_level=difficulty_level,
+                        explanation=explanation if explanation else None,
+                        options=json.dumps(options) if options else None,
+                        tags=tags,
+                        product=topic.chapter.product,
+                        topic=topic,
+                        created_by=request.user
+                    )
+                    
+                    created_questions.append({
+                        'id': question.id,
+                        'question_text': question.question_text[:50] + '...' if len(question.question_text) > 50 else question.question_text
+                    })
+                    
+                except Exception as e:
+                    errors.append(f'Row {index + 2}: {str(e)}')
+                    continue
+            
+            return Response({
+                'success': True,
+                'message': f'Successfully imported {len(created_questions)} questions',
+                'created_count': len(created_questions),
+                'errors': errors,
+                'created_questions': created_questions
+            }, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Error processing Excel file: {str(e)}'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 # Enrollment Status API
@@ -792,16 +983,16 @@ def check_enrollment_status(request):
     """Check enrollment status for Question Bank and Flashcards"""
     user = request.user
     
-    # Check Question Bank enrollment
+    # Check Question Bank enrollment (only active)
     question_bank_enrollments = QuestionBankProductEnrollment.objects.filter(
         student=user,
-        status__in=['active', 'completed']
+        status='active'
     )
     
-    # Check Flashcard enrollment
+    # Check Flashcard enrollment (only active)
     flashcard_enrollments = FlashcardProductEnrollment.objects.filter(
         student=user,
-        status__in=['active', 'completed']
+        status='active'
     )
     
     return Response({
@@ -837,16 +1028,16 @@ def check_enrollment_status(request):
     """Check enrollment status for Question Bank and Flashcards"""
     user = request.user
     
-    # Check Question Bank enrollment
+    # Check Question Bank enrollment (only active)
     question_bank_enrollments = QuestionBankProductEnrollment.objects.filter(
         student=user,
-        status__in=['active', 'completed']
+        status='active'
     )
     
-    # Check Flashcard enrollment
+    # Check Flashcard enrollment (only active)
     flashcard_enrollments = FlashcardProductEnrollment.objects.filter(
         student=user,
-        status__in=['active', 'completed']
+        status='active'
     )
     
     return Response({
@@ -959,6 +1150,125 @@ class FlashcardTopicViewSet(viewsets.ModelViewSet):
         
         serializer = self.get_serializer(topics, many=True)
         return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def excel_template(self, request):
+        """Download Excel template for Flashcards import"""
+        import pandas as pd
+        import io
+        
+        columns = ['front_text', 'back_text', 'tags']
+        example = [{
+            'front_text': 'Capital of France?',
+            'back_text': 'Paris',
+            'tags': '["geography", "europe"]'
+        }]
+        
+        df = pd.DataFrame(example, columns=columns)
+        buffer = io.BytesIO()
+        with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='FlashcardsTemplate')
+        buffer.seek(0)
+        
+        resp = HttpResponse(
+            buffer.getvalue(),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        resp['Content-Disposition'] = 'attachment; filename="flashcards_template.xlsx"'
+        return resp
+    
+    @action(detail=True, methods=['post'])
+    def import_excel(self, request, pk=None):
+        """Import flashcards from Excel file into this topic"""
+        import pandas as pd
+        import json
+        
+        topic = self.get_object()
+        
+        if 'file' not in request.FILES:
+            return Response(
+                {'error': 'No file uploaded'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        excel_file = request.FILES['file']
+        
+        # Validate file extension
+        if not excel_file.name.endswith(('.xlsx', '.xls')):
+            return Response(
+                {'error': 'Invalid file format. Please upload an Excel file (.xlsx or .xls)'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            # Read Excel file
+            df = pd.read_excel(excel_file)
+            
+            # Expected columns for flashcards
+            required_columns = ['front_text', 'back_text']
+            
+            # Check if required columns exist
+            missing_columns = [col for col in required_columns if col not in df.columns]
+            if missing_columns:
+                return Response(
+                    {'error': f'Missing required columns: {", ".join(missing_columns)}'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            created_flashcards = []
+            errors = []
+            
+            for index, row in df.iterrows():
+                try:
+                    # Get flashcard data
+                    front_text = str(row['front_text']).strip()
+                    back_text = str(row['back_text']).strip()
+                    tags_str = str(row.get('tags', '')).strip() if pd.notna(row.get('tags')) else ''
+                    
+                    if not front_text or not back_text:
+                        errors.append(f'Row {index + 2}: Both front_text and back_text are required')
+                        continue
+                    
+                    # Parse tags
+                    tags = []
+                    if tags_str:
+                        try:
+                            tags = json.loads(tags_str) if tags_str.startswith('[') else [tag.strip() for tag in tags_str.split(',') if tag.strip()]
+                        except:
+                            tags = [tag.strip() for tag in tags_str.split(',') if tag.strip()]
+                    
+                    # Create flashcard
+                    flashcard = Flashcard.objects.create(
+                        front_text=front_text,
+                        back_text=back_text,
+                        tags=tags,
+                        product=topic.chapter.product,
+                        topic=topic,
+                        created_by=request.user
+                    )
+                    
+                    created_flashcards.append({
+                        'id': flashcard.id,
+                        'front_text': flashcard.front_text[:50] + '...' if len(flashcard.front_text) > 50 else flashcard.front_text
+                    })
+                    
+                except Exception as e:
+                    errors.append(f'Row {index + 2}: {str(e)}')
+                    continue
+            
+            return Response({
+                'success': True,
+                'message': f'Successfully imported {len(created_flashcards)} flashcards',
+                'created_count': len(created_flashcards),
+                'errors': errors,
+                'created_flashcards': created_flashcards
+            }, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Error processing Excel file: {str(e)}'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 # Enrollment Status API
@@ -970,16 +1280,16 @@ def check_enrollment_status(request):
     """Check enrollment status for Question Bank and Flashcards"""
     user = request.user
     
-    # Check Question Bank enrollment
+    # Check Question Bank enrollment (only active)
     question_bank_enrollments = QuestionBankProductEnrollment.objects.filter(
         student=user,
-        status__in=['active', 'completed']
+        status='active'
     )
     
-    # Check Flashcard enrollment
+    # Check Flashcard enrollment (only active)
     flashcard_enrollments = FlashcardProductEnrollment.objects.filter(
         student=user,
-        status__in=['active', 'completed']
+        status='active'
     )
     
     return Response({
@@ -1015,16 +1325,16 @@ def check_enrollment_status(request):
     """Check enrollment status for Question Bank and Flashcards"""
     user = request.user
     
-    # Check Question Bank enrollment
+    # Check Question Bank enrollment (only active)
     question_bank_enrollments = QuestionBankProductEnrollment.objects.filter(
         student=user,
-        status__in=['active', 'completed']
+        status='active'
     )
     
-    # Check Flashcard enrollment
+    # Check Flashcard enrollment (only active)
     flashcard_enrollments = FlashcardProductEnrollment.objects.filter(
         student=user,
-        status__in=['active', 'completed']
+        status='active'
     )
     
     return Response({

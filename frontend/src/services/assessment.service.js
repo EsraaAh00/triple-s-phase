@@ -40,11 +40,13 @@ const ASSESSMENT_API = {
   QUESTION_BANK_CHAPTER_DETAIL: (id) => `/api/assessment/question-bank-chapters/${id}/`,
   QUESTION_BANK_TOPICS: '/api/assessment/question-bank-topics/',
   QUESTION_BANK_TOPIC_DETAIL: (id) => `/api/assessment/question-bank-topics/${id}/`,
+  QUESTION_BANK_TOPIC_TEMPLATE: '/api/assessment/question-bank-topics/excel_template/',
   
   FLASHCARD_CHAPTERS: '/api/assessment/flashcard-chapters/',
   FLASHCARD_CHAPTER_DETAIL: (id) => `/api/assessment/flashcard-chapters/${id}/`,
   FLASHCARD_TOPICS: '/api/assessment/flashcard-topics/',
   FLASHCARD_TOPIC_DETAIL: (id) => `/api/assessment/flashcard-topics/${id}/`,
+  FLASHCARD_TOPIC_TEMPLATE: '/api/assessment/flashcard-topics/excel_template/',
   
   // Enrollment Status API
   ENROLLMENT_STATUS: '/api/assessment/enrollment-status/',
@@ -1250,6 +1252,106 @@ class AssessmentService {
           flashcards: { is_enrolled: false, enrollments_count: 0 }
         }
       };
+    }
+  }
+
+  // ==================== IMPORT EXCEL ====================
+  
+  /**
+   * Import questions from Excel file into a topic
+   * @param {number} topicId - Topic ID
+   * @param {File} file - Excel file
+   * @returns {Promise<Object>} Import result
+   */
+  async importQuestionsExcel(topicId, file) {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await api.post(
+        `${ASSESSMENT_API.QUESTION_BANK_TOPIC_DETAIL(topicId)}import_excel/`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+      
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      console.error('Error importing questions from Excel:', error);
+      return {
+        success: false,
+        error: error.response?.data || error.message
+      };
+    }
+  }
+
+  /**
+   * Import flashcards from Excel file into a topic
+   * @param {number} topicId - Topic ID
+   * @param {File} file - Excel file
+   * @returns {Promise<Object>} Import result
+   */
+  async importFlashcardsExcel(topicId, file) {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await api.post(
+        `${ASSESSMENT_API.FLASHCARD_TOPIC_DETAIL(topicId)}import_excel/`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+      
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      console.error('Error importing flashcards from Excel:', error);
+      return {
+        success: false,
+        error: error.response?.data || error.message
+      };
+    }
+  }
+
+  /**
+   * Download Question Bank Excel template
+   * @returns {Promise<Blob>} Excel blob
+   */
+  async downloadQuestionTemplate() {
+    try {
+      const response = await api.get(ASSESSMENT_API.QUESTION_BANK_TOPIC_TEMPLATE, {
+        responseType: 'blob'
+      });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data || error.message };
+    }
+  }
+
+  /**
+   * Download Flashcards Excel template
+   * @returns {Promise<Blob>} Excel blob
+   */
+  async downloadFlashcardTemplate() {
+    try {
+      const response = await api.get(ASSESSMENT_API.FLASHCARD_TOPIC_TEMPLATE, {
+        responseType: 'blob'
+      });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data || error.message };
     }
   }
 }

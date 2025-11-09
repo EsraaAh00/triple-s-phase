@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 import uuid
-from django.db.models.signals import post_save, post_delete
+from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
 from django_ckeditor_5.fields import CKEditor5Field
 from django.utils.translation import gettext_lazy as _
@@ -254,3 +254,148 @@ def update_user_profile(sender, instance, created, **kwargs):
             import logging
             logger = logging.getLogger(__name__)
             logger.error(f"Error updating profile for user {instance.username}: {str(e)}")
+
+
+# متغير لتخزين الحالة القديمة قبل الحفظ
+_old_profile_status = {}
+
+@receiver(pre_save, sender=Profile)
+def store_old_profile_status(sender, instance, **kwargs):
+    """
+    تخزين الحالة القديمة للبروفايل قبل الحفظ
+    """
+    if instance.pk:
+        try:
+            old_instance = Profile.objects.get(pk=instance.pk)
+            _old_profile_status[instance.pk] = old_instance.status
+        except Profile.DoesNotExist:
+            _old_profile_status[instance.pk] = None
+
+
+@receiver(post_save, sender=Profile)
+def create_student_or_instructor_profile(sender, instance, created, **kwargs):
+    """
+    Signal handler to automatically create Student or Instructor profile
+    when a Profile is created or status changes.
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    try:
+        # عند إنشاء Profile جديد
+        if created:
+            if instance.status == 'Student':
+                # إنشاء بروفايل طالب تلقائياً
+                Student.objects.get_or_create(
+                    profile=instance,
+                    defaults={
+                        'department': 'عام',
+                    }
+                )
+                logger.info(f"تم إنشاء بروفايل طالب تلقائياً للمستخدم: {instance.name}")
+            
+            elif instance.status == 'Instructor':
+                # إنشاء بروفايل مدرب تلقائياً
+                Instructor.objects.get_or_create(
+                    profile=instance,
+                    defaults={
+                        'bio': 'مدرب في المنصة',
+                        'qualification': 'مؤهل تعليمي'
+                    }
+                )
+                logger.info(f"تم إنشاء بروفايل مدرب تلقائياً للمستخدم: {instance.name}")
+        
+        # عند تحديث Profile (تغيير الحالة)
+        else:
+            # الحصول على الحالة القديمة من المتغير المؤقت
+            old_status = _old_profile_status.get(instance.pk, None)
+            
+            # تنظيف المتغير المؤقت
+            if instance.pk in _old_profile_status:
+                del _old_profile_status[instance.pk]
+            
+            # إذا تغيرت الحالة
+            if old_status and old_status != instance.status:
+                # إذا تغيرت من Student إلى Instructor
+                if old_status == 'Student' and instance.status == 'Instructor':
+                    # حذف بروفايل الطالب
+                    Student.objects.filter(profile=instance).delete()
+                    # إنشاء بروفايل المدرب
+                    Instructor.objects.get_or_create(
+                        profile=instance,
+                        defaults={
+                            'bio': 'مدرب في المنصة',
+                            'qualification': 'مؤهل تعليمي'
+                        }
+                    )
+                    logger.info(f"تم نقل البروفايل من طالب إلى مدرب للمستخدم: {instance.name}")
+                
+                # إذا تغيرت من Instructor إلى Student
+                elif old_status == 'Instructor' and instance.status == 'Student':
+                    # حذف بروفايل المدرب
+                    Instructor.objects.filter(profile=instance).delete()
+                    # إنشاء بروفايل الطالب
+                    Student.objects.get_or_create(
+                        profile=instance,
+                        defaults={
+                            'department': 'عام',
+                        }
+                    )
+                    logger.info(f"تم نقل البروفايل من مدرب إلى طالب للمستخدم: {instance.name}")
+                
+                # إذا تغيرت من أي حالة إلى Student
+                elif instance.status == 'Student':
+                    # التأكد من وجود بروفايل طالب
+                    Student.objects.get_or_create(
+                        profile=instance,
+                        defaults={
+                            'department': 'عام',
+                        }
+                    )
+                    # حذف بروفايل المدرب إذا كان موجوداً
+                    Instructor.objects.filter(profile=instance).delete()
+                    logger.info(f"تم إنشاء/تحديث بروفايل طالب للمستخدم: {instance.name}")
+                
+                # إذا تغيرت من أي حالة إلى Instructor
+                elif instance.status == 'Instructor':
+                    # التأكد من وجود بروفايل مدرب
+                    Instructor.objects.get_or_create(
+                        profile=instance,
+                        defaults={
+                            'bio': 'مدرب في المنصة',
+                            'qualification': 'مؤهل تعليمي'
+                        }
+                    )
+                    # حذف بروفايل الطالب إذا كان موجوداً
+                    Student.objects.filter(profile=instance).delete()
+                    logger.info(f"تم إنشاء/تحديث بروفايل مدرب للمستخدم: {instance.name}")
+            
+            # إذا لم تتغير الحالة، تأكد من وجود البروفايل المناسب
+            elif not old_status or old_status == instance.status:
+                if instance.status == 'Student':
+                    # التأكد من وجود بروفايل طالب
+                    has_student = Student.objects.filter(profile=instance).exists()
+                    if not has_student:
+                        Student.objects.get_or_create(
+                            profile=instance,
+                            defaults={
+                                'department': 'عام',
+                            }
+                        )
+                        logger.info(f"تم إنشاء بروفايل طالب للمستخدم: {instance.name}")
+                
+                elif instance.status == 'Instructor':
+                    # التأكد من وجود بروفايل مدرب
+                    has_instructor = Instructor.objects.filter(profile=instance).exists()
+                    if not has_instructor:
+                        Instructor.objects.get_or_create(
+                            profile=instance,
+                            defaults={
+                                'bio': 'مدرب في المنصة',
+                                'qualification': 'مؤهل تعليمي'
+                            }
+                        )
+                        logger.info(f"تم إنشاء بروفايل مدرب للمستخدم: {instance.name}")
+    
+    except Exception as e:
+        logger.error(f"خطأ في إنشاء/تحديث بروفايل Student/Instructor للمستخدم {instance.name}: {str(e)}")

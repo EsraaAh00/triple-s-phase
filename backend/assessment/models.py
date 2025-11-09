@@ -269,6 +269,10 @@ class QuestionBankProductEnrollment(models.Model):
         return f"{self.student.get_full_name()} - {self.product.title}"
     
     def save(self, *args, **kwargs):
+        # Check if completion_date has passed and automatically mark as completed
+        if self.completion_date and self.completion_date <= timezone.now() and self.status != 'completed':
+            self.status = 'completed'
+        
         # Update completion date if status changes to completed
         if self.status == 'completed' and not self.completion_date:
             self.completion_date = timezone.now()
@@ -868,6 +872,10 @@ class FlashcardProductEnrollment(models.Model):
         return f"{self.student.get_full_name()} - {self.product.title}"
     
     def save(self, *args, **kwargs):
+        # Check if completion_date has passed and automatically mark as completed
+        if self.completion_date and self.completion_date <= timezone.now() and self.status != 'completed':
+            self.status = 'completed'
+        
         # Update completion date if status changes to completed
         if self.status == 'completed' and not self.completion_date:
             self.completion_date = timezone.now()
