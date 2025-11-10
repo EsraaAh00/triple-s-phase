@@ -197,11 +197,7 @@ const FlashcardStudy = () => {
   };
 
   const handleShowAnswer = () => {
-    setShowAnswer(true);
-    // Add a subtle animation effect
-    setTimeout(() => {
-      // Optional: Add any additional visual feedback here
-    }, 100);
+    setShowAnswer(prev => !prev);
   };
 
   const handleCorrect = () => {
@@ -562,198 +558,228 @@ const FlashcardStudy = () => {
         </IconButton>
 
         {/* Main Card - Responsive with Flip Animation */}
-        <Box sx={{
-          width: '100%', 
-          maxWidth: { xs: '100%', sm: 450, md: 550 }, 
-          minHeight: { xs: 200, sm: 250, md: 300 },
-          perspective: '1000px',
-          cursor: !showAnswer ? 'pointer' : 'default'
-        }} onClick={!showAnswer ? handleShowAnswer : undefined}>
-          <Card sx={{ 
-            width: '100%', 
-            minHeight: { xs: 200, sm: 250, md: 300 },
-            borderRadius: 2,
-            boxShadow: showAnswer 
-              ? '0 12px 40px rgba(76, 175, 80, 0.2)' 
-              : '0 8px 32px rgba(0,0,0,0.12)',
-            position: 'relative',
-            transition: 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-            background: showAnswer 
-              ? 'linear-gradient(135deg, #e8f5e8 0%, #f1f8e9 100%)'
-              : 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)',
-            border: showAnswer 
-              ? '2px solid #4caf50' 
-              : '1px solid rgba(0,0,0,0.08)',
-            overflow: 'hidden',
-            '&:hover': !showAnswer ? {
-              transform: 'translateY(-4px) scale(1.02)',
-              boxShadow: '0 16px 48px rgba(0,0,0,0.18)',
-              border: '1px solid #1976d2'
-            } : {},
-            '&::before': {
-              content: '""',
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              height: '4px',
-              background: showAnswer 
-                ? 'linear-gradient(90deg, #4caf50, #66bb6a)' 
-                : 'linear-gradient(90deg, #1976d2, #42a5f5)',
-              transition: 'all 0.3s ease'
-            }
-          }}>
-          <CardContent sx={{ 
-            p: { xs: 2, sm: 3, md: 4 }, 
-            textAlign: 'center', 
-            height: '100%', 
-            display: 'flex', 
-            flexDirection: 'column', 
-            justifyContent: 'center',
-            position: 'relative',
-            zIndex: 1,
-            transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)'
-          }}>
-            {!showAnswer ? (
-              <>
-                {/* Question Icon */}
-                <Box sx={{ 
-                  mb: { xs: 2, sm: 2.5 }, 
-                  display: 'flex', 
+        <Box
+          sx={{
+            width: '100%',
+            maxWidth: { xs: '100%', sm: 450, md: 550 },
+            minHeight: { xs: 240, sm: 280, md: 320 },
+            perspective: '1200px',
+            cursor: 'pointer'
+          }}
+          onClick={handleShowAnswer}
+        >
+          <Box
+            sx={{
+              position: 'relative',
+              width: '100%',
+              height: '100%',
+              minHeight: { xs: 240, sm: 280, md: 320 },
+              transformStyle: 'preserve-3d',
+              transition: 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+              transform: showAnswer ? 'rotateY(180deg)' : 'rotateY(0deg)'
+            }}
+          >
+            <Card
+              sx={{
+                position: 'absolute',
+                width: '100%',
+                height: '100%',
+                backfaceVisibility: 'hidden',
+                borderRadius: 3,
+                boxShadow: '0 18px 50px rgba(51, 54, 121, 0.25)',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                textAlign: 'center',
+                overflow: 'hidden'
+              }}
+            >
+              <CardContent
+                sx={{
+                  width: '100%',
+                  height: '100%',
+                  p: { xs: 3, sm: 4 },
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
                   justifyContent: 'center',
-                  opacity: 0.7
-                }}>
-                  <Box sx={{
-                    width: { xs: 40, sm: 50, md: 60 },
-                    height: { xs: 40, sm: 50, md: 60 },
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #1976d2, #42a5f5)',
+                  gap: 2
+                }}
+              >
+                <Box
+                  sx={{
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: '0 2px 8px rgba(25, 118, 210, 0.3)'
-                  }}>
-                    <Typography sx={{ color: 'white', fontSize: { xs: '1.2rem', sm: '1.3rem', md: '1.5rem' } }}>❓</Typography>
-                  </Box>
+                    gap: 1.5
+                  }}
+                >
+                  <Chip
+                    label={t('flashcardStudy.frontSide', 'Front Side')}
+                    size="small"
+                    sx={{
+                      backgroundColor: 'rgba(255,255,255,0.2)',
+                      color: 'white',
+                      fontWeight: 600,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em'
+                    }}
+                  />
                 </Box>
-                
-                <Typography variant="h6" sx={{ 
-                  lineHeight: 1.5, 
-                  color: '#1a1a1a', 
-                  fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
-                  fontWeight: 600,
-                  mb: { xs: 1.5, sm: 2 },
-                  textShadow: '0 1px 2px rgba(0,0,0,0.1)'
-                }}>
+
+                {currentCard?.front_image && (
+                  <Box
+                    sx={{
+                      maxWidth: '80%',
+                      maxHeight: { xs: 120, sm: 140, md: 160 },
+                      borderRadius: 2,
+                      overflow: 'hidden',
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.25)'
+                    }}
+                  >
+                    <img
+                      src={currentCard.front_image}
+                      alt="Question"
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'contain',
+                        display: 'block'
+                      }}
+                    />
+                  </Box>
+                )}
+
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontSize: { xs: '0.95rem', sm: '1.05rem', md: '1.15rem' },
+                    fontWeight: 600,
+                    lineHeight: 1.6,
+                    textShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                    maxWidth: '90%'
+                  }}
+                >
                   {currentCard?.front_text || t('flashcardStudy.noQuestion', 'No question available')}
                 </Typography>
-                
-                {currentCard?.front_image && (
-                  <Box sx={{ 
-                    mt: 3, 
-                    borderRadius: 2,
-                    overflow: 'hidden',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-                  }}>
-                    <img 
-                      src={currentCard.front_image} 
-                      alt="Question" 
-                      style={{ 
-                        maxWidth: '100%', 
-                        maxHeight: 220, 
-                        borderRadius: 12,
+
+                <Typography
+                  variant="body2"
+                  sx={{
+                    mt: 1,
+                    px: 3,
+                    py: 1,
+                    borderRadius: 999,
+                    backgroundColor: 'rgba(255,255,255,0.15)',
+                    fontWeight: 500,
+                    letterSpacing: 0.3
+                  }}
+                >
+                  {isCompleted
+                    ? t('flashcardStudy.alreadyAnswered', 'Already answered')
+                    : t('flashcardStudy.tapToFlip', 'Tap to flip')}
+                </Typography>
+              </CardContent>
+            </Card>
+
+            <Card
+              sx={{
+                position: 'absolute',
+                width: '100%',
+                height: '100%',
+                backfaceVisibility: 'hidden',
+                transform: 'rotateY(180deg)',
+                borderRadius: 3,
+                boxShadow: '0 18px 50px rgba(27, 94, 32, 0.25)',
+                background: 'linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%)',
+                color: 'white',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                textAlign: 'center',
+                overflow: 'hidden'
+              }}
+            >
+              <CardContent
+                sx={{
+                  width: '100%',
+                  height: '100%',
+                  p: { xs: 3, sm: 4 },
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 2
+                }}
+              >
+                <Chip
+                  label={t('flashcardStudy.backSide', 'Back Side')}
+                  size="small"
+                  sx={{
+                    backgroundColor: 'rgba(255,255,255,0.2)',
+                    color: 'white',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em'
+                  }}
+                />
+
+                {currentCard?.back_image && (
+                  <Box
+                    sx={{
+                      maxWidth: '80%',
+                      maxHeight: { xs: 120, sm: 140, md: 160 },
+                      borderRadius: 2,
+                      overflow: 'hidden',
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.25)'
+                    }}
+                  >
+                    <img
+                      src={currentCard.back_image}
+                      alt="Answer"
+                      style={{
+                        width: '100%',
+                        height: '100%',
                         objectFit: 'contain',
                         display: 'block'
-                      }} 
+                      }}
                     />
                   </Box>
                 )}
-                
-                <Box sx={{ 
-                  mt: 4, 
-                  p: 2, 
-                  borderRadius: 2,
-                  background: isCompleted 
-                    ? 'rgba(76, 175, 80, 0.05)' 
-                    : 'rgba(25, 118, 210, 0.05)',
-                  border: isCompleted 
-                    ? '1px dashed #4caf50' 
-                    : '1px dashed #1976d2'
-                }}>
-                  <Typography variant="body2" sx={{ 
-                    color: isCompleted ? '#4caf50' : '#1976d2', 
-                    fontWeight: 500,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 1
-                  }}>
-                    <span>{isCompleted ? '✅' : '👆'}</span>
-                    {isCompleted 
-                      ? t('flashcardStudy.alreadyAnswered', 'Already answered') 
-                      : t('flashcardStudy.clickToReveal', 'Click to reveal answer')
-                    }
-                  </Typography>
-                </Box>
-              </>
-            ) : (
-              <>
-                {/* Answer Icon */}
-                <Box sx={{ 
-                  mb: 3, 
-                  display: 'flex', 
-                  justifyContent: 'center',
-                  opacity: 0.8
-                }}>
-                  <Box sx={{
-                    width: 60,
-                    height: 60,
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #4caf50, #66bb6a)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: '0 4px 12px rgba(76, 175, 80, 0.3)'
-                  }}>
-                    <Typography sx={{ color: 'white', fontSize: '1.5rem' }}>✅</Typography>
-                  </Box>
-                </Box>
-                
-                <Typography variant="h5" sx={{ 
-                  lineHeight: 1.6, 
-                  color: '#1b5e20', 
-                  fontSize: { xs: '1.1rem', sm: '1.2rem', md: '1.3rem' },
-                  fontWeight: 600,
-                  mb: 2,
-                  textShadow: '0 1px 2px rgba(0,0,0,0.1)'
-                }}>
+
+                <Typography
+                  variant="h5"
+                  sx={{
+                    fontSize: { xs: '1.05rem', sm: '1.15rem', md: '1.25rem' },
+                    fontWeight: 700,
+                    lineHeight: 1.6,
+                    textShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                    maxWidth: '90%'
+                  }}
+                >
                   {currentCard?.back_text || t('flashcardStudy.noAnswer', 'No answer available')}
                 </Typography>
-                
-                {currentCard?.back_image && (
-                  <Box sx={{ 
-                    mt: 3, 
-                    borderRadius: 2,
-                    overflow: 'hidden',
-                    boxShadow: '0 4px 12px rgba(76, 175, 80, 0.2)'
-                  }}>
-                    <img 
-                      src={currentCard.back_image} 
-                      alt="Answer" 
-                      style={{ 
-                        maxWidth: '100%', 
-                        maxHeight: 220, 
-                        borderRadius: 12,
-                        objectFit: 'contain',
-                        display: 'block'
-                      }} 
-                    />
-                  </Box>
-                )}
-              </>
-            )}
-          </CardContent>
-        </Card>
+
+                <Typography
+                  variant="body2"
+                  sx={{
+                    mt: 1,
+                    px: 3,
+                    py: 1,
+                    borderRadius: 999,
+                    backgroundColor: 'rgba(255,255,255,0.18)',
+                    fontWeight: 500,
+                    letterSpacing: 0.3
+                  }}
+                >
+                  {t('flashcardStudy.tapToFlipBack', 'Tap to see the question again')}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Box>
         </Box>
 
         {/* Next Arrow */}
