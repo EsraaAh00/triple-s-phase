@@ -130,7 +130,8 @@ const QuestionBankFilter = () => {
     try {
       const response = await assessmentService.getQuestionBankProducts({ 
         status: 'published',
-        page_size: 100 
+        page_size: 100,
+        enrolled_only: true
       });
       
       if (response.success) {

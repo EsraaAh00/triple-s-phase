@@ -55,6 +55,18 @@ class QuestionBankProductViewSet(viewsets.ModelViewSet):
     ordering_fields = ['created_at', 'price', 'title']
     ordering = ['-created_at']
     
+    def get_queryset(self):
+        """Optionally filter products by student's active enrollments"""
+        queryset = super().get_queryset()
+        user = self.request.user
+        enrolled_only = self.request.query_params.get('enrolled_only')
+        if enrolled_only and str(enrolled_only).lower() in ('1', 'true', 'yes'):
+            queryset = queryset.filter(
+                enrollments__student=user,
+                enrollments__status='active'
+            )
+        return queryset.select_related('course', 'created_by').prefetch_related('chapters').distinct()
+    
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
     
@@ -137,6 +149,18 @@ class FlashcardProductViewSet(viewsets.ModelViewSet):
     search_fields = ['title', 'description', 'course__title']
     ordering_fields = ['created_at', 'price', 'title']
     ordering = ['-created_at']
+    
+    def get_queryset(self):
+        """Optionally filter products by student's active enrollments"""
+        queryset = super().get_queryset()
+        user = self.request.user
+        enrolled_only = self.request.query_params.get('enrolled_only')
+        if enrolled_only and str(enrolled_only).lower() in ('1', 'true', 'yes'):
+            queryset = queryset.filter(
+                enrollments__student=user,
+                enrollments__status='active'
+            )
+        return queryset.select_related('course', 'created_by').prefetch_related('chapters').distinct()
     
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)

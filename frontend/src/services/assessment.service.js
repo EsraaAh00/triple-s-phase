@@ -1025,7 +1025,7 @@ class AssessmentService {
         ? ASSESSMENT_API.QUESTION_BANK_CHAPTERS
         : ASSESSMENT_API.FLASHCARD_CHAPTERS;
       
-      const response = await api.get(endpoint, { params: { product: productId } });
+      const response = await api.get(endpoint, { params: { product: productId, page_size: 1000 } });
       
       return {
         success: true,
@@ -1134,7 +1134,7 @@ class AssessmentService {
         : ASSESSMENT_API.FLASHCARD_TOPICS;
       
       const response = await api.get(endpoint, { 
-        params: { chapter: chapterId } 
+        params: { chapter: chapterId, page_size: 1000 } 
       });
       
       return {

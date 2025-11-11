@@ -130,7 +130,8 @@ const FlashcardFilter = () => {
     try {
       const response = await assessmentService.getFlashcardProducts({ 
         status: 'published',
-        page_size: 100 
+        page_size: 100,
+        enrolled_only: true
       });
       
       if (response.success) {

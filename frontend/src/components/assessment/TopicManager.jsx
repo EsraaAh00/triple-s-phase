@@ -71,6 +71,7 @@ const TopicManager = ({ chapter, type, onTopicSelect, onNotification }) => {
       const result = await assessmentAPI.getTopics(chapter.id, type);
       if (result.success) {
         setTopics(result.data);
+        setPage(0);
       } else {
         onNotification(result.error, 'error');
       }
@@ -382,7 +383,7 @@ const TopicManager = ({ chapter, type, onTopicSelect, onNotification }) => {
             </Table>
           </TableContainer>
           <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
+            rowsPerPageOptions={[10, 25, 50, 100]}
             component="div"
             count={topics.length}
             rowsPerPage={rowsPerPage}
