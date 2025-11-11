@@ -89,9 +89,10 @@ const LeftSection = styled(Box)(({ theme, backgroundImage }) => ({
     // Responsive height and order
     height: '500px',
     '@media (max-width: 600px)': {
-        height: '300px',
+        height: 'auto',
         order: 2,
         width: '100%',
+        backgroundImage: 'none',
     },
     '@media (min-width: 600px) and (max-width: 900px)': {
         height: '350px',
@@ -118,6 +119,14 @@ const StatsCard = styled(Box)(({ theme }) => ({
     boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
     minWidth: '200px',
     animation: `${bounceAnimation} 3s ease-in-out infinite`,
+    '@media (max-width: 600px)': {
+        position: 'relative',
+        bottom: 'auto',
+        left: 'auto',
+        marginTop: theme.spacing(2),
+        width: '100%',
+        maxWidth: '320px',
+    },
 }));
 
 const StatsTitle = styled(Typography)(({ theme }) => ({
@@ -178,6 +187,26 @@ const GetStartedButton = styled(Button)(({ theme }) => ({
     },
     '& .MuiButton-endIcon': {
         marginLeft: theme.spacing(0.5),
+    },
+    '@media (max-width: 600px)': {
+        position: 'relative',
+        bottom: 'auto',
+        left: 'auto',
+        transform: 'none',
+        marginTop: theme.spacing(2),
+        width: '100%',
+        maxWidth: '280px',
+    },
+}));
+
+const ResponsiveImage = styled('img')(({ theme }) => ({
+    width: '100%',
+    height: 'auto',
+    objectFit: 'cover',
+    display: 'none',
+    '@media (max-width: 600px)': {
+        display: 'block',
+        borderRadius: '16px',
     },
 }));
 
@@ -513,6 +542,10 @@ const WhyChooseUsSection = () => {
                     <LeftSection
                         backgroundImage={displayBannerData?.image_url ? `url("${displayBannerData.image_url}")` : undefined}
                     >
+                        <ResponsiveImage
+                            src={displayBannerData?.image_url || fallbackWhyChooseUsBanner.image_url}
+                            alt={getLocalizedText(displayBannerData?.title, displayBannerData?.title_ar)}
+                        />
                         <StatsCard>
                             <StatsTitle>10k+ Active Students</StatsTitle>
                             <ProfileContainer>
