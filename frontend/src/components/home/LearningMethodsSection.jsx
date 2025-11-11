@@ -115,13 +115,17 @@ const ContentWrapper = styled(Box, {
     gridTemplateColumns: '1fr',
     gap: theme.spacing(0.8),
     minHeight: 'auto',
-    alignItems: 'flex-start',
+    alignItems: 'center',
+    justifyItems: 'center',
+    padding: theme.spacing(2, 1.5),
   },
   '@media (min-width: 600px) and (max-width: 900px)': {
     gridTemplateColumns: '1fr',
     gap: theme.spacing(1),
     minHeight: 'auto',
-    alignItems: 'flex-start',
+    alignItems: 'center',
+    justifyItems: 'center',
+    padding: theme.spacing(2.5, 2),
   },
   '@media (min-width: 900px) and (max-width: 1200px)': {
     gridTemplateColumns: '1fr',
@@ -168,12 +172,14 @@ const LeftSection = styled(Box, {
     order: 1,
     gap: theme.spacing(0.3),
     padding: theme.spacing(0, 0.5),
+    alignItems: 'center',
   },
   '@media (min-width: 600px) and (max-width: 900px)': {
     textAlign: 'center',
     order: 1,
     gap: theme.spacing(0.4),
     padding: theme.spacing(0, 1),
+    alignItems: 'center',
   },
   '@media (min-width: 900px) and (max-width: 1200px)': {
     textAlign: 'center',
@@ -825,13 +831,22 @@ const LearningMethodsSection = () => {
             {/* Three Learning Methods with Circular Icons and Text Below */}
             <Box sx={{
               display: 'flex',
-              gap: { xs: 0, sm: 0.3, md: 0.5 },
-              justifyContent: 'center',
+              gap: {
+                xs: theme.spacing(2),
+                sm: theme.spacing(1.5),
+                md: theme.spacing(0.5)
+              },
+              rowGap: {
+                xs: theme.spacing(3),
+                sm: theme.spacing(2),
+                md: theme.spacing(0.5)
+              },
+              justifyContent: { xs: 'center', md: 'center' },
               alignItems: 'flex-start',
-              flexWrap: 'nowrap',
+              flexWrap: { xs: 'wrap', md: 'nowrap' },
               width: '100%',
-              overflowX: 'auto',
-              padding: { xs: '0', sm: '10px 0', md: '20px 0' },
+              overflowX: { xs: 'visible', md: 'auto' },
+              padding: { xs: theme.spacing(1.5, 0), sm: '10px 0', md: '20px 0' },
               '&::-webkit-scrollbar': {
                 display: 'none',
               },
@@ -846,7 +861,10 @@ const LearningMethodsSection = () => {
                 textAlign: 'center',
                 cursor: 'pointer',
                 transition: 'all 0.3s ease',
-                minWidth: { xs: '160px', sm: '180px', md: '200px' },
+                minWidth: { xs: 'auto', sm: '180px', md: '200px' },
+                width: { xs: '100%', sm: 'auto' },
+                maxWidth: { xs: '260px', sm: '180px', md: '200px' },
+                margin: { xs: '0 auto', sm: 0 },
                 '&:hover': {
                   transform: 'translateY(-5px)',
                 },
@@ -904,7 +922,10 @@ const LearningMethodsSection = () => {
                 textAlign: 'center',
                 cursor: 'pointer',
                 transition: 'all 0.3s ease',
-                minWidth: { xs: '160px', sm: '180px', md: '200px' },
+                minWidth: { xs: 'auto', sm: '180px', md: '200px' },
+                width: { xs: '100%', sm: 'auto' },
+                maxWidth: { xs: '260px', sm: '180px', md: '200px' },
+                margin: { xs: '0 auto', sm: 0 },
                 '&:hover': {
                   transform: 'translateY(-5px)',
                 },
@@ -962,7 +983,10 @@ const LearningMethodsSection = () => {
                 textAlign: 'center',
                 cursor: 'pointer',
                 transition: 'all 0.3s ease',
-                minWidth: { xs: '160px', sm: '180px', md: '200px' },
+                minWidth: { xs: 'auto', sm: '180px', md: '200px' },
+                width: { xs: '100%', sm: 'auto' },
+                maxWidth: { xs: '260px', sm: '180px', md: '200px' },
+                margin: { xs: '0 auto', sm: 0 },
                 '&:hover': {
                   transform: 'translateY(-5px)',
                 },
